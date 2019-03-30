@@ -6,6 +6,6 @@
 
 -D analyzer-optimize
 -main Client
--js public/client.js
+-js docs/client.js
 
 -lib mithril
