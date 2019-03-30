@@ -11,11 +11,11 @@ var Client = function() { };
 $hxClasses["Client"] = Client;
 Client.__name__ = true;
 Client.main = function() {
-	console.log("src/Client.hx:29:","Hello, world!");
+	console.log("src/Client.hx:13:","Hello, world!");
 	var store = new data_AppStore(new DeepState_$data_$AppState({ page : data_Page.Home, userId : null, users : null, groups : null, songs : null}));
 	store.subscribeObserver(ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([""]),function(state) {
 		m.redraw();
-		console.log("src/Client.hx:41:","redraw");
+		console.log("src/Client.hx:25:","redraw");
 		return;
 	}),store.get_state());
 	store.load();
@@ -85,6 +85,16 @@ Homeview.prototype = $extend(AppStoreView.prototype,{
 				return m.m("p.limit-width.center",cell.info);
 			case 4:
 				return _gthis.songlist(cell.title,cell.songs,cell.filter);
+			case 5:
+				return m.m("div.center",[m.m("input.center[placeholder=Sök din kör]",{ oninput : function(e) {
+					console.log("src/Client.hx:87:",e.target.value);
+					return;
+				}, style : { fontSize : "3vmax"}})]);
+			case 6:
+				return m.m("div.center",[m.m("button.center",{ onclick : function(e1) {
+					console.log("src/Client.hx:94:","Click");
+					return;
+				}},"Gå till butiken")]);
 			default:
 				return null;
 			}
@@ -104,12 +114,17 @@ Homeview.prototype = $extend(AppStoreView.prototype,{
 			var groupLists3 = data_HomeCell.Songlist(group1,ds__$ImmutableArray_ImmutableArray_$Impl_$.array(groupLists1),[groupLists2]);
 			return _gthis.cells([groupLists3]);
 		});
+		var choirsInfo = groupLists.length > 0 ? "Här visas de låtar dom delats ut till dig genom dina körer." : "Du verkar inte vara kopplad till någon kör eller grupp i ScorX. Du kan söka efter din kör och begära att bli medlem.";
+		var searchChoirCell = null;
+		if(groupLists.length == 0) {
+			searchChoirCell = this.cells([data_HomeCell.SearchChoir]);
+		}
 		var mySongs = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(user.songs,function(title1) {
 			return _gthis.store.getSong(title1);
 		}));
-		console.log("src/Client.hx:117:",mySongs.length);
-		var myList = this.cells([data_HomeCell.Songlist("Mina låtar",mySongs,[data_SongFilter.LimitNumber(5)])]);
-		return m.m("div.center",[this.cells([data_HomeCell.Title("Körernas låtar"),data_HomeCell.Info("Här visas de låtar dom delats ut till dig genom dina körer.")]),groupLists,this.cells([data_HomeCell.Title("Dina låtar"),data_HomeCell.Info("Här visas de låtar som du har köpt eller valt genom förmånserbjudanden.")]),myList]);
+		console.log("src/Client.hx:122:",mySongs.length);
+		var myList = mySongs.length > 0 ? this.cells([data_HomeCell.Songlist("Mina låtar",mySongs,[data_SongFilter.LimitNumber(5)])]) : this.cells([data_HomeCell.BuySongs]);
+		return m.m("div.center",[this.cells([data_HomeCell.Title("Körernas låtar"),data_HomeCell.Info(choirsInfo)]),groupLists,searchChoirCell,this.cells([data_HomeCell.Title("Dina låtar"),data_HomeCell.Info("Här visas de låtar som du har köpt eller valt genom förmånserbjudanden.")]),myList]);
 	}
 	,songlist: function(title,songs,filter) {
 		var _gthis = this;
@@ -118,14 +133,14 @@ Homeview.prototype = $extend(AppStoreView.prototype,{
 		while(_g < filter.length) {
 			var f = filter[_g];
 			++_g;
-			console.log("src/Client.hx:142:",songs.length);
+			console.log("src/Client.hx:145:",songs.length);
 			switch(f._hx_index) {
 			case 0:
 				break;
 			case 1:
 				songs = songs.filter((function(cat) {
 					return function(song) {
-						console.log("src/Client.hx:147:",Std.string(song.category) + " " + Std.string(cat[0]));
+						console.log("src/Client.hx:150:",Std.string(song.category) + " " + Std.string(cat[0]));
 						var e = song.category;
 						return $hxEnums[e.__enum__].__constructs__[e._hx_index] == $hxEnums[cat[0].__enum__].__constructs__[cat[0]._hx_index];
 					};
@@ -151,7 +166,7 @@ Homeview.prototype = $extend(AppStoreView.prototype,{
 				break;
 			}
 		}
-		console.log("src/Client.hx:162:",songs.length);
+		console.log("src/Client.hx:165:",songs.length);
 		return m.m("article.center",[m.m("header",m.m("span",title),m.m("input[placeholder=Sök]")),m.m("ul",songs.map(function(song2) {
 			var e1 = song2.producer;
 			return m.m("li",[m.m(".thumb",m.m("img",{ src : "assets/scorx/" + $hxEnums[e1.__enum__].__constructs__[e1._hx_index] + ".png"})),m.m(".title",[m.m("h3",song2.title),m.m("p","Information...")]),m.m(".originators","Originators")]);
@@ -164,6 +179,7 @@ Homeview.prototype = $extend(AppStoreView.prototype,{
 var Pageview = function(store) {
 	AppStoreView.call(this,store);
 	this.home = new Homeview(store);
+	this.create = new CreateUserView(store);
 };
 $hxClasses["Pageview"] = Pageview;
 Pageview.__name__ = true;
@@ -171,13 +187,59 @@ Pageview.__super__ = AppStoreView;
 Pageview.prototype = $extend(AppStoreView.prototype,{
 	view: function() {
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		if(this.store.get_state().page._hx_index == 0) {
+		switch(this.store.get_state().page._hx_index) {
+		case 0:
 			return this.home.view();
-		} else {
+		case 2:
+			return this.create.view();
+		default:
 			return null;
 		}
 	}
 	,__class__: Pageview
+});
+var CreateUserView = function(store) {
+	this.lastname = "a";
+	this.firstname = "a";
+	this.tryPassword = "a";
+	this.tryUsername = "a";
+	AppStoreView.call(this,store);
+};
+$hxClasses["CreateUserView"] = CreateUserView;
+CreateUserView.__name__ = true;
+CreateUserView.__super__ = AppStoreView;
+CreateUserView.prototype = $extend(AppStoreView.prototype,{
+	view: function() {
+		var _gthis = this;
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		return [m.m("h1","Create user"),m.m("div",[m.m("input[placeholder=Användarnamn][required]",{ oninput : function(e) {
+			_gthis.tryUsername = e.target.value;
+			console.log("src/Client.hx:213:",e.target.value);
+			console.log("src/Client.hx:214:",_gthis.tryUsername);
+			return;
+		}}),m.m("input[placeholder=Lösenord][required]",{ oninput : function(e1) {
+			return _gthis.tryPassword = e1.target.value;
+		}}),m.m("input[placeholder=Förnamn][required]",{ oninput : function(e2) {
+			return _gthis.firstname = e2.target.value;
+		}}),m.m("input[placeholder=Lastname][required]",{ oninput : function(e3) {
+			return _gthis.lastname = e3.target.value;
+		}}),m.m("button",{ onclick : function(e4) {
+			console.log("src/Client.hx:239:",_gthis.tryUsername + " " + _gthis.tryPassword + " " + _gthis.firstname + " " + _gthis.lastname);
+			try {
+				cx_Validation.asEmail(_gthis.tryUsername);
+				cx_Validation.asPassword(_gthis.tryPassword);
+				cx_Validation.asFirstname(_gthis.firstname);
+				cx_Validation.asLastname(_gthis.lastname);
+				var newUser = { firstname : _gthis.firstname, lastname : _gthis.lastname, password : _gthis.tryPassword, username : _gthis.tryUsername, sensus : false, groups : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])};
+				console.log("src/Client.hx:254:",newUser);
+				_gthis.store.addUser(newUser);
+			} catch( e5 ) {
+				js_Browser.alert(((e5) instanceof js__$Boot_HaxeError) ? e5.val : e5);
+			}
+			return;
+		}},"Skapa användare")])];
+	}
+	,__class__: CreateUserView
 });
 var MenuView = function(store) {
 	AppStoreView.call(this,store);
@@ -190,6 +252,12 @@ MenuView.prototype = $extend(AppStoreView.prototype,{
 		var _gthis = this;
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
 		return [m.m("button",{ onclick : function(e) {
+			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("page")]), value : data_Page.Home}])});
+			return;
+		}},"Home"),m.m("button",{ onclick : function(e1) {
+			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("page")]), value : data_Page.CreateUser}])});
+			return;
+		}},"Create user"),m.m("button",{ onclick : function(e2) {
 			_gthis.store.resetToDefaultData();
 			return;
 		}},"Reset data")];
@@ -207,7 +275,7 @@ Userview.__super__ = AppStoreView;
 Userview.prototype = $extend(AppStoreView.prototype,{
 	view: function() {
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		console.log("src/Client.hx:205:","userview");
+		console.log("src/Client.hx:288:","userview");
 		if(this.store.get_state().userId != null) {
 			return this.user();
 		} else {
@@ -236,101 +304,6 @@ Userview.prototype = $extend(AppStoreView.prototype,{
 		}},"Logga in")])];
 	}
 	,__class__: Userview
-});
-var cx_DomComponentLazy = function() {
-	this.el = null;
-};
-$hxClasses["cx.DomComponentLazy"] = cx_DomComponentLazy;
-cx_DomComponentLazy.__name__ = true;
-cx_DomComponentLazy.prototype = {
-	set_el: function(el) {
-		if(el == null) {
-			throw new js__$Boot_HaxeError("DomComponentLazy parent element is null");
-		}
-		this.el = el;
-		return this.el;
-	}
-	,setParent: function(el) {
-		this.set_el(el);
-		return this;
-	}
-	,view: function() {
-		console.log("../fb-libs/src-cx/cx/DomTools.hx:260:","should be overridden!");
-		return null;
-	}
-	,release: function() {
-		console.log("../fb-libs/src-cx/cx/DomTools.hx:265:","Disconnect, should be overridden");
-	}
-	,render: function(element) {
-		var _gthis = this;
-		if(this.el == null && element != null) {
-			this.set_el(element);
-		}
-		if(this.el == null) {
-			console.log("../fb-libs/src-cx/cx/DomTools.hx:272:","DomComponentLazy No Render");
-			return this;
-		}
-		this.el.innerHTML = "";
-		var view = this.view();
-		if(view == null) {
-			return this;
-		}
-		switch(view._hx_index) {
-		case 0:
-			var span = window.document.createElement("span");
-			span.innerText = view.v;
-			this.el.appendChild(span);
-			break;
-		case 1:
-			this.el.appendChild(view.v);
-			break;
-		case 2:
-			view.v.map(function(v) {
-				return _gthis.el.appendChild(v);
-			});
-			break;
-		}
-		return this;
-	}
-	,__class__: cx_DomComponentLazy
-};
-var CreateUserView = function(store) {
-	cx_DomComponentLazy.call(this);
-	this.store = store;
-};
-$hxClasses["CreateUserView"] = CreateUserView;
-CreateUserView.__name__ = true;
-CreateUserView.__super__ = cx_DomComponentLazy;
-CreateUserView.prototype = $extend(cx_DomComponentLazy.prototype,{
-	view: function() {
-		var _gthis = this;
-		this.first = "Nisse";
-		this.last = "Kubik";
-		this.user = "nisse@kubik.se";
-		this.pass = "kubik";
-		return cx_Either3.TypeB(cx_DomTools.form("Skapa användare",cx_Either3.TypeC([cx_DomTools.h1("Create user"),cx_DomTools.input(this.first,function(v) {
-			return _gthis.first = v;
-		},true,"Förnamn"),cx_DomTools.input(this.last,function(v1) {
-			return _gthis.last = v1;
-		},true,"Efternamn"),cx_DomTools.username(this.user,function(v2) {
-			return _gthis.user = v2;
-		},"E-post"),cx_DomTools.password(this.pass,function(v3) {
-			return _gthis.pass = v3;
-		},"Lösenord"),cx_DomTools.button("Skapa",function(e) {
-			try {
-				cx_Validation.asFirstname(_gthis.first);
-				cx_Validation.asLastname(_gthis.last);
-				cx_Validation.asEmail(_gthis.user);
-				cx_Validation.asPassword(_gthis.pass);
-				var newUser = { firstname : _gthis.first, lastname : _gthis.last, username : _gthis.user, password : _gthis.pass, sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groups : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])};
-				_gthis.store.addUser(newUser);
-			} catch( e1 ) {
-				js_Browser.alert(((e1) instanceof js__$Boot_HaxeError) ? e1.val : e1);
-			}
-			return;
-		})])));
-	}
-	,__class__: CreateUserView
 });
 var DeepState = function() { };
 $hxClasses["DeepState"] = DeepState;
@@ -795,16 +768,6 @@ Std.__name__ = true;
 Std.string = function(s) {
 	return js_Boot.__string_rec(s,"");
 };
-var StringTools = function() { };
-$hxClasses["StringTools"] = StringTools;
-StringTools.__name__ = true;
-StringTools.startsWith = function(s,start) {
-	if(s.length >= start.length) {
-		return HxOverrides.substr(s,0,start.length) == start;
-	} else {
-		return false;
-	}
-};
 var Type = function() { };
 $hxClasses["Type"] = Type;
 Type.__name__ = true;
@@ -858,359 +821,6 @@ cx_ArrayItems.eighth = function(array) {
 };
 cx_ArrayItems.nineth = function(array) {
 	return array[8];
-};
-var cx_DomTools = function() { };
-$hxClasses["cx.DomTools"] = cx_DomTools;
-cx_DomTools.__name__ = true;
-cx_DomTools.el = function(sel) {
-	var el = window.document.querySelector(sel);
-	if(el == null) {
-		console.log("../fb-libs/src-cx/cx/DomTools.hx:15:","Can not find DOM element with selector " + sel);
-		return null;
-	}
-	return el;
-};
-cx_DomTools.elClick = function(sel,cb) {
-	var el = window.document.querySelector(sel);
-	var tmp;
-	if(el == null) {
-		console.log("../fb-libs/src-cx/cx/DomTools.hx:15:","Can not find DOM element with selector " + sel);
-		tmp = null;
-	} else {
-		tmp = el;
-	}
-	tmp.onclick = cb;
-};
-cx_DomTools.renderElements = function(target,items) {
-	target.innerHTML = "";
-	items.map(function(item) {
-		return target.appendChild(item);
-	});
-};
-cx_DomTools.interval = function(ms,fn) {
-	window.setInterval(fn,ms);
-};
-cx_DomTools.create = function(elType,text) {
-	var el = window.document.createElement(elType);
-	if(text != null) {
-		el.innerText = text;
-	}
-	return el;
-};
-cx_DomTools.setAttr = function(el,attr,value) {
-	el.setAttribute(attr,value);
-	return el;
-};
-cx_DomTools.elAttr = function(el,attr,value) {
-	el.setAttribute(attr,value);
-	return el;
-};
-cx_DomTools.elStyle = function(el,prop,value) {
-	el.style.setProperty(prop,value);
-	return el;
-};
-cx_DomTools.addListener = function(el,type,cb) {
-	el.addEventListener(type,cb);
-	return el;
-};
-cx_DomTools.append = function(el,ch) {
-	switch(ch._hx_index) {
-	case 0:
-		var span = window.document.createElement("span");
-		span.innerText = ch.v;
-		el.appendChild(span);
-		break;
-	case 1:
-		el.appendChild(ch.v);
-		break;
-	case 2:
-		ch.v.filter(function(v) {
-			return v != null;
-		}).map(function(v1) {
-			return el.appendChild(v1);
-		});
-		break;
-	}
-	return el;
-};
-cx_DomTools.mount = function(el,ch) {
-	el.innerHTML = "";
-	cx_DomTools.append(el,ch);
-};
-cx_DomTools.m2Button = function(label,onclick) {
-	return cx_DomTools.m2("button",{ onclick : onclick},cx_Either3.TypeA(label));
-};
-cx_DomTools.m2h1 = function(text) {
-	return cx_DomTools.m2("h1",null,cx_Either3.TypeA(text));
-};
-cx_DomTools.m2h2 = function(text) {
-	return cx_DomTools.m2("h2",null,cx_Either3.TypeA(text));
-};
-cx_DomTools.m2h3 = function(text) {
-	return cx_DomTools.m2("h3",null,cx_Either3.TypeA(text));
-};
-cx_DomTools.m2p = function(text) {
-	return cx_DomTools.m2("p",null,cx_Either3.TypeA(text));
-};
-cx_DomTools.m2span = function(text) {
-	return cx_DomTools.m2("span",null,cx_Either3.TypeA(text));
-};
-cx_DomTools.div = function(id,cls,children) {
-	return cx_DomTools.m2("div",{ id : id, cls : cls},children);
-};
-cx_DomTools.section = function(id,cls,children) {
-	return cx_DomTools.m2("section",{ id : id, cls : cls},children);
-};
-cx_DomTools.img = function(src) {
-	return cx_DomTools.m2("img",{ src : src});
-};
-cx_DomTools.h1 = function(text) {
-	return cx_DomTools.m2("h1",null,cx_Either3.TypeA(text));
-};
-cx_DomTools.h2 = function(text) {
-	return cx_DomTools.m2("h2",null,cx_Either3.TypeA(text));
-};
-cx_DomTools.h3 = function(text) {
-	return cx_DomTools.m2("h3",null,cx_Either3.TypeA(text));
-};
-cx_DomTools.p = function(text) {
-	return cx_DomTools.m2("p",null,cx_Either3.TypeA(text));
-};
-cx_DomTools.span = function(text) {
-	return cx_DomTools.m2("span",null,cx_Either3.TypeA(text));
-};
-cx_DomTools.input = function(value,cb,required,placeholder) {
-	if(placeholder == null) {
-		placeholder = "placeholder";
-	}
-	if(required == null) {
-		required = true;
-	}
-	var input = cx_DomTools.m2("input",{ required : required, value : value, placeholder : placeholder});
-	input.oninput = function(e) {
-		cb(input.value);
-		return;
-	};
-	return input;
-};
-cx_DomTools.username = function(value,cb,placeholder) {
-	if(placeholder == null) {
-		placeholder = "E-post";
-	}
-	var input = cx_DomTools.m2("input",{ required : true, value : value, placeholder : placeholder});
-	input.oninput = function(e) {
-		cb(input.value);
-		return;
-	};
-	return input;
-};
-cx_DomTools.password = function(value,cb,placeholder) {
-	if(placeholder == null) {
-		placeholder = "Lösenord";
-	}
-	var input = cx_DomTools.m2("input",{ type : "password", required : true, value : value, placeholder : placeholder});
-	input.oninput = function(e) {
-		cb(input.value);
-		return;
-	};
-	return input;
-};
-cx_DomTools.form = function(label,children) {
-	return cx_DomTools.m2("form",null,cx_Either3.TypeC([cx_DomTools.h3(label)].concat(children._hx_index == 2 ? children.v : null)));
-};
-cx_DomTools.button = function(label,onclick) {
-	return cx_DomTools.m2("button",{ onclick : onclick},cx_Either3.TypeA(label));
-};
-cx_DomTools.m2 = function(selectors,attr,children) {
-	if(selectors == null || selectors == "") {
-		throw new js__$Boot_HaxeError("DomTools.m2 selectore can not be null or empty string");
-	}
-	var selectors1 = cx_DomTools.parseSelectors(selectors);
-	var id = selectors1.id;
-	var classnames = selectors1.classnames;
-	var el = window.document.createElement(selectors1.tag);
-	if(id != null) {
-		el.setAttribute("id",id);
-	}
-	if(classnames != null && classnames != []) {
-		classnames.map(function(cln) {
-			el.classList.add(cln);
-			return;
-		});
-	}
-	if(children != null) {
-		switch(children._hx_index) {
-		case 0:
-			var span = window.document.createElement("span");
-			span.innerText = children.v;
-			el.appendChild(span);
-			break;
-		case 1:
-			el.appendChild(children.v);
-			break;
-		case 2:
-			children.v.filter(function(child) {
-				return child != null;
-			}).map(function(child1) {
-				return el.appendChild(child1);
-			});
-			break;
-		}
-	}
-	Reflect.fields(attr).map(function(field) {
-		if(field == "style") {
-			Reflect.fields(Reflect.field(attr,"style")).map(function(v) {
-				el.style[v] = Reflect.field(Reflect.field(attr,"style"),v);
-				return;
-			});
-		} else {
-			var value = Reflect.field(attr,field);
-			if(field == "cls") {
-				field = "className";
-			}
-			el[field] = value;
-		}
-		return;
-	});
-	return el;
-};
-cx_DomTools.parseSelectors = function(s) {
-	var a = s.split("");
-	var seg = [a.shift()];
-	var _g = 0;
-	while(_g < a.length) {
-		var c = a[_g];
-		++_g;
-		if(c == "#" || c == ".") {
-			seg.push(c);
-		} else {
-			seg[seg.length - 1] += c;
-		}
-	}
-	return { tag : seg[0], id : seg.filter(function(s1) {
-		return StringTools.startsWith(s1,"#");
-	}).map(function(s2) {
-		return s2.substring(1);
-	})[0], classnames : seg.filter(function(s3) {
-		return StringTools.startsWith(s3,".");
-	}).map(function(s4) {
-		return s4.substring(1);
-	})};
-};
-var cx_DomComponent = function(el,doRender) {
-	if(doRender == null) {
-		doRender = true;
-	}
-	this.el = null;
-	this.el = el;
-	this.setup();
-	if(doRender) {
-		this.render();
-	}
-};
-$hxClasses["cx.DomComponent"] = cx_DomComponent;
-cx_DomComponent.__name__ = true;
-cx_DomComponent.prototype = {
-	setup: function() {
-	}
-	,render: function(element) {
-		var _gthis = this;
-		console.log("../fb-libs/src-cx/cx/DomTools.hx:310:","render");
-		this.el.innerHTML = "";
-		var renderView = this.view();
-		if(renderView == null) {
-			return;
-		}
-		console.log("../fb-libs/src-cx/cx/DomTools.hx:318:","render2 " + (renderView._hx_index == 0 ? renderView.v : null));
-		switch(renderView._hx_index) {
-		case 0:
-			console.log("../fb-libs/src-cx/cx/DomTools.hx:322:","render A");
-			var span = window.document.createElement("span");
-			span.innerText = renderView.v;
-			this.el.appendChild(span);
-			break;
-		case 1:
-			console.log("../fb-libs/src-cx/cx/DomTools.hx:327:","render B");
-			this.el.appendChild(renderView.v);
-			break;
-		case 2:
-			console.log("../fb-libs/src-cx/cx/DomTools.hx:330:","render C");
-			renderView.v.map(function(v) {
-				return _gthis.el.appendChild(v);
-			});
-			break;
-		}
-	}
-	,view: function() {
-		console.log("../fb-libs/src-cx/cx/DomTools.hx:336:","should be overridden!");
-		return null;
-	}
-	,release: function() {
-		console.log("../fb-libs/src-cx/cx/DomTools.hx:341:","Disconnect, should be overridden");
-	}
-	,__class__: cx_DomComponent
-};
-var cx_DomView = function() {
-};
-$hxClasses["cx.DomView"] = cx_DomView;
-cx_DomView.__name__ = true;
-cx_DomView.prototype = {
-	view: function() {
-		console.log("../fb-libs/src-cx/cx/DomTools.hx:349:","should be overridden!");
-		return null;
-	}
-	,__class__: cx_DomView
-};
-var cx_Either3 = $hxEnums["cx.Either3"] = { __ename__ : true, __constructs__ : ["TypeA","TypeB","TypeC"]
-	,TypeA: ($_=function(v) { return {_hx_index:0,v:v,__enum__:"cx.Either3",toString:$estr}; },$_.__params__ = ["v"],$_)
-	,TypeB: ($_=function(v) { return {_hx_index:1,v:v,__enum__:"cx.Either3",toString:$estr}; },$_.__params__ = ["v"],$_)
-	,TypeC: ($_=function(v) { return {_hx_index:2,v:v,__enum__:"cx.Either3",toString:$estr}; },$_.__params__ = ["v"],$_)
-};
-var cx__$DomTools_OneOf3_$Impl_$ = {};
-$hxClasses["cx._DomTools.OneOf3_Impl_"] = cx__$DomTools_OneOf3_$Impl_$;
-cx__$DomTools_OneOf3_$Impl_$.__name__ = true;
-cx__$DomTools_OneOf3_$Impl_$.fromA = function(v) {
-	return cx_Either3.TypeA(v);
-};
-cx__$DomTools_OneOf3_$Impl_$.fromB = function(v) {
-	return cx_Either3.TypeB(v);
-};
-cx__$DomTools_OneOf3_$Impl_$.fromC = function(v) {
-	return cx_Either3.TypeC(v);
-};
-cx__$DomTools_OneOf3_$Impl_$.toA = function(this1) {
-	if(this1._hx_index == 0) {
-		return this1.v;
-	} else {
-		return null;
-	}
-};
-cx__$DomTools_OneOf3_$Impl_$.toB = function(this1) {
-	if(this1._hx_index == 1) {
-		return this1.v;
-	} else {
-		return null;
-	}
-};
-cx__$DomTools_OneOf3_$Impl_$.toC = function(this1) {
-	if(this1._hx_index == 2) {
-		return this1.v;
-	} else {
-		return null;
-	}
-};
-var cx__$DomTools_Selector_$Impl_$ = {};
-$hxClasses["cx._DomTools.Selector_Impl_"] = cx__$DomTools_Selector_$Impl_$;
-cx__$DomTools_Selector_$Impl_$.__name__ = true;
-cx__$DomTools_Selector_$Impl_$._new = function(el) {
-	if(el == null) {
-		throw new js__$Boot_HaxeError("Selector element is null");
-	}
-	return el;
-};
-cx__$DomTools_Selector_$Impl_$.fromString = function(s) {
-	console.log("../fb-libs/src-cx/cx/DomTools.hx:401:","from string: " + s);
-	return cx__$DomTools_Selector_$Impl_$._new(window.document.querySelector(s));
 };
 var cx_Random = function() { };
 $hxClasses["cx.Random"] = cx_Random;
@@ -1420,12 +1030,14 @@ var data_SongFilter = $hxEnums["data.SongFilter"] = { __ename__ : true, __constr
 	,Group: ($_=function(groupname) { return {_hx_index:3,groupname:groupname,__enum__:"data.SongFilter",toString:$estr}; },$_.__params__ = ["groupname"],$_)
 	,LimitNumber: ($_=function(max) { return {_hx_index:4,max:max,__enum__:"data.SongFilter",toString:$estr}; },$_.__params__ = ["max"],$_)
 };
-var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs__ : ["Image","Title","Info","Button","Songlist"]
+var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs__ : ["Image","Title","Info","Button","Songlist","SearchChoir","BuySongs"]
 	,Image: ($_=function(url) { return {_hx_index:0,url:url,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["url"],$_)
 	,Title: ($_=function(title) { return {_hx_index:1,title:title,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["title"],$_)
 	,Info: ($_=function(info) { return {_hx_index:2,info:info,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["info"],$_)
 	,Button: ($_=function(label,onclick) { return {_hx_index:3,label:label,onclick:onclick,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["label","onclick"],$_)
 	,Songlist: ($_=function(title,songs,filter) { return {_hx_index:4,title:title,songs:songs,filter:filter,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["title","songs","filter"],$_)
+	,SearchChoir: {_hx_index:5,__enum__:"data.HomeCell",toString:$estr}
+	,BuySongs: {_hx_index:6,__enum__:"data.HomeCell",toString:$estr}
 };
 var data_Default = function() { };
 $hxClasses["data.Default"] = data_Default;

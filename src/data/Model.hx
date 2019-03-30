@@ -56,6 +56,8 @@ enum HomeCell {
 	Info(info:String);
 	Button(label:String, onclick:js.html.MouseEvent->Void);
 	Songlist(title:String, songs:Array<Song>, filter:Array<SongFilter>);
+	SearchChoir;
+	BuySongs;
 }
 
 class Default {

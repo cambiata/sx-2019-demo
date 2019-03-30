@@ -1,27 +1,11 @@
 import js.html.MouseEvent;
 import js.Browser;
-import haxe.Json;
-import cx.DomTools.m2;
-import cx.DomTools.p;
-import cx.DomTools.h1;
-import cx.DomTools.h3;
-import cx.DomTools.password;
-import cx.DomTools.username;
-import cx.DomTools.button;
-import cx.DomTools.form;
-import cx.DomTools.input;
-import cx.DomTools.section;
-import cx.DomTools.img;
-import cx.DomTools.div;
-import cx.DomTools.span;
 import data.AppStore;
 import data.Model;
 import pushstate.PushState;
 import mithril.M;
 import mithril.M.m;
 
-using cx.DomTools;
-using cx.ArrayItems;
 using cx.Validation;
 
 class Client {
@@ -97,6 +81,20 @@ class Homeview extends AppStoreView {
 				case Title(title): m('h1.limit-width.center', title);
 				case Info(info): m('p.limit-width.center', info);
 				case Songlist(title, songs, filter): this.songlist(title, songs, filter);
+				case SearchChoir: m('div.center', [
+						m('input.center[placeholder=Sök din kör]', {
+							oninput: e -> {
+								trace(e.target.value);
+							},
+							style: {fontSize: '3vmax'},
+						}),
+					]);
+				case BuySongs: m('div.center', [m('button.center', {
+						onclick: e -> {
+							trace('Click');
+						}
+					}, 'Gå till butiken'),]);
+
 				case _: null;
 			}
 		}));
@@ -109,21 +107,26 @@ class Homeview extends AppStoreView {
 		var groups:Array<Group> = user.groups.map(groupname -> this.store.getGroup(groupname));
 
 		var groupLists = groups.map(group -> cells([
-
 			Songlist(group.name, group.songs.map(title -> this.store.getSong(title)), [Group(group.name)])
 		]));
 
+		var choirsInfo = groupLists
+			.length > 0 ? 'Här visas de låtar dom delats ut till dig genom dina körer.' : 'Du verkar inte vara kopplad till någon kör eller grupp i ScorX. Du kan söka efter din kör och begära att bli medlem.';
+
+		var searchChoirCell = null;
+		if (groupLists.length == 0) {
+			searchChoirCell = cells([SearchChoir]);
+		}
+
 		var mySongs:Array<Song> = user.songs.map(title -> this.store.getSong(title));
 		trace(mySongs.length);
-		var myList = cells([Songlist('Mina låtar', mySongs, [LimitNumber(5)])]);
+		var myList = mySongs.length > 0 ? cells([Songlist('Mina låtar', mySongs, [LimitNumber(5)])]) : cells([BuySongs]);
 
 		return m('div.center', [
-			cells([
-				Title('Körernas låtar'),
-				Info('Här visas de låtar dom delats ut till dig genom dina körer.')
-			]),
+			cells([Title('Körernas låtar'), Info(choirsInfo),]),
 
 			groupLists,
+			searchChoirCell,
 
 			cells([
 				Title('Dina låtar'),
@@ -177,27 +180,107 @@ class Homeview extends AppStoreView {
 
 class Pageview extends AppStoreView {
 	var home:Homeview;
+	var create:CreateUserView;
 
 	public function new(store:AppStore) {
 		super(store);
 		this.home = new Homeview(store);
+		this.create = new CreateUserView(store);
 	}
 
 	public function view() {
 		return switch this.store.state.page {
 			case Page.Home: this.home.view();
+			case Page.CreateUser: this.create.view();
 			case _: null;
 		}
 	}
 }
 
+class CreateUserView extends AppStoreView {
+	var tryUsername:String = 'a';
+	var tryPassword:String = 'a';
+	var firstname:String = 'a';
+	var lastname:String = 'a';
+
+	public function view()
+		[
+			m('h1', 'Create user'),
+			m('div', [
+				m('input[placeholder=Användarnamn][required]', {
+					oninput: e -> {
+						this.tryUsername = e.target.value;
+						trace(e.target.value);
+						trace(this.tryUsername);
+					},
+					// value: this.tryUsername,
+				}),
+				m('input[placeholder=Lösenord][required]', {
+					oninput: e -> {
+						this.tryPassword = e.target.value;
+					},
+					// value: this.tryPassword,
+				}),
+				m('input[placeholder=Förnamn][required]', {
+					oninput: e -> {
+						this.firstname = e.target.value;
+					},
+					// value: this.firstname,
+				}),
+				m('input[placeholder=Lastname][required]', {
+					oninput: e -> {
+						this.lastname = e.target.value;
+					},
+					// value: this.lastname,
+				}),
+				m('button', {
+					onclick: e -> {
+						// this.store.tryLogin(this.tryUsername, this.tryPassword);
+						trace(this.tryUsername + ' ' + this.tryPassword + ' ' + this.firstname + ' ' + this.lastname);
+						try {
+							this.tryUsername.asEmail();
+							this.tryPassword.asPassword();
+							this.firstname.asFirstname();
+							this.lastname.asLastname();
+							var newUser:User = {
+								firstname: this.firstname,
+								lastname: this.lastname,
+								password: this.tryPassword,
+								username: this.tryUsername,
+								sensus: false,
+								groups: [],
+								songs: [],
+							};
+							trace(newUser);
+							this.store.addUser(newUser);
+						} catch (e:Dynamic) {
+							js.Browser.alert(e);
+						}
+					}
+				}, 'Skapa användare'),
+			]),
+		];
+}
+
 class MenuView extends AppStoreView {
 	public function view()
-		[m('button', {
-			onclick: e -> {
-				this.store.resetToDefaultData();
-			}
-		}, 'Reset data'),];
+		[
+			m('button', {
+				onclick: e -> {
+					this.store.update(this.store.state.page = Page.Home);
+				}
+			}, 'Home'),
+			m('button', {
+				onclick: e -> {
+					this.store.update(this.store.state.page = Page.CreateUser);
+				}
+			}, 'Create user'),
+			m('button', {
+				onclick: e -> {
+					this.store.resetToDefaultData();
+				}
+			}, 'Reset data'),
+		];
 }
 
 class Userview extends AppStoreView {
@@ -246,55 +329,5 @@ class Userview extends AppStoreView {
 				}, 'Logga in'),
 			]),
 		];
-	}
-}
-
-class CreateUserView extends DomComponentLazy {
-	var store:AppStore;
-
-	public function new(store:AppStore) {
-		super();
-		this.store = store;
-	}
-
-	var first:String;
-	var last:String;
-	var user:String;
-	var pass:String;
-
-	override public function view():ViewElements {
-		this.first = 'Nisse';
-		this.last = 'Kubik';
-		this.user = 'nisse@kubik.se';
-		this.pass = 'kubik';
-		return form('Skapa användare', [
-			h1('Create user'),
-			input(this.first, v -> this.first = v, true, 'Förnamn'),
-			input(this.last, v -> this.last = v, true, 'Efternamn'),
-			username(this.user, v -> this.user = v, 'E-post'),
-			password(this.pass, v -> this.pass = v, 'Lösenord'),
-			button('Skapa', e -> {
-				try {
-					this.first.asFirstname();
-					this.last.asLastname();
-					this.user.asEmail();
-					this.pass.asPassword();
-					var newUser:User = {
-						firstname: this.first,
-						lastname: this.last,
-						username: this.user,
-						password: this.pass,
-						sensus: false,
-						songs: [],
-						groups: [],
-					};
-					this.store.addUser(newUser);
-				} catch (e:Dynamic) {
-					Browser.alert(e);
-					null;
-				}
-			}),
-
-		]);
 	}
 }
