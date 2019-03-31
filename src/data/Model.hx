@@ -1,5 +1,28 @@
 package data;
 
+import js.Browser;
+import haxe.Json;
+import ds.ImmutableArray;
+
+using cx.ArrayItems;
+using cx.Validation;
+
+/**
+ * Applikationens state-objekt (à la Redux)
+ */
+typedef AppState = {
+	final page:Page;
+	final userId:String;
+	final users:ImmutableArray<User>;
+	final groups:ImmutableArray<Group>;
+	final applications:ImmutableArray<GroupApplication>;
+	final invitations:ImmutableArray<GroupApplication>;
+	final songs:ImmutableArray<Song>;
+}
+
+/**
+ * Användare
+ */
 typedef User = {
 	final username:String;
 	final password:String;
@@ -7,9 +30,11 @@ typedef User = {
 	final lastname:String;
 	final sensus:Bool;
 	final songs:ds.ImmutableArray<String>;
-	final groups:ds.ImmutableArray<String>;
 }
 
+/**
+ * Kör/grupp
+ */
 typedef Group = {
 	final name:String;
 	final info:String;
@@ -19,42 +44,54 @@ typedef Group = {
 	final songs:ds.ImmutableArray<String>;
 }
 
-enum GroupApplicationStatus {
-	Start;
-	Pending;
-	// Accepted; // Not needed in demo
-	Rejected;
-}
-
+/**
+ * Definition för medlemsansökan till grupp
+ */
 typedef GroupApplication = {
 	final username:String;
 	final groupname:String;
 	final status:GroupApplicationStatus;
 }
 
+/**
+ * Status som ansökan kan befinna sig i
+ */
+enum GroupApplicationStatus {
+	Start; // Initialt status - ansökan är skapad men ej skickad till mottagaren
+	Pending; // Ansökan är skickad men ej behandlad av mottagaren
+	Rejected; // Ansökan är nekad av mottagaren
+}
+
+/**
+ * ScorX-låt
+ */
 typedef Song = {
 	final title:String;
 	final category:SongCategory;
 	final producer:SongProducer;
 }
 
-enum Page {
-	Home;
-	Other;
-	CreateUser;
-}
-
+/**
+ * Kategori för aktuell ScorX-låt
+ */
 enum SongCategory {
 	Free;
 	Protected;
 	Commercial;
 }
 
+/**
+ * Producent av aktuell ScorX-låt
+ */
 enum SongProducer {
 	Korakademin;
 	Other;
 }
 
+/**
+ * Filteralternativ för listning av ScorX-låtar
+ * Kombineras på lämpligt stätt i Array<SongFilter>
+ */
 enum SongFilter {
 	Search(str:String);
 	Category(cat:SongCategory);
@@ -63,6 +100,10 @@ enum SongFilter {
 	LimitNumber(max:Int);
 }
 
+/**
+ * Celler som kan visas på hemsidan
+ * Kombineras på lämpligt sätt i Array<HomeCell>
+ */
 enum HomeCell {
 	Image(url:String);
 	Title(title:String);
@@ -70,9 +111,23 @@ enum HomeCell {
 	Button(label:String, onclick:js.html.MouseEvent->Void);
 	Songlist(title:String, songs:Array<Song>, filter:Array<SongFilter>);
 	SearchChoir;
+	ListGroupMembers(groupname:String);
+	InviteGroupMembers(groupname:String);
 	BuySongs;
 }
 
+/**
+ * Demo-applikationens sida (i brist på riktig router)
+ */
+enum Page {
+	Home;
+	Other;
+	CreateUser;
+}
+
+/**
+ * Defaultvärden för localStorage-databasen
+ */
 class Default {
 	static public function users():Array<User> {
 		return [
@@ -83,7 +138,6 @@ class Default {
 				password: 'adam1',
 				sensus: false,
 				songs: ['Kommersiell06', 'Kommersiell07'],
-				groups: ['Örkelhåla kyrkokör', 'Bromölla Bandidos']
 			},
 			{
 				firstname: 'Beda',
@@ -91,9 +145,26 @@ class Default {
 				username: 'beda@bensin.se',
 				password: 'beda',
 				sensus: false,
-				songs: ['Örkelhåla kyrkokör'],
-				groups: []
+				songs: [],
 			},
+			{
+				firstname: 'Caesar',
+				lastname: 'Citrus',
+				username: 'caesar@citrus.se',
+				password: 'caesar',
+				sensus: false,
+				songs: [],
+			},
+
+			{
+				firstname: 'Avledare',
+				lastname: 'Jonsson',
+				username: 'avledare@kor.se',
+				password: 'avledare',
+				sensus: false,
+				songs: [],
+			},
+
 			{
 				firstname: 'Örkel1',
 				lastname: 'Örkelsson',
@@ -101,7 +172,6 @@ class Default {
 				password: 'orkel1',
 				sensus: false,
 				songs: [],
-				groups: []
 			},
 			{
 				firstname: 'Örkel2',
@@ -110,7 +180,6 @@ class Default {
 				password: 'orkel2',
 				sensus: false,
 				songs: [],
-				groups: []
 			},
 			{
 				firstname: 'Örkel3',
@@ -119,7 +188,6 @@ class Default {
 				password: 'orkel3',
 				sensus: false,
 				songs: [],
-				groups: []
 			},
 			{
 				firstname: 'Örkel4',
@@ -128,7 +196,6 @@ class Default {
 				password: 'orkel4',
 				sensus: false,
 				songs: [],
-				groups: []
 			},
 
 			{
@@ -138,7 +205,6 @@ class Default {
 				password: 'bro1',
 				sensus: false,
 				songs: [],
-				groups: []
 			},
 			{
 				firstname: 'Bro2',
@@ -147,7 +213,6 @@ class Default {
 				password: 'bro2',
 				sensus: false,
 				songs: [],
-				groups: []
 			},
 			{
 				firstname: 'Bro3',
@@ -156,7 +221,6 @@ class Default {
 				password: 'bro3',
 				sensus: false,
 				songs: [],
-				groups: []
 			},
 			{
 				firstname: 'Bro4',
@@ -165,9 +229,16 @@ class Default {
 				password: 'bro4',
 				sensus: false,
 				songs: [],
-				groups: []
 			},
 		];
+	}
+
+	static public function applications():Array<GroupApplication> {
+		return [{username: 'beda@bensin.se', groupname: 'Örkelhåla kyrkokör', status: Start}];
+	}
+
+	static public function invitations():Array<GroupApplication> {
+		return [{username: 'beda@bensin.se', groupname: 'Avunda Kyrkokör', status: Pending}];
 	}
 
 	static public function groups():Array<Group> {
@@ -176,7 +247,7 @@ class Default {
 				name: 'Örkelhåla kyrkokör',
 				info: 'Soli deo gloria. Plus vår körledare.',
 				admins: ['orkel1@orkel.se'],
-				members: ['orkel1@orkel.se', 'orkel2@orkel.se', 'orkel3@orkel.se',],
+				members: ['adam@adam.se', 'orkel1@orkel.se', 'orkel2@orkel.se', 'orkel3@orkel.se',],
 				sensus: true,
 				songs: ['Sensus01', 'Sensus02', 'Sensus03'],
 			},
@@ -199,7 +270,7 @@ class Default {
 			{
 				name: 'Avunda Kyrkokör',
 				info: 'Ju mer förr, desto bättre!',
-				admins: [],
+				admins: ['avledare@kor.se'],
 				members: [],
 				sensus: true,
 				songs: ['Kommersiell01', 'Sensus01'],

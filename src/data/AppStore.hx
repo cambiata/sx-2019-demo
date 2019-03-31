@@ -6,16 +6,31 @@ import ds.ImmutableArray;
 import data.Model;
 
 using cx.ArrayItems;
+using cx.Validation;
 
+/**
+ * AppStore
+ * Demosystemets state-hanterare (tänk Redux)
+ * Fungerar även som databas som jobbar gentemot browserns localStorage
+ */
 class AppStore extends DeepStateContainer<AppState> {
 	public function new(initstate) {
 		super(initstate);
 	}
 
+	/**
+	 * Sparar state till localStorage
+	 * @param tag
+	 */
 	public function save(tag:String = 'store') {
 		js.Browser.window.localStorage.setItem(tag, Json.stringify(this.state));
 	}
 
+	/**
+	 * Laddar state från localStorage
+	 * Första körningen, när localStorage är tomt, sparas först defaultdata
+	 * @param tag
+	 */
 	public function load(tag:String = 'store') {
 		try {
 			var stateObj = Json.parse(js.Browser.window.localStorage.getItem(tag));
@@ -28,6 +43,10 @@ class AppStore extends DeepStateContainer<AppState> {
 		}
 	}
 
+	/**
+	 * Lägger till användare i state.users
+	 * @param user
+	 */
 	public function addUser(user:User) {
 		try {
 			if (this.state.users.filter(u -> u.username == user.username).length > 0)
@@ -40,6 +59,12 @@ class AppStore extends DeepStateContainer<AppState> {
 		}
 	}
 
+	/**
+	 * Prövar logga in med användarnamn och lösenord
+	 * Ifall användaren existerar så sätts state.userId
+	 * @param tryUsername
+	 * @param tryPassword
+	 */
 	public function tryLogin(tryUsername:String, tryPassword:String) {
 		try {
 			trace(tryUsername);
@@ -56,7 +81,7 @@ class AppStore extends DeepStateContainer<AppState> {
 			if (foundUser.password != tryPassword)
 				throw 'Password is wrong $foundUser : ' + foundUser.password + ' ' + tryPassword;
 
-			haxe.Timer.delay(() -> {
+			haxe.Timer.delay(() -> { // simulera fördrörjning vid inloggning
 				this.update(state.userId = foundUser.username);
 				this.save();
 			}, cx.Random.int(100, 500));
@@ -66,6 +91,18 @@ class AppStore extends DeepStateContainer<AppState> {
 		}
 	}
 
+	/**
+	 * Logga ut användare
+	 */
+	public function logout() {
+		this.update(state.userId = null);
+		this.save();
+	}
+
+	/**
+	 * Lägg till scorx-låt i state.songs
+	 * @param title
+	 */
 	public function addSong(title:String) {
 		var newSong:Song = {
 			title: title,
@@ -75,11 +112,11 @@ class AppStore extends DeepStateContainer<AppState> {
 		this.update(state.songs = state.songs.push(newSong));
 	}
 
-	public function logout() {
-		this.update(state.userId = null);
-		this.save();
-	}
-
+	/**
+	 * Hämta User-object för aktuellt användarnamn
+	 * @param findUsername
+	 * @return User
+	 */
 	public function getUser(findUsername:String = null):User {
 		if (findUsername == null)
 			findUsername = this.state.userId;
@@ -89,6 +126,11 @@ class AppStore extends DeepStateContainer<AppState> {
 		};
 	}
 
+	/**
+	 * Hämta Group-objekt för aktuellt gruppnamn
+	 * @param findGroupname
+	 * @return Group
+	 */
 	public function getGroup(findGroupname:String):Group {
 		return switch this.state.groups.filter(group -> group.name.toLowerCase() == findGroupname.toLowerCase()).first() {
 			case Some(v): v;
@@ -96,6 +138,11 @@ class AppStore extends DeepStateContainer<AppState> {
 		}
 	}
 
+	/**
+	 * Hämta Song-objekt för aktuell sång-titel
+	 * @param findSongtitle
+	 * @return Song
+	 */
 	public function getSong(findSongtitle:String):Song {
 		return switch this.state.songs.filter(song -> song.title.toLowerCase() == findSongtitle.toLowerCase()).first() {
 			case Some(v): v;
@@ -103,47 +150,150 @@ class AppStore extends DeepStateContainer<AppState> {
 		}
 	}
 
-	public function addApplication(application:GroupApplication) {
+	/**
+	 * Lägg gruppansökan till state.applications
+	 * @param item
+	 */
+	public function addApplication(item:GroupApplication) {
 		try {
-			if (this.state.groupapplications.filter(a -> a.groupname == application.groupname
-				&& a.username == application.username).length > 0)
+			if (this.state.applications.filter(a -> a.groupname == item.groupname && a.username == item.username).length > 0)
 				throw "Ansökan till denna grupp finns redan!";
-			this.update(this.state.groupapplications = this.state.groupapplications.push(application));
+			this.update(this.state.applications = this.state.applications.push(item));
 			this.save();
 		} catch (e:Dynamic) {
 			Browser.alert(e);
 		}
 	}
 
-	public function removeApplication(application:GroupApplication) {
+	/**
+	 * Slutför gruppansökan genom att
+	 * 1. Lägga till aktuell användare till group.members
+	 * 2. Ta bort ansökan från state.applications
+	 * @param application
+	 */
+	public function addUsernameToGroupFromInvitation(application:GroupApplication) {
 		try {
-			this.update(this.state.groupapplications = this.state.groupapplications.remove(application));
+			var group:Group = this.getGroup(application.groupname);
+			if (group == null)
+				throw "Can not resolve application to group " + application.groupname;
+			if (group.members.filter(member -> member == application.username).length > 0)
+				throw 'User ${application.username} is already a member of ${application.groupname}';
+			var groupIndex = this.state.groups.indexOf(group);
+			var members = group.members.push(application.username);
+			this.update(state.groups[groupIndex].members = members,
+				state.invitations = cast state.invitations.filter(app -> app.groupname != application.groupname
+					&& app.username != application.username));
 			this.save();
 		} catch (e:Dynamic) {
 			Browser.alert(e);
 		}
 	}
 
+	/**
+	 * Ta bort ansökan
+	 * @param item
+	 */
+	public function removeApplication(item:GroupApplication) {
+		try {
+			this.update(this.state.applications = this.state.applications.remove(item));
+			this.save();
+		} catch (e:Dynamic) {
+			Browser.alert(e);
+		}
+	}
+
+	/**
+	 * Lägg till inbjudan till state.invitations
+	 * @param item
+	 */
+	public function addInvitation(item:GroupApplication) {
+		try {
+			item.username.asEmail();
+
+			if (this.isMemberOfGroup(item.username, item.groupname))
+				throw '${item.username} är redan medlem i ${item.groupname}';
+
+			if (this.state.invitations.filter(a -> a.groupname == item.groupname && a.username == item.username).length > 0)
+				throw 'Ansökan till ${item.groupname} från ${item.username} finns redan!';
+			this.update(this.state.invitations = this.state.invitations.push(item));
+			this.save();
+		} catch (e:Dynamic) {
+			Browser.alert(e);
+		}
+	}
+
+	/**
+	 * Ta bort inbjudan
+	 * @param item
+	 */
+	public function removeInvitation(item:GroupApplication) {
+		try {
+			this.update(this.state.invitations = this.state.invitations.remove(item));
+			this.save();
+		} catch (e:Dynamic) {
+			Browser.alert(e);
+		}
+	}
+
+	/**
+	 * Ändra ansökans status
+	 * @param item
+	 * @param newStatus
+	 */
+	public function changeApplicationStatus(item:GroupApplication, newStatus:GroupApplicationStatus) {
+		try {
+			var invitationIndex = this.state.invitations.indexOf(item);
+			trace(invitationIndex);
+
+			var newItem:GroupApplication = {
+				groupname: item.groupname,
+				username: item.username,
+				status: newStatus
+			};
+
+			this.update(this.state.invitations[invitationIndex] = newItem);
+			trace(this.state.invitations);
+			this.save();
+		} catch (e:Dynamic) {
+			Browser.alert(e);
+		}
+	}
+
+	/**
+	 * Kontrollera ifall användare är medlem i grupp
+	 * @param username
+	 * @param groupname
+	 * @return Bool
+	 */
+	public function isMemberOfGroup(username:String, groupname:String):Bool {
+		var group = this.getGroup(groupname);
+		if (group.members.filter(member -> member == username).length > 0)
+			return true;
+		return false;
+	}
+
+	/**
+	 * Kontrollera ifall användare existerar i state.users
+	 * @param username
+	 */
+	public function userExists(username:String) {
+		return this.state.users.filter(user -> user.username == username).length == 1;
+	}
+
+	/**
+	 * Nollställ local-storage-databasen till default-värden
+	 */
 	public function resetToDefaultData() {
-		js.Browser.alert('Reset data');
+		trace('Reset data');
 		this.update(this.state = {
 			page: Home,
 			userId: null,
 			users: cast Default.users(),
 			groups: cast Default.groups(),
-			groupapplications: [{username: 'beda@bensin.se', groupname: 'Örkelhåla kyrkokör', status: Start}],
+			applications: cast Default.applications(),
+			invitations: cast Default.invitations(),
 			songs: cast Default.songs(),
 		}, 'do reset');
 		this.save();
 	}
-}
-
-typedef AppState = {
-	final page:Page;
-	// final user:User;
-	final userId:String;
-	final users:ImmutableArray<User>;
-	final groups:ImmutableArray<Group>;
-	final groupapplications:ImmutableArray<GroupApplication>;
-	final songs:ImmutableArray<Song>;
 }

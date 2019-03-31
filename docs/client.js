@@ -11,329 +11,17 @@ var Client = function() { };
 $hxClasses["Client"] = Client;
 Client.__name__ = true;
 Client.main = function() {
-	console.log("src/Client.hx:13:","Hello, world!");
-	var store = new data_AppStore(new DeepState_$data_$AppState({ page : data_Page.Home, userId : null, users : null, groups : null, groupapplications : null, songs : null}));
+	var store = new data_AppStore(new DeepState_$data_$AppState({ page : data_Page.Home, userId : null, users : null, groups : null, applications : null, invitations : null, songs : null}));
+	store.load();
 	store.subscribeObserver(ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([""]),function(state) {
 		m.redraw();
-		console.log("src/Client.hx:26:","redraw");
 		return;
 	}),store.get_state());
-	store.load();
-	m.mount(window.document.querySelector("#header"),new Userview(store));
-	m.mount(window.document.querySelector("#nav"),new MenuView(store));
-	m.mount(window.document.querySelector("#footer"),new FooterView(store));
-	m.mount(window.document.querySelector("main"),new Pageview(store));
+	m.mount(window.document.querySelector("#header"),new view_Userview(store));
+	m.mount(window.document.querySelector("#nav"),new view_MenuView(store));
+	m.mount(window.document.querySelector("#footer"),new view_FooterView(store));
+	m.mount(window.document.querySelector("main"),new view_Pageview(store));
 };
-var mithril_Mithril = function() { };
-$hxClasses["mithril.Mithril"] = mithril_Mithril;
-mithril_Mithril.__name__ = true;
-var AppStoreView = function(store) {
-	this.store = store;
-};
-$hxClasses["AppStoreView"] = AppStoreView;
-AppStoreView.__name__ = true;
-AppStoreView.__interfaces__ = [mithril_Mithril];
-AppStoreView.prototype = {
-	__class__: AppStoreView
-};
-var FooterView = function(store) {
-	AppStoreView.call(this,store);
-};
-$hxClasses["FooterView"] = FooterView;
-FooterView.__name__ = true;
-FooterView.__super__ = AppStoreView;
-FooterView.prototype = $extend(AppStoreView.prototype,{
-	view: function() {
-		var _gthis = this;
-		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		return [m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().users,function(u) {
-			return m.m("li",{ onclick : function(e) {
-				_gthis.store.tryLogin(u.username,u.password);
-				return;
-			}, style : { cursor : "pointer"}},"" + u.firstname + " " + u.lastname);
-		})),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().groups,function(g) {
-			return m.m("li","" + g.name + " " + (g.sensus == null ? "null" : "" + g.sensus));
-		})),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().songs,function(s) {
-			return m.m("li","" + s.title + " " + Std.string(s.category) + " " + Std.string(s.producer));
-		}))];
-	}
-	,__class__: FooterView
-});
-var Homeview = function(store) {
-	AppStoreView.call(this,store);
-};
-$hxClasses["Homeview"] = Homeview;
-Homeview.__name__ = true;
-Homeview.__super__ = AppStoreView;
-Homeview.prototype = $extend(AppStoreView.prototype,{
-	view: function() {
-		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		if(this.store.get_state().userId == null) {
-			return this.guest();
-		} else {
-			return this.user();
-		}
-	}
-	,guest: function() {
-		return [this.cells([data_HomeCell.Image("assets/img/old-town.jpg"),data_HomeCell.Title("Sjung och spela var du vill"),data_HomeCell.Info("ScorX spelare funkar både för mobil och surfplatta!")]),this.cells([data_HomeCell.Image("assets/img/happy.jpg"),data_HomeCell.Title("Pröva ScorX gratis!"),data_HomeCell.Info("Klicka på valfri titel i listan nedan, lyssna och sjung med!"),data_HomeCell.Songlist("Gratislåtar",ds__$ImmutableArray_ImmutableArray_$Impl_$.array(this.store.get_state().songs),[data_SongFilter.Category(data_SongCategory.Free),data_SongFilter.LimitNumber(5)])])];
-	}
-	,cells: function(cells) {
-		var _gthis = this;
-		return m.m("section",cells.map(function(cell) {
-			switch(cell._hx_index) {
-			case 0:
-				return m.m("img",{ src : cell.url});
-			case 1:
-				return m.m("h1.limit-width.center",cell.title);
-			case 2:
-				return m.m("p.limit-width.center",cell.info);
-			case 4:
-				return _gthis.songlist(cell.title,cell.songs,cell.filter);
-			case 5:
-				var applications = _gthis.store.get_state().groupapplications != null ? ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(_gthis.store.get_state().groupapplications,function(a) {
-					return a.username == _gthis.store.get_state().userId;
-				}),function(a1) {
-					switch(a1.status._hx_index) {
-					case 0:
-						return [m.m("div.application.start","Klicka här för att ansöka om medlemskap i " + a1.groupname),m.m("button",{ onclick : function(e) {
-							_gthis.store.removeApplication(a1);
-							return;
-						}},"Ta bort")];
-					case 1:
-						return [m.m("div.application.pending","Din ansökan om att gå med i " + a1.groupname + " väntar på att behandlas av gruppledaren."),m.m("button",{ onclick : function(e1) {
-							return { };
-						}},"Ta bort")];
-					case 2:
-						return [m.m("div.application.rejected","Din ansökan om medlemskap i " + a1.groupname + " har avslagits"),m.m("button",{ onclick : function(e2) {
-							return { };
-						}},"Ta bort")];
-					}
-				})) : m.m("div","No applications");
-				return [m.m("select",[m.m("option","Sök kör/grupp")].concat(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(_gthis.store.get_state().groups,function(group) {
-					return m.m("option",{ onclick : function(e3) {
-						console.log("src/Client.hx:121:","click " + group.name);
-						var newApplication = { groupname : group.name, username : _gthis.store.get_state().userId, status : data_GroupApplicationStatus.Start};
-						_gthis.store.addApplication(newApplication);
-						return;
-					}, value : "" + group.name},"" + group.name);
-				})))),[m.m("h3","Dina ansökningar"),m.m("div.groupapplications",applications)]];
-			case 6:
-				return m.m("div.center",[m.m("button.center",{ onclick : function(e4) {
-					console.log("src/Client.hx:138:","Click");
-					return;
-				}},"Gå till butiken")]);
-			default:
-				return null;
-			}
-		}));
-	}
-	,user: function() {
-		var _gthis = this;
-		var user = this.store.getUser();
-		var groupLists = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(user.groups,function(groupname) {
-			return _gthis.store.getGroup(groupname);
-		})).map(function(group) {
-			var group1 = group.name;
-			var groupLists1 = ds__$ImmutableArray_ImmutableArray_$Impl_$.map(group.songs,function(title) {
-				return _gthis.store.getSong(title);
-			});
-			var groupLists2 = data_SongFilter.Group(group.name);
-			var groupLists3 = data_HomeCell.Songlist(group1,ds__$ImmutableArray_ImmutableArray_$Impl_$.array(groupLists1),[groupLists2]);
-			return _gthis.cells([groupLists3]);
-		});
-		var choirsInfo = groupLists.length > 0 ? "Här visas de låtar dom delats ut till dig genom dina körer." : "Du verkar inte vara kopplad till någon kör eller grupp i ScorX. Du kan söka efter din kör och begära att bli medlem.";
-		var searchChoirCell = null;
-		if(groupLists.length == 0) {
-			searchChoirCell = this.cells([data_HomeCell.SearchChoir]);
-		}
-		var mySongs = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(user.songs,function(title1) {
-			return _gthis.store.getSong(title1);
-		}));
-		console.log("src/Client.hx:166:",mySongs.length);
-		var myList = mySongs.length > 0 ? this.cells([data_HomeCell.Songlist("Mina låtar",mySongs,[data_SongFilter.LimitNumber(5)])]) : this.cells([data_HomeCell.BuySongs]);
-		return m.m("div.center",[this.cells([data_HomeCell.Title("Körernas låtar"),data_HomeCell.Info(choirsInfo)]),groupLists,searchChoirCell,this.cells([data_HomeCell.Title("Dina låtar"),data_HomeCell.Info("Här visas de låtar som du har köpt eller valt genom förmånserbjudanden.")]),myList]);
-	}
-	,songlist: function(title,songs,filter) {
-		var _gthis = this;
-		var totalNumber = songs.length;
-		var _g = 0;
-		while(_g < filter.length) {
-			var f = filter[_g];
-			++_g;
-			console.log("src/Client.hx:189:",songs.length);
-			switch(f._hx_index) {
-			case 0:
-				break;
-			case 1:
-				songs = songs.filter((function(cat) {
-					return function(song) {
-						console.log("src/Client.hx:194:",Std.string(song.category) + " " + Std.string(cat[0]));
-						var e = song.category;
-						return $hxEnums[e.__enum__].__constructs__[e._hx_index] == $hxEnums[cat[0].__enum__].__constructs__[cat[0]._hx_index];
-					};
-				})([f.cat]));
-				break;
-			case 2:
-				songs = songs.filter((function(prod) {
-					return function(song1) {
-						return song1.producer == prod[0];
-					};
-				})([f.prod]));
-				break;
-			case 3:
-				songs = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.getGroup(f.groupname).songs,(function() {
-					return function(songtitle) {
-						return _gthis.store.getSong(songtitle);
-					};
-				})()));
-				totalNumber = songs.length;
-				break;
-			case 4:
-				songs = songs.slice(0,5);
-				break;
-			}
-		}
-		console.log("src/Client.hx:209:",songs.length);
-		return m.m("article.center",[m.m("header",m.m("span",title),m.m("input[placeholder=Sök]")),m.m("ul",songs.filter(function(song2) {
-			return song2 != null;
-		}).map(function(song3) {
-			var e1 = song3.producer;
-			return m.m("li",[m.m(".thumb",m.m("img",{ src : "assets/scorx/" + $hxEnums[e1.__enum__].__constructs__[e1._hx_index] + ".png"})),m.m(".title",[m.m("h3",song3.title),m.m("p","Information...")]),m.m(".originators","Originators")]);
-		})),m.m("footer",[m.m("button",{ onclick : function(e2) {
-			return { };
-		}},"Visa alla " + totalNumber)])]);
-	}
-	,__class__: Homeview
-});
-var Pageview = function(store) {
-	AppStoreView.call(this,store);
-	this.home = new Homeview(store);
-	this.create = new CreateUserView(store);
-};
-$hxClasses["Pageview"] = Pageview;
-Pageview.__name__ = true;
-Pageview.__super__ = AppStoreView;
-Pageview.prototype = $extend(AppStoreView.prototype,{
-	view: function() {
-		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		switch(this.store.get_state().page._hx_index) {
-		case 0:
-			return this.home.view();
-		case 2:
-			return this.create.view();
-		default:
-			return null;
-		}
-	}
-	,__class__: Pageview
-});
-var CreateUserView = function(store) {
-	this.lastname = "a";
-	this.firstname = "a";
-	this.tryPassword = "a";
-	this.tryUsername = "a";
-	AppStoreView.call(this,store);
-};
-$hxClasses["CreateUserView"] = CreateUserView;
-CreateUserView.__name__ = true;
-CreateUserView.__super__ = AppStoreView;
-CreateUserView.prototype = $extend(AppStoreView.prototype,{
-	view: function() {
-		var _gthis = this;
-		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		return [m.m("h1","Create user"),m.m("div",[m.m("input[placeholder=Användarnamn][required]",{ oninput : function(e) {
-			_gthis.tryUsername = e.target.value;
-			console.log("src/Client.hx:257:",e.target.value);
-			console.log("src/Client.hx:258:",_gthis.tryUsername);
-			return;
-		}}),m.m("input[placeholder=Lösenord][required]",{ oninput : function(e1) {
-			return _gthis.tryPassword = e1.target.value;
-		}}),m.m("input[placeholder=Förnamn][required]",{ oninput : function(e2) {
-			return _gthis.firstname = e2.target.value;
-		}}),m.m("input[placeholder=Lastname][required]",{ oninput : function(e3) {
-			return _gthis.lastname = e3.target.value;
-		}}),m.m("button",{ onclick : function(e4) {
-			console.log("src/Client.hx:283:",_gthis.tryUsername + " " + _gthis.tryPassword + " " + _gthis.firstname + " " + _gthis.lastname);
-			try {
-				cx_Validation.asEmail(_gthis.tryUsername);
-				cx_Validation.asPassword(_gthis.tryPassword);
-				cx_Validation.asFirstname(_gthis.firstname);
-				cx_Validation.asLastname(_gthis.lastname);
-				var newUser = { firstname : _gthis.firstname, lastname : _gthis.lastname, password : _gthis.tryPassword, username : _gthis.tryUsername, sensus : false, groups : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])};
-				console.log("src/Client.hx:298:",newUser);
-				_gthis.store.addUser(newUser);
-			} catch( e5 ) {
-				js_Browser.alert(((e5) instanceof js__$Boot_HaxeError) ? e5.val : e5);
-			}
-			return;
-		}},"Skapa användare")])];
-	}
-	,__class__: CreateUserView
-});
-var MenuView = function(store) {
-	AppStoreView.call(this,store);
-};
-$hxClasses["MenuView"] = MenuView;
-MenuView.__name__ = true;
-MenuView.__super__ = AppStoreView;
-MenuView.prototype = $extend(AppStoreView.prototype,{
-	view: function() {
-		var _gthis = this;
-		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		return [m.m("button",{ onclick : function(e) {
-			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("page")]), value : data_Page.Home}])});
-			return;
-		}},"Home"),m.m("button",{ onclick : function(e1) {
-			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("page")]), value : data_Page.CreateUser}])});
-			return;
-		}},"Create user"),m.m("button",{ onclick : function(e2) {
-			_gthis.store.resetToDefaultData();
-			return;
-		}},"Reset data")];
-	}
-	,__class__: MenuView
-});
-var Userview = function(store) {
-	this.tryPassword = "adam1";
-	this.tryUsername = "adam@adam.se";
-	AppStoreView.call(this,store);
-};
-$hxClasses["Userview"] = Userview;
-Userview.__name__ = true;
-Userview.__super__ = AppStoreView;
-Userview.prototype = $extend(AppStoreView.prototype,{
-	view: function() {
-		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		console.log("src/Client.hx:332:","userview");
-		if(this.store.get_state().userId != null) {
-			return this.user();
-		} else {
-			return this.guest();
-		}
-	}
-	,user: function() {
-		var _gthis = this;
-		if(this.store.getUser() == null) {
-			return null;
-		}
-		return [m.m("h3","Välkommen, " + this.store.getUser().firstname + "!"),m.m("button",{ onclick : function(e) {
-			_gthis.store.logout();
-			return;
-		}},"Logga ut")];
-	}
-	,guest: function() {
-		var _gthis = this;
-		return [m.m("div",[m.m("input[placeholder=Användarnamn][required]",{ oninput : function(e) {
-			return _gthis.tryUsername = e.target.value;
-		}, value : this.tryUsername}),m.m("input[placeholder=Lösenord][required]",{ oninput : function(e1) {
-			return _gthis.tryPassword = e1.target.value;
-		}, value : this.tryPassword}),m.m("button",{ onclick : function(e2) {
-			_gthis.store.tryLogin(_gthis.tryUsername,_gthis.tryPassword);
-			return;
-		}},"Logga in")])];
-	}
-	,__class__: Userview
-});
 var DeepState = function() { };
 $hxClasses["DeepState"] = DeepState;
 DeepState.__name__ = true;
@@ -617,26 +305,6 @@ EReg.prototype = {
 var HxOverrides = function() { };
 $hxClasses["HxOverrides"] = HxOverrides;
 HxOverrides.__name__ = true;
-HxOverrides.dateStr = function(date) {
-	var m1 = date.getMonth() + 1;
-	var d = date.getDate();
-	var h = date.getHours();
-	var mi = date.getMinutes();
-	var s = date.getSeconds();
-	return date.getFullYear() + "-" + (m1 < 10 ? "0" + m1 : "" + m1) + "-" + (d < 10 ? "0" + d : "" + d) + " " + (h < 10 ? "0" + h : "" + h) + ":" + (mi < 10 ? "0" + mi : "" + mi) + ":" + (s < 10 ? "0" + s : "" + s);
-};
-HxOverrides.substr = function(s,pos,len) {
-	if(len == null) {
-		len = s.length;
-	} else if(len < 0) {
-		if(pos == 0) {
-			len = s.length + len;
-		} else {
-			return "";
-		}
-	}
-	return s.substr(pos,len);
-};
 HxOverrides.remove = function(a,obj) {
 	var i = a.indexOf(obj);
 	if(i == -1) {
@@ -967,8 +635,8 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 	,tryLogin: function(tryUsername,tryPassword) {
 		var _gthis = this;
 		try {
-			console.log("src/data/AppStore.hx:45:",tryUsername);
-			console.log("src/data/AppStore.hx:46:",this.get_state().users.length);
+			console.log("src/data/AppStore.hx:70:",tryUsername);
+			console.log("src/data/AppStore.hx:71:",this.get_state().users.length);
 			var foundUser;
 			var _g = ds__$ImmutableArray_ImmutableArray_$Impl_$.first(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().users,function(u) {
 				return u.username == tryUsername;
@@ -990,12 +658,12 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 			this.logout();
 		}
 	}
-	,addSong: function(title) {
-		this.updateState({ type : "AppStore.addSong", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("songs")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.push(this.get_state().songs,{ title : title, category : data_SongCategory.Free, producer : data_SongProducer.Korakademin})}])});
-	}
 	,logout: function() {
 		this.updateState({ type : "AppStore.logout", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("userId")]), value : null}])});
 		this.save();
+	}
+	,addSong: function(title) {
+		this.updateState({ type : "AppStore.addSong", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("songs")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.push(this.get_state().songs,{ title : title, category : data_SongCategory.Free, producer : data_SongProducer.Korakademin})}])});
 	}
 	,getUser: function(findUsername) {
 		if(findUsername == null) {
@@ -1030,34 +698,112 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 			return null;
 		}
 	}
-	,addApplication: function(application) {
+	,addApplication: function(item) {
 		try {
-			if(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().groupapplications,function(a) {
-				if(a.groupname == application.groupname) {
-					return a.username == application.username;
+			if(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().applications,function(a) {
+				if(a.groupname == item.groupname) {
+					return a.username == item.username;
 				} else {
 					return false;
 				}
 			}).length > 0) {
 				throw new js__$Boot_HaxeError("Ansökan till denna grupp finns redan!");
 			}
-			this.updateState({ type : "AppStore.addApplication", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("groupapplications")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.push(this.get_state().groupapplications,application)}])});
+			this.updateState({ type : "AppStore.addApplication", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("applications")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.push(this.get_state().applications,item)}])});
 			this.save();
 		} catch( e ) {
 			js_Browser.alert(((e) instanceof js__$Boot_HaxeError) ? e.val : e);
 		}
 	}
-	,removeApplication: function(application) {
+	,addUsernameToGroupFromInvitation: function(application) {
 		try {
-			this.updateState({ type : "AppStore.removeApplication", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("groupapplications")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.remove(this.get_state().groupapplications,application)}])});
+			var group = this.getGroup(application.groupname);
+			if(group == null) {
+				throw new js__$Boot_HaxeError("Can not resolve application to group " + application.groupname);
+			}
+			if(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(group.members,function(member) {
+				return member == application.username;
+			}).length > 0) {
+				throw new js__$Boot_HaxeError("User " + application.username + " is already a member of " + application.groupname);
+			}
+			var groupIndex = ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(this.get_state().groups,group);
+			var members = ds__$ImmutableArray_ImmutableArray_$Impl_$.push(group.members,application.username);
+			this.updateState({ type : "AppStore.addUsernameToGroupFromInvitation", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("groups"),ds_PathAccess.Array(groupIndex),ds_PathAccess.Field("members")]), value : members},{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("invitations")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().invitations,function(app) {
+				if(app.groupname != application.groupname) {
+					return app.username != application.username;
+				} else {
+					return false;
+				}
+			})}])});
 			this.save();
 		} catch( e ) {
 			js_Browser.alert(((e) instanceof js__$Boot_HaxeError) ? e.val : e);
 		}
+	}
+	,removeApplication: function(item) {
+		try {
+			this.updateState({ type : "AppStore.removeApplication", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("applications")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.remove(this.get_state().applications,item)}])});
+			this.save();
+		} catch( e ) {
+			js_Browser.alert(((e) instanceof js__$Boot_HaxeError) ? e.val : e);
+		}
+	}
+	,addInvitation: function(item) {
+		try {
+			cx_Validation.asEmail(item.username);
+			if(this.isMemberOfGroup(item.username,item.groupname)) {
+				throw new js__$Boot_HaxeError("" + item.username + " är redan medlem i " + item.groupname);
+			}
+			if(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().invitations,function(a) {
+				if(a.groupname == item.groupname) {
+					return a.username == item.username;
+				} else {
+					return false;
+				}
+			}).length > 0) {
+				throw new js__$Boot_HaxeError("Ansökan till " + item.groupname + " från " + item.username + " finns redan!");
+			}
+			this.updateState({ type : "AppStore.addInvitation", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("invitations")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.push(this.get_state().invitations,item)}])});
+			this.save();
+		} catch( e ) {
+			js_Browser.alert(((e) instanceof js__$Boot_HaxeError) ? e.val : e);
+		}
+	}
+	,removeInvitation: function(item) {
+		try {
+			this.updateState({ type : "AppStore.removeInvitation", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("invitations")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.remove(this.get_state().invitations,item)}])});
+			this.save();
+		} catch( e ) {
+			js_Browser.alert(((e) instanceof js__$Boot_HaxeError) ? e.val : e);
+		}
+	}
+	,changeApplicationStatus: function(item,newStatus) {
+		try {
+			var invitationIndex = ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(this.get_state().invitations,item);
+			console.log("src/data/AppStore.hx:246:",invitationIndex);
+			this.updateState({ type : "AppStore.changeApplicationStatus", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("invitations"),ds_PathAccess.Array(invitationIndex)]), value : { groupname : item.groupname, username : item.username, status : newStatus}}])});
+			console.log("src/data/AppStore.hx:255:",this.get_state().invitations);
+			this.save();
+		} catch( e ) {
+			js_Browser.alert(((e) instanceof js__$Boot_HaxeError) ? e.val : e);
+		}
+	}
+	,isMemberOfGroup: function(username,groupname) {
+		if(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.getGroup(groupname).members,function(member) {
+			return member == username;
+		}).length > 0) {
+			return true;
+		}
+		return false;
+	}
+	,userExists: function(username) {
+		return ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().users,function(user) {
+			return user.username == username;
+		}).length == 1;
 	}
 	,resetToDefaultData: function() {
-		js_Browser.alert("Reset data");
-		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { page : data_Page.Home, userId : null, users : data_Default.users(), groups : data_Default.groups(), groupapplications : [{ username : "beda@bensin.se", groupname : "Örkelhåla kyrkokör", status : data_GroupApplicationStatus.Start}], songs : data_Default.songs()}}])});
+		console.log("src/data/AppStore.hx:287:","Reset data");
+		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { page : data_Page.Home, userId : null, users : data_Default.users(), groups : data_Default.groups(), applications : data_Default.applications(), invitations : data_Default.invitations(), songs : data_Default.songs()}}])});
 		this.save();
 	}
 	,__class__: data_AppStore
@@ -1066,11 +812,6 @@ var data_GroupApplicationStatus = $hxEnums["data.GroupApplicationStatus"] = { __
 	,Start: {_hx_index:0,__enum__:"data.GroupApplicationStatus",toString:$estr}
 	,Pending: {_hx_index:1,__enum__:"data.GroupApplicationStatus",toString:$estr}
 	,Rejected: {_hx_index:2,__enum__:"data.GroupApplicationStatus",toString:$estr}
-};
-var data_Page = $hxEnums["data.Page"] = { __ename__ : true, __constructs__ : ["Home","Other","CreateUser"]
-	,Home: {_hx_index:0,__enum__:"data.Page",toString:$estr}
-	,Other: {_hx_index:1,__enum__:"data.Page",toString:$estr}
-	,CreateUser: {_hx_index:2,__enum__:"data.Page",toString:$estr}
 };
 var data_SongCategory = $hxEnums["data.SongCategory"] = { __ename__ : true, __constructs__ : ["Free","Protected","Commercial"]
 	,Free: {_hx_index:0,__enum__:"data.SongCategory",toString:$estr}
@@ -1088,23 +829,36 @@ var data_SongFilter = $hxEnums["data.SongFilter"] = { __ename__ : true, __constr
 	,Group: ($_=function(groupname) { return {_hx_index:3,groupname:groupname,__enum__:"data.SongFilter",toString:$estr}; },$_.__params__ = ["groupname"],$_)
 	,LimitNumber: ($_=function(max) { return {_hx_index:4,max:max,__enum__:"data.SongFilter",toString:$estr}; },$_.__params__ = ["max"],$_)
 };
-var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs__ : ["Image","Title","Info","Button","Songlist","SearchChoir","BuySongs"]
+var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs__ : ["Image","Title","Info","Button","Songlist","SearchChoir","ListGroupMembers","InviteGroupMembers","BuySongs"]
 	,Image: ($_=function(url) { return {_hx_index:0,url:url,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["url"],$_)
 	,Title: ($_=function(title) { return {_hx_index:1,title:title,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["title"],$_)
 	,Info: ($_=function(info) { return {_hx_index:2,info:info,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["info"],$_)
 	,Button: ($_=function(label,onclick) { return {_hx_index:3,label:label,onclick:onclick,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["label","onclick"],$_)
 	,Songlist: ($_=function(title,songs,filter) { return {_hx_index:4,title:title,songs:songs,filter:filter,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["title","songs","filter"],$_)
 	,SearchChoir: {_hx_index:5,__enum__:"data.HomeCell",toString:$estr}
-	,BuySongs: {_hx_index:6,__enum__:"data.HomeCell",toString:$estr}
+	,ListGroupMembers: ($_=function(groupname) { return {_hx_index:6,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
+	,InviteGroupMembers: ($_=function(groupname) { return {_hx_index:7,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
+	,BuySongs: {_hx_index:8,__enum__:"data.HomeCell",toString:$estr}
+};
+var data_Page = $hxEnums["data.Page"] = { __ename__ : true, __constructs__ : ["Home","Other","CreateUser"]
+	,Home: {_hx_index:0,__enum__:"data.Page",toString:$estr}
+	,Other: {_hx_index:1,__enum__:"data.Page",toString:$estr}
+	,CreateUser: {_hx_index:2,__enum__:"data.Page",toString:$estr}
 };
 var data_Default = function() { };
 $hxClasses["data.Default"] = data_Default;
 data_Default.__name__ = true;
 data_Default.users = function() {
-	return [{ firstname : "Adam", lastname : "Adamsson", username : "adam@adam.se", password : "adam1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell06","Kommersiell07"]), groups : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Örkelhåla kyrkokör","Bromölla Bandidos"])},{ firstname : "Beda", lastname : "Bensin", username : "beda@bensin.se", password : "beda", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Örkelhåla kyrkokör"]), groups : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel1", lastname : "Örkelsson", username : "orkel1@orkel.se", password : "orkel1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groups : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel2", lastname : "Örkelsson", username : "orkel2@orkel.se", password : "orkel2", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groups : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel3", lastname : "Örkelsson", username : "orkel3@orkel.se", password : "orkel3", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groups : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel4", lastname : "Örkelsson", username : "orkel4@orkel.se", password : "orkel4", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groups : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro1", lastname : "Brorsson", username : "bro1@bro.se", password : "bro1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groups : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro2", lastname : "Brorsson", username : "bro2@bro.se", password : "bro2", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groups : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro3", lastname : "Brorsson", username : "bro3@bro.se", password : "bro3", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groups : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro4", lastname : "Brorsson", username : "bro4@bro.se", password : "bro4", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groups : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
+	return [{ firstname : "Adam", lastname : "Adamsson", username : "adam@adam.se", password : "adam1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell06","Kommersiell07"])},{ firstname : "Beda", lastname : "Bensin", username : "beda@bensin.se", password : "beda", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Caesar", lastname : "Citrus", username : "caesar@citrus.se", password : "caesar", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Avledare", lastname : "Jonsson", username : "avledare@kor.se", password : "avledare", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel1", lastname : "Örkelsson", username : "orkel1@orkel.se", password : "orkel1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel2", lastname : "Örkelsson", username : "orkel2@orkel.se", password : "orkel2", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel3", lastname : "Örkelsson", username : "orkel3@orkel.se", password : "orkel3", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel4", lastname : "Örkelsson", username : "orkel4@orkel.se", password : "orkel4", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro1", lastname : "Brorsson", username : "bro1@bro.se", password : "bro1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro2", lastname : "Brorsson", username : "bro2@bro.se", password : "bro2", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro3", lastname : "Brorsson", username : "bro3@bro.se", password : "bro3", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro4", lastname : "Brorsson", username : "bro4@bro.se", password : "bro4", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
+};
+data_Default.applications = function() {
+	return [{ username : "beda@bensin.se", groupname : "Örkelhåla kyrkokör", status : data_GroupApplicationStatus.Start}];
+};
+data_Default.invitations = function() {
+	return [{ username : "beda@bensin.se", groupname : "Avunda Kyrkokör", status : data_GroupApplicationStatus.Pending}];
 };
 data_Default.groups = function() {
-	return [{ name : "Örkelhåla kyrkokör", info : "Soli deo gloria. Plus vår körledare.", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["orkel1@orkel.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["orkel1@orkel.se","orkel2@orkel.se","orkel3@orkel.se"]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Sensus01","Sensus02","Sensus03"])},{ name : "Bromölla Bandidos", info : "Vi sjunger - ni pröjsar!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])},{ name : "Lingonbergens sångfåglar", info : "Vi trallar så glatt! Vill du va me?", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])},{ name : "Avunda Kyrkokör", info : "Ju mer förr, desto bättre!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])},{ name : "Nya kören, Hässleholm", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])},{ name : "Nya kören, Hallandsåsen", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])}];
+	return [{ name : "Örkelhåla kyrkokör", info : "Soli deo gloria. Plus vår körledare.", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["orkel1@orkel.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["adam@adam.se","orkel1@orkel.se","orkel2@orkel.se","orkel3@orkel.se"]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Sensus01","Sensus02","Sensus03"])},{ name : "Bromölla Bandidos", info : "Vi sjunger - ni pröjsar!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])},{ name : "Lingonbergens sångfåglar", info : "Vi trallar så glatt! Vill du va me?", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])},{ name : "Avunda Kyrkokör", info : "Ju mer förr, desto bättre!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["avledare@kor.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])},{ name : "Nya kören, Hässleholm", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])},{ name : "Nya kören, Hallandsåsen", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])}];
 };
 data_Default.songs = function() {
 	return [{ title : "Ave veum corpus", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Kommersiell titel", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Gratis01", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis02", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis03", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis04", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis05", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis06", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis07", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis08", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis09", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis10", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis11", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Kommersiell01", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell02", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell03", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell04", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell05", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell06", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell07", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell08", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Sensus01", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus02", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus03", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus04", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus05", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin}];
@@ -1483,12 +1237,6 @@ haxe_ds_StringMap.prototype = {
 			return this.rh["$" + key];
 		}
 	}
-	,existsReserved: function(key) {
-		if(this.rh == null) {
-			return false;
-		}
-		return this.rh.hasOwnProperty("$" + key);
-	}
 	,remove: function(key) {
 		if(__map_reserved[key] != null) {
 			key = "$" + key;
@@ -1756,331 +1504,452 @@ js_Browser.__name__ = true;
 js_Browser.alert = function(v) {
 	window.alert(js_Boot.__string_rec(v,""));
 };
-var pushstate_PushState = function() { };
-$hxClasses["pushstate.PushState"] = pushstate_PushState;
-pushstate_PushState.__name__ = true;
-pushstate_PushState.init = function(basePath,triggerFirst,ignoreAnchors) {
-	if(ignoreAnchors == null) {
-		ignoreAnchors = true;
-	}
-	if(triggerFirst == null) {
-		triggerFirst = true;
-	}
-	if(basePath == null) {
-		basePath = "";
-	}
-	pushstate_PushState.listeners = [];
-	pushstate_PushState.preventers = [];
-	pushstate_PushState.uploadCache = new haxe_ds_StringMap();
-	pushstate_PushState.basePath = basePath;
-	pushstate_PushState.ignoreAnchors = ignoreAnchors;
-	window.document.addEventListener("DOMContentLoaded",function(event) {
-		window.document.addEventListener("click",function(e) {
-			if(e.button == 0 && !e.metaKey && !e.ctrlKey) {
-				var link = null;
-				var value = e.target;
-				var node = ((value) instanceof Node) ? value : null;
-				while(link == null && node != null) {
-					link = ((node) instanceof HTMLAnchorElement) ? node : null;
-					node = node.parentNode;
-				}
-				if(link != null && (link.rel == "pushstate" || link.classList.contains("pushstate"))) {
-					pushstate_PushState.push(link.pathname + link.search + link.hash);
-					e.preventDefault();
-				}
-			}
-		});
-		window.document.addEventListener("submit",function(e1) {
-			var value1 = e1.target;
-			var form = ((value1) instanceof HTMLFormElement) ? value1 : null;
-			if(form.classList.contains("pushstate")) {
-				e1.preventDefault();
-				pushstate_PushState.interceptFormSubmit(form);
-			}
-		});
-		window.onpopstate = pushstate_PushState.handleOnPopState;
-		if(triggerFirst) {
-			pushstate_PushState.handleOnPopState(null);
-		} else {
-			pushstate_PushState.currentPath = pushstate_PushState.stripURL(window.document.location.pathname + window.document.location.search + window.document.location.hash);
-			pushstate_PushState.currentState = null;
-			pushstate_PushState.currentUploads = null;
-		}
-	});
+var mithril_Mithril = function() { };
+$hxClasses["mithril.Mithril"] = mithril_Mithril;
+mithril_Mithril.__name__ = true;
+var view_AppStoreView = function(store) {
+	this.store = store;
 };
-pushstate_PushState.hasClass = function(elm,className) {
-	return elm.classList.contains(className);
+$hxClasses["view.AppStoreView"] = view_AppStoreView;
+view_AppStoreView.__name__ = true;
+view_AppStoreView.__interfaces__ = [mithril_Mithril];
+view_AppStoreView.prototype = {
+	__class__: view_AppStoreView
 };
-pushstate_PushState.interceptFormSubmit = function(form) {
-	var params = [];
-	var uploads = null;
-	var addParam = function(name,val) {
-		if(name == null || name == "") {
-			return;
-		}
-		params.push({ name : name, val : val});
-	};
-	var addUpload = function(name1,files) {
-		var _g = 0;
-		var _g1 = files.length;
-		while(_g < _g1) addParam(name1,files[_g++].name);
-		if(uploads == null) {
-			uploads = { };
-		}
-		uploads[name1] = files;
-	};
-	var _g2 = 0;
-	var _g11 = form.elements.length;
-	while(_g2 < _g11) {
-		var elm = form.elements.item(_g2++);
-		switch(elm.nodeName.toUpperCase()) {
-		case "INPUT":
-			var input = ((elm) instanceof HTMLInputElement) ? elm : null;
-			switch(input.type) {
-			case "file":
-				if(input.files != null && input.files.length > 0) {
-					addUpload(input.name,input.files);
-				}
-				break;
-			case "checkbox":case "radio":
-				if(input.checked) {
-					addParam(input.name,input.value);
-				}
-				break;
-			case "color":case "date":case "datetime":case "datetime-local":case "email":case "hidden":case "month":case "number":case "password":case "range":case "search":case "tel":case "text":case "time":case "url":case "week":
-				addParam(input.name,input.value);
-				break;
-			}
-			break;
-		case "SELECT":
-			var select = ((elm) instanceof HTMLSelectElement) ? elm : null;
-			switch(select.type) {
-			case "select-multiple":
-				var _g3 = 0;
-				var _g12 = select.options.length;
-				while(_g3 < _g12) {
-					var option = select.options[_g3++];
-					if(option.selected) {
-						addParam(select.name,option.value);
-					}
-				}
-				break;
-			case "select-one":
-				addParam(select.name,select.value);
-				break;
-			}
-			break;
-		case "TEXTAREA":
-			var ta = ((elm) instanceof HTMLTextAreaElement) ? elm : null;
-			addParam(ta.name,ta.value);
-			break;
-		}
+var view_FooterView = function(store) {
+	view_AppStoreView.call(this,store);
+};
+$hxClasses["view.FooterView"] = view_FooterView;
+view_FooterView.__name__ = true;
+view_FooterView.__super__ = view_AppStoreView;
+view_FooterView.prototype = $extend(view_AppStoreView.prototype,{
+	view: function() {
+		var _gthis = this;
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		return [m.m("div",[m.m("p","Users"),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().users,function(u) {
+			return m.m("li",{ onclick : function(e) {
+				_gthis.store.tryLogin(u.username,u.password);
+				return;
+			}, style : { cursor : "pointer"}},"" + u.firstname + " " + u.lastname);
+		}))]),m.m("div",[m.m("p","Groups"),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().groups,function(g) {
+			return m.m("li",[m.m("p","" + g.name + " " + (g.sensus == null ? "null" : "" + g.sensus)),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(g.members,function(member) {
+				return m.m("li",member);
+			}))]);
+		}))]),m.m("div",[m.m("p","Songs"),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().songs,function(s) {
+			return m.m("li","" + s.title + " " + Std.string(s.category) + " " + Std.string(s.producer));
+		}))]),m.m("div",[m.m("p","Applications"),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().applications,function(s1) {
+			return m.m("li","" + Std.string(s1));
+		}))]),m.m("div",[m.m("p","Invitations"),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().invitations,function(s2) {
+			return m.m("li","" + Std.string(s2));
+		}))])];
 	}
-	var value = window.document.activeElement;
-	var activeInput = ((value) instanceof HTMLInputElement) ? value : null;
-	var value1 = window.document.activeElement;
-	var activeBtn = ((value1) instanceof HTMLButtonElement) ? value1 : null;
-	if(activeInput != null && activeInput.type == "submit") {
-		addParam(activeInput.name,activeInput.value);
-	} else if(activeBtn != null && activeBtn.type == "submit") {
-		addParam(activeBtn.name,activeBtn.value);
-	} else {
-		var defaultSubmit = form.querySelector("input[type=submit], button[type=submit]");
-		var defaultInput = ((defaultSubmit) instanceof HTMLInputElement) ? defaultSubmit : null;
-		var defaultBtn = ((defaultSubmit) instanceof HTMLButtonElement) ? defaultSubmit : null;
-		if(defaultInput != null) {
-			addParam(defaultInput.name,defaultInput.value);
-		} else if(defaultBtn != null) {
-			addParam(defaultBtn.name,defaultBtn.value);
-		}
+	,__class__: view_FooterView
+});
+var view_ApplicationsView = function(store) {
+	view_AppStoreView.call(this,store);
+};
+$hxClasses["view.ApplicationsView"] = view_ApplicationsView;
+view_ApplicationsView.__name__ = true;
+view_ApplicationsView.__super__ = view_AppStoreView;
+view_ApplicationsView.prototype = $extend(view_AppStoreView.prototype,{
+	view: function() {
+		var _gthis = this;
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		var itemsList = this.store.get_state().applications != null ? ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().applications,function(a) {
+			return a.username == _gthis.store.get_state().userId;
+		}),function(a1) {
+			switch(a1.status._hx_index) {
+			case 0:
+				return m.m("div.application.start",[m.m("span","Klicka här för att ansöka om medlemskap i " + a1.groupname),m.m("button",{ onclick : function(e) {
+					_gthis.store.removeApplication(a1);
+					return;
+				}},"Ta bort")]);
+			case 1:
+				return m.m("div.application.pending",[m.m("span","Din ansökan om att gå med i " + a1.groupname + " väntar på att behandlas av gruppledaren."),m.m("button",{ onclick : function(e1) {
+					return { };
+				}},"Ta bort")]);
+			case 2:
+				return m.m("div.application.rejected",[m.m("span","Din ansökan om medlemskap i " + a1.groupname + " har avslagits"),m.m("button",{ onclick : function(e2) {
+					return { };
+				}},"Ta bort")]);
+			}
+		})) : m.m("div","No applications");
+		return [m.m("div.groupapplications",[m.m("h3.groupsearch","Dina Ansökningar"),m.m("p.groupsearch","Här kan du hitta den kör som du vill bli deltagare i, och skapa en ansökan som kommer att skickas till ledaren för den aktuella gruppen."),itemsList]),m.m("select.groupsearch",[m.m("option","Sök din kör eller grupp här")].concat(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().groups,function(group) {
+			return m.m("option",{ onclick : function(e3) {
+				console.log("src/view/Views.hx:100:","click " + group.name);
+				var newApplication = { groupname : group.name, username : _gthis.store.get_state().userId, status : data_GroupApplicationStatus.Start};
+				_gthis.store.addApplication(newApplication);
+				return;
+			}, value : "" + group.name},"" + group.name);
+		}))))];
 	}
-	var paramString = params.map(function(p) {
-		var s = p.val;
-		return "" + p.name + "=" + encodeURIComponent(s);
-	}).join("&");
-	if(form.method.toUpperCase() == "POST") {
-		var paramsObj = { };
-		var _g21 = 0;
-		while(_g21 < params.length) {
-			var p1 = params[_g21];
-			++_g21;
-			if(Object.prototype.hasOwnProperty.call(paramsObj,p1.name)) {
-				Reflect.field(paramsObj,p1.name).push(p1.val);
+	,__class__: view_ApplicationsView
+});
+var view_InvitationsView = function(store) {
+	view_AppStoreView.call(this,store);
+};
+$hxClasses["view.InvitationsView"] = view_InvitationsView;
+view_InvitationsView.__name__ = true;
+view_InvitationsView.__super__ = view_AppStoreView;
+view_InvitationsView.prototype = $extend(view_AppStoreView.prototype,{
+	view: function() {
+		var _gthis = this;
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		var myInvitations = ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().invitations,function(a) {
+			return a.username == _gthis.store.get_state().userId;
+		});
+		var itemsList = myInvitations != null ? ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(myInvitations,function(a1) {
+			switch(a1.status._hx_index) {
+			case 0:
+				return m.m("div.application.start",[m.m("span","Klicka här för att ansöka om medlemskap i " + a1.groupname),m.m("button",{ onclick : function(e) {
+					_gthis.store.removeApplication(a1);
+					return;
+				}},"Ta bort")]);
+			case 1:
+				return m.m("div.application.pending",[m.m("span","Du har en inbjudan om att gå med i " + a1.groupname + ". Du kan välja om du vill gå med eller inte."),m.m("button",{ onclick : function(e1) {
+					_gthis.store.addUsernameToGroupFromInvitation(a1);
+					return;
+				}},"Ja, jag vill gå med i " + a1.groupname),m.m("button",{ onclick : function(e2) {
+					return { };
+				}},"Nej, jag vill inte gå med i " + a1.groupname)]);
+			case 2:
+				return m.m("div.application.rejected",[m.m("span","Din ansökan om medlemskap i " + a1.groupname + " har avslagits"),m.m("button",{ onclick : function(e3) {
+					return { };
+				}},"Ta bort")]);
+			}
+		})) : m.m("div","No invitations");
+		return m.m("div.groupapplications",[myInvitations.length > 0 ? m.m("h3","Mina inbjudningar") : null,itemsList]);
+	}
+	,__class__: view_InvitationsView
+});
+var view_CreateInvitationsView = function(store,group) {
+	view_AppStoreView.call(this,store);
+	this.group = group;
+};
+$hxClasses["view.CreateInvitationsView"] = view_CreateInvitationsView;
+view_CreateInvitationsView.__name__ = true;
+view_CreateInvitationsView.__super__ = view_AppStoreView;
+view_CreateInvitationsView.prototype = $extend(view_AppStoreView.prototype,{
+	view: function() {
+		var _gthis = this;
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		var existsMessage = function(username) {
+			if(_gthis.store.userExists(username)) {
+				return " Finns.";
 			} else {
-				paramsObj[p1.name] = [p1.val];
+				return " (Användaren " + username + " har ännu inte skapat något ScorX-konto, men kommer att nås av denna inbjudan när detta sker.)";
+			}
+		};
+		var itemsList = this.store.get_state().invitations != null ? ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().invitations,function(a) {
+			return a.groupname == _gthis.group.name;
+		}),function(a1) {
+			switch(a1.status._hx_index) {
+			case 0:
+				var itemsList1 = "Klicka här för att skapa en inbjudan till " + a1.username + " om att bli medlem i " + a1.groupname + "." + existsMessage(a1.username);
+				return m.m("div.application.start",[m.m("span",{ onclick : function(e) {
+					_gthis.store.changeApplicationStatus(a1,data_GroupApplicationStatus.Pending);
+					return;
+				}},itemsList1),m.m("button",{ onclick : function(e1) {
+					_gthis.store.removeApplication(a1);
+					return;
+				}},"Ta bort")]);
+			case 1:
+				return m.m("div.application.pending",[m.m("span","Du har skickat en inbjudan till " + a1.username + " om att gå med i gruppen " + a1.groupname + "." + existsMessage(a1.username)),m.m("button",{ onclick : function(e2) {
+					_gthis.store.removeInvitation(a1);
+					return;
+				}},"Ta bort")]);
+			case 2:
+				return m.m("div.application.rejected",[m.m("span","Din ansökan om medlemskap i " + a1.groupname + " har avslagits"),m.m("button",{ onclick : function(e3) {
+					return { };
+				}},"Ta bort")]);
+			}
+		})) : m.m("div","No invitations");
+		return m.m("div.groupinvitation",[m.m("div",[m.m("input[placeholder=Medlemmens e-postadress]",{ oninput : function(e4) {
+			view_CreateInvitationsView.username = e4.target.value;
+			console.log("src/view/Views.hx:204:",view_CreateInvitationsView.username);
+			return;
+		}}),m.m("button",{ onclick : function(e5) {
+			console.log("src/view/Views.hx:210:",view_CreateInvitationsView.username);
+			var application = { username : view_CreateInvitationsView.username, groupname : _gthis.group.name, status : data_GroupApplicationStatus.Start};
+			_gthis.store.addInvitation(application);
+			return;
+		}},"Skapa en inbjudan"),itemsList])]);
+	}
+	,__class__: view_CreateInvitationsView
+});
+var view_Homeview = function(store) {
+	view_AppStoreView.call(this,store);
+};
+$hxClasses["view.Homeview"] = view_Homeview;
+view_Homeview.__name__ = true;
+view_Homeview.__super__ = view_AppStoreView;
+view_Homeview.prototype = $extend(view_AppStoreView.prototype,{
+	view: function() {
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		if(this.store.get_state().userId == null) {
+			return this.guest();
+		} else {
+			return this.user();
+		}
+	}
+	,guest: function() {
+		return [this.cells([data_HomeCell.Image("assets/img/old-town.jpg"),data_HomeCell.Title("Sjung och spela var du vill"),data_HomeCell.Info("ScorX spelare funkar både för mobil och surfplatta!")]),this.cells([data_HomeCell.Image("assets/img/happy.jpg"),data_HomeCell.Title("Pröva ScorX gratis!"),data_HomeCell.Info("Klicka på valfri titel i listan nedan, lyssna och sjung med!"),data_HomeCell.Songlist("Gratislåtar",ds__$ImmutableArray_ImmutableArray_$Impl_$.array(this.store.get_state().songs),[data_SongFilter.Category(data_SongCategory.Free),data_SongFilter.LimitNumber(5)])])];
+	}
+	,cells: function(cells) {
+		var _gthis = this;
+		return m.m("section",cells.map(function(cell) {
+			switch(cell._hx_index) {
+			case 0:
+				return m.m("img",{ src : cell.url});
+			case 1:
+				return m.m("h1.limit-width.center",cell.title);
+			case 2:
+				return m.m("p.limit-width.center",cell.info);
+			case 4:
+				return _gthis.songlist(cell.title,cell.songs,cell.filter);
+			case 5:
+				return [new view_ApplicationsView(_gthis.store).view()];
+			case 6:
+				return m.m("div.groupmembers",[m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(_gthis.store.getGroup(cell.groupname).members,function(member) {
+					return m.m("li",member);
+				}))]);
+			case 7:
+				var group = _gthis.store.getGroup(cell.groupname);
+				return new view_CreateInvitationsView(_gthis.store,group).view();
+			case 8:
+				return m.m("div.center",[m.m("button.center",{ onclick : function(e) {
+					console.log("src/view/Views.hx:255:","Click");
+					return;
+				}},"Gå till butiken")]);
+			default:
+				return null;
+			}
+		}));
+	}
+	,user: function() {
+		return [this.choirMember(),this.choirAdmin(),this.mySongs()];
+	}
+	,mySongs: function() {
+		var _gthis = this;
+		var mySongs = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.getUser().songs,function(title) {
+			return _gthis.store.getSong(title);
+		}));
+		var myList = mySongs.length > 0 ? this.cells([data_HomeCell.Songlist("Mina låtar",mySongs,[data_SongFilter.LimitNumber(5)])]) : this.cells([data_HomeCell.BuySongs]);
+		return [this.cells([data_HomeCell.Title("Mina låtar"),data_HomeCell.Info("Här visas de låtar som du har köpt eller valt genom förmånserbjudanden.")]),myList];
+	}
+	,choirAdmin: function() {
+		var _gthis = this;
+		var user = this.store.getUser();
+		var groups = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().groups,function(group) {
+			return ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(group.admins,user.username) > -1;
+		}));
+		if(groups == null || groups.length == 0) {
+			return null;
+		}
+		var groupLists = groups.map(function(group1) {
+			var group2 = group1.name;
+			var groupLists1 = ds__$ImmutableArray_ImmutableArray_$Impl_$.map(group1.songs,function(title) {
+				return _gthis.store.getSong(title);
+			});
+			var groupLists2 = data_SongFilter.Group(group1.name);
+			var groupLists3 = data_HomeCell.Songlist(group2,ds__$ImmutableArray_ImmutableArray_$Impl_$.array(groupLists1),[groupLists2]);
+			return _gthis.cells([groupLists3,data_HomeCell.Info("Gruppens nuvarande medlemmar:"),data_HomeCell.ListGroupMembers(group1.name),data_HomeCell.Info("Här kan du bjuda in medlemmar till gruppen:"),data_HomeCell.InviteGroupMembers(group1.name)]);
+		});
+		return m.m("div.center",[this.cells([data_HomeCell.Title("Du leder följande körer")]),groupLists]);
+	}
+	,choirMember: function() {
+		var _gthis = this;
+		var user = this.store.getUser();
+		var groupLists = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().groups,function(group) {
+			return ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(group.members,user.username) > -1;
+		})).map(function(group1) {
+			var group2 = group1.name;
+			var groupLists1 = ds__$ImmutableArray_ImmutableArray_$Impl_$.map(group1.songs,function(title) {
+				return _gthis.store.getSong(title);
+			});
+			var groupLists2 = data_SongFilter.Group(group1.name);
+			var groupLists3 = data_HomeCell.Songlist(group2,ds__$ImmutableArray_ImmutableArray_$Impl_$.array(groupLists1),[groupLists2]);
+			return _gthis.cells([groupLists3]);
+		});
+		return m.m("div.center",[this.cells([data_HomeCell.Title("Körernas låtar"),data_HomeCell.Info(groupLists.length > 0 ? "Här visas de låtar dom delats ut till dig genom dina körer." : "Du verkar inte vara deltagare i någon kör eller grupp i ScorX.")]),groupLists,groupLists.length == 0 ? this.cells([data_HomeCell.SearchChoir]) : null,new view_InvitationsView(this.store).view()]);
+	}
+	,songlist: function(title,songs,filter) {
+		var _gthis = this;
+		var totalNumber = songs.length;
+		var _g = 0;
+		while(_g < filter.length) {
+			var f = filter[_g];
+			++_g;
+			switch(f._hx_index) {
+			case 0:
+				break;
+			case 1:
+				songs = songs.filter((function(cat) {
+					return function(song) {
+						var e = song.category;
+						return $hxEnums[e.__enum__].__constructs__[e._hx_index] == $hxEnums[cat[0].__enum__].__constructs__[cat[0]._hx_index];
+					};
+				})([f.cat]));
+				break;
+			case 2:
+				songs = songs.filter((function(prod) {
+					return function(song1) {
+						return song1.producer == prod[0];
+					};
+				})([f.prod]));
+				break;
+			case 3:
+				songs = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.getGroup(f.groupname).songs,(function() {
+					return function(songtitle) {
+						return _gthis.store.getSong(songtitle);
+					};
+				})()));
+				totalNumber = songs.length;
+				break;
+			case 4:
+				songs = songs.slice(0,5);
+				break;
 			}
 		}
-		paramsObj["__postData"] = paramString;
-		if(uploads != null) {
-			pushstate_PushState.setUploadsForState(form.action,paramsObj,uploads);
-		}
-		pushstate_PushState.push(form.action,paramsObj,uploads);
-	} else {
-		pushstate_PushState.push(form.action + "?" + paramString,null);
+		return m.m("article.center",[m.m("header",m.m("span",title),m.m("input[placeholder=Sök]")),m.m("ul",songs.filter(function(song2) {
+			return song2 != null;
+		}).map(function(song3) {
+			var e1 = song3.producer;
+			return m.m("li",[m.m(".thumb",m.m("img",{ src : "assets/scorx/" + $hxEnums[e1.__enum__].__constructs__[e1._hx_index] + ".png"})),m.m(".title",[m.m("h3",song3.title),m.m("p","Information...")]),m.m(".originators","Originators")]);
+		})),m.m("footer",[m.m("button",{ onclick : function(e2) {
+			return { };
+		}},"Visa alla " + totalNumber)])]);
 	}
+	,__class__: view_Homeview
+});
+var view_Pageview = function(store) {
+	view_AppStoreView.call(this,store);
+	this.home = new view_Homeview(store);
+	this.create = new view_CreateUserView(store);
 };
-pushstate_PushState.setUploadsForState = function(url,state,uploads) {
-	var uploadCacheID = "" + url + "-" + HxOverrides.dateStr(new Date()) + "-" + Math.random();
-	var _this = pushstate_PushState.uploadCache;
-	if(__map_reserved[uploadCacheID] != null) {
-		_this.setReserved(uploadCacheID,uploads);
-	} else {
-		_this.h[uploadCacheID] = uploads;
-	}
-	state["__postFilesCacheID"] = uploadCacheID;
-};
-pushstate_PushState.getUploadsForState = function(state) {
-	if(state == null || Object.prototype.hasOwnProperty.call(state,"__postFilesCacheID") == false) {
-		return null;
-	}
-	var uploadCacheID = state.__postFilesCacheID;
-	var _this = pushstate_PushState.uploadCache;
-	if((__map_reserved[uploadCacheID] != null ? _this.existsReserved(uploadCacheID) : _this.h.hasOwnProperty(uploadCacheID)) == false) {
-		console.log("../fb-libs/src-cx/pushstate/PushState.hx:214:","Upload files with cache ID " + uploadCacheID + " is not available anymore");
-		return null;
-	} else {
-		var _this1 = pushstate_PushState.uploadCache;
-		if(__map_reserved[uploadCacheID] != null) {
-			return _this1.getReserved(uploadCacheID);
-		} else {
-			return _this1.h[uploadCacheID];
+$hxClasses["view.Pageview"] = view_Pageview;
+view_Pageview.__name__ = true;
+view_Pageview.__super__ = view_AppStoreView;
+view_Pageview.prototype = $extend(view_AppStoreView.prototype,{
+	view: function() {
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		switch(this.store.get_state().page._hx_index) {
+		case 0:
+			return this.home.view();
+		case 2:
+			return this.create.view();
+		default:
+			return null;
 		}
 	}
+	,__class__: view_Pageview
+});
+var view_CreateUserView = function(store) {
+	this.lastname = "a";
+	this.firstname = "a";
+	this.tryPassword = "a";
+	this.tryUsername = "a";
+	view_AppStoreView.call(this,store);
 };
-pushstate_PushState.handleOnPopState = function(e) {
-	var path = pushstate_PushState.stripURL(window.document.location.pathname + window.document.location.search + window.document.location.hash);
-	var state = e != null ? e.state : null;
-	var uploads;
-	if(state != null && state.__postFilesCacheID != null) {
-		var key = state.__postFilesCacheID;
-		var _this = pushstate_PushState.uploadCache;
-		uploads = __map_reserved[key] != null ? _this.getReserved(key) : _this.h[key];
-	} else {
-		uploads = null;
-	}
-	if(pushstate_PushState.ignoreAnchors && path == pushstate_PushState.currentPath) {
-		return;
-	}
-	if(e != null) {
-		var _g = 0;
-		var _g1 = pushstate_PushState.preventers;
-		while(_g < _g1.length) if(!_g1[_g++](path,state,uploads)) {
-			e.preventDefault();
-			window.history.replaceState(pushstate_PushState.currentState,"",pushstate_PushState.currentPath);
+$hxClasses["view.CreateUserView"] = view_CreateUserView;
+view_CreateUserView.__name__ = true;
+view_CreateUserView.__super__ = view_AppStoreView;
+view_CreateUserView.prototype = $extend(view_AppStoreView.prototype,{
+	view: function() {
+		var _gthis = this;
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		return [m.m("h1","Create user"),m.m("div",[m.m("input[placeholder=Användarnamn][required]",{ oninput : function(e) {
+			_gthis.tryUsername = e.target.value;
+			console.log("src/view/Views.hx:398:",e.target.value);
+			console.log("src/view/Views.hx:399:",_gthis.tryUsername);
 			return;
+		}}),m.m("input[placeholder=Lösenord][required]",{ oninput : function(e1) {
+			return _gthis.tryPassword = e1.target.value;
+		}}),m.m("input[placeholder=Förnamn][required]",{ oninput : function(e2) {
+			return _gthis.firstname = e2.target.value;
+		}}),m.m("input[placeholder=Lastname][required]",{ oninput : function(e3) {
+			return _gthis.lastname = e3.target.value;
+		}}),m.m("button",{ onclick : function(e4) {
+			console.log("src/view/Views.hx:424:",_gthis.tryUsername + " " + _gthis.tryPassword + " " + _gthis.firstname + " " + _gthis.lastname);
+			try {
+				cx_Validation.asEmail(_gthis.tryUsername);
+				cx_Validation.asPassword(_gthis.tryPassword);
+				cx_Validation.asFirstname(_gthis.firstname);
+				cx_Validation.asLastname(_gthis.lastname);
+				var newUser = { firstname : _gthis.firstname, lastname : _gthis.lastname, password : _gthis.tryPassword, username : _gthis.tryUsername, sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])};
+				console.log("src/view/Views.hx:438:",newUser);
+				_gthis.store.addUser(newUser);
+			} catch( e5 ) {
+				js_Browser.alert(((e5) instanceof js__$Boot_HaxeError) ? e5.val : e5);
+			}
+			return;
+		}},"Skapa användare")])];
+	}
+	,__class__: view_CreateUserView
+});
+var view_MenuView = function(store) {
+	view_AppStoreView.call(this,store);
+};
+$hxClasses["view.MenuView"] = view_MenuView;
+view_MenuView.__name__ = true;
+view_MenuView.__super__ = view_AppStoreView;
+view_MenuView.prototype = $extend(view_AppStoreView.prototype,{
+	view: function() {
+		var _gthis = this;
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		return [m.m("button",{ onclick : function(e) {
+			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("page")]), value : data_Page.Home}])});
+			return;
+		}},"Home"),m.m("button",{ onclick : function(e1) {
+			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("page")]), value : data_Page.CreateUser}])});
+			return;
+		}},"Create user"),m.m("button",{ onclick : function(e2) {
+			_gthis.store.resetToDefaultData();
+			return;
+		}},"Reset data")];
+	}
+	,__class__: view_MenuView
+});
+var view_Userview = function(store) {
+	this.tryPassword = "adam1";
+	this.tryUsername = "adam@adam.se";
+	view_AppStoreView.call(this,store);
+};
+$hxClasses["view.Userview"] = view_Userview;
+view_Userview.__name__ = true;
+view_Userview.__super__ = view_AppStoreView;
+view_Userview.prototype = $extend(view_AppStoreView.prototype,{
+	view: function() {
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		if(this.store.get_state().userId != null) {
+			return this.user();
+		} else {
+			return this.guest();
 		}
 	}
-	pushstate_PushState.currentPath = path;
-	pushstate_PushState.currentState = state;
-	pushstate_PushState.currentUploads = pushstate_PushState.getUploadsForState(state);
-	pushstate_PushState.dispatch(pushstate_PushState.currentPath,pushstate_PushState.currentState,pushstate_PushState.currentUploads);
-	return;
-};
-pushstate_PushState.stripURL = function(path) {
-	if(HxOverrides.substr(path,0,pushstate_PushState.basePath.length) == pushstate_PushState.basePath) {
-		path = HxOverrides.substr(path,pushstate_PushState.basePath.length,null);
+	,user: function() {
+		var _gthis = this;
+		if(this.store.getUser() == null) {
+			return null;
+		}
+		return [m.m("h3","Välkommen, " + this.store.getUser().firstname + "!"),m.m("button",{ onclick : function(e) {
+			_gthis.store.logout();
+			return;
+		}},"Logga ut")];
 	}
-	if(pushstate_PushState.ignoreAnchors && path.indexOf("#") > -1) {
-		path = HxOverrides.substr(path,0,path.indexOf("#"));
+	,guest: function() {
+		var _gthis = this;
+		return [m.m("div",[m.m("input[placeholder=Användarnamn][required]",{ oninput : function(e) {
+			return _gthis.tryUsername = e.target.value;
+		}, value : this.tryUsername}),m.m("input[placeholder=Lösenord][required]",{ oninput : function(e1) {
+			return _gthis.tryPassword = e1.target.value;
+		}, value : this.tryPassword}),m.m("button",{ onclick : function(e2) {
+			_gthis.store.tryLogin(_gthis.tryUsername,_gthis.tryPassword);
+			return;
+		}},"Logga in")])];
 	}
-	return path;
-};
-pushstate_PushState.addEventListener = function(l1,l2,l3) {
-	var l;
-	if(l1 != null) {
-		l = l1;
-	} else if(l2 != null) {
-		l = function(url,state,_) {
-			l2(url,state);
-		};
-	} else if(l3 != null) {
-		l = function(url1,_1,_2) {
-			l3(url1);
-		};
-	} else {
-		throw new js__$Boot_HaxeError("No listener provided");
-	}
-	pushstate_PushState.listeners.push(l);
-	return l;
-};
-pushstate_PushState.removeEventListener = function(l) {
-	HxOverrides.remove(pushstate_PushState.listeners,l);
-};
-pushstate_PushState.clearEventListeners = function() {
-	while(pushstate_PushState.listeners.length > 0) pushstate_PushState.listeners.pop();
-};
-pushstate_PushState.addPreventer = function(p1,p2,p3) {
-	var p;
-	if(p1 != null) {
-		p = p1;
-	} else if(p2 != null) {
-		p = function(url,state,_) {
-			return p2(url,state);
-		};
-	} else if(p3 != null) {
-		p = function(url1,_1,_2) {
-			return p3(url1);
-		};
-	} else {
-		throw new js__$Boot_HaxeError("No preventer provided");
-	}
-	pushstate_PushState.preventers.push(p);
-	return p;
-};
-pushstate_PushState.removePreventer = function(p) {
-	HxOverrides.remove(pushstate_PushState.preventers,p);
-};
-pushstate_PushState.clearPreventers = function() {
-	while(pushstate_PushState.preventers.length > 0) pushstate_PushState.preventers.pop();
-};
-pushstate_PushState.dispatch = function(url,state,uploads) {
-	var _g = 0;
-	var _g1 = pushstate_PushState.listeners;
-	while(_g < _g1.length) _g1[_g++](url,state,uploads);
-};
-pushstate_PushState.push = function(url,state,uploads) {
-	var strippedURL = pushstate_PushState.stripURL(url);
-	if(state == null) {
-		state = { };
-	}
-	var _g = 0;
-	var _g1 = pushstate_PushState.preventers;
-	while(_g < _g1.length) if(!_g1[_g++](strippedURL,state,uploads)) {
-		return false;
-	}
-	pushstate_PushState.setUploadsForState(strippedURL,state,uploads);
-	window.history.pushState(state,"",url);
-	pushstate_PushState.currentPath = strippedURL;
-	pushstate_PushState.currentState = state;
-	pushstate_PushState.currentUploads = uploads;
-	pushstate_PushState.dispatch(strippedURL,state,uploads);
-	return true;
-};
-pushstate_PushState.replace = function(url,state,uploads) {
-	var strippedURL = pushstate_PushState.stripURL(url);
-	if(state == null) {
-		state = { };
-	}
-	var _g = 0;
-	var _g1 = pushstate_PushState.preventers;
-	while(_g < _g1.length) if(!_g1[_g++](strippedURL,state,uploads)) {
-		return false;
-	}
-	pushstate_PushState.silentReplace(url,state,uploads);
-	pushstate_PushState.dispatch(strippedURL,state,uploads);
-	return true;
-};
-pushstate_PushState.silentReplace = function(url,state,uploads) {
-	var strippedURL = pushstate_PushState.stripURL(url);
-	if(state == null) {
-		state = { };
-	}
-	pushstate_PushState.setUploadsForState(strippedURL,state,uploads);
-	window.history.replaceState(state,"",url);
-	pushstate_PushState.currentPath = strippedURL;
-	pushstate_PushState.currentState = state;
-	pushstate_PushState.currentUploads = uploads;
-};
+	,__class__: view_Userview
+});
 function $getIterator(o) { if( o instanceof Array ) return HxOverrides.iter(o); else return o.iterator(); }
 var $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = m.bind(o); o.hx__closures__[m.__id__] = f; } return f; }
@@ -2089,8 +1958,6 @@ String.prototype.__class__ = $hxClasses["String"] = String;
 String.__name__ = true;
 $hxClasses["Array"] = Array;
 Array.__name__ = true;
-Date.prototype.__class__ = $hxClasses["Date"] = Date;
-Date.__name__ = "Date";
 var Int = { };
 var Dynamic = { };
 var Float = Number;
@@ -2168,291 +2035,284 @@ DeepState_$data_$AppState._stateTypes = (function($this) {
 		} else {
 			_g.h["lastname"] = value4;
 		}
-		var value5 = ds_StateObjectType.Array(ds_StateObjectType.String);
-		if(__map_reserved["groups"] != null) {
-			_g.setReserved("groups",value5);
-		} else {
-			_g.h["groups"] = value5;
-		}
-		var value6 = ds_StateObjectType.String;
+		var value5 = ds_StateObjectType.String;
 		if(__map_reserved["firstname"] != null) {
-			_g.setReserved("firstname",value6);
+			_g.setReserved("firstname",value5);
 		} else {
-			_g.h["firstname"] = value6;
+			_g.h["firstname"] = value5;
 		}
-		var value7 = ds_StateObjectType.Anonymous(_g);
+		var value6 = ds_StateObjectType.Anonymous(_g);
 		if(__map_reserved["data.User"] != null) {
-			_g9.setReserved("data.User",value7);
+			_g9.setReserved("data.User",value6);
 		} else {
-			_g9.h["data.User"] = value7;
+			_g9.h["data.User"] = value6;
 		}
 	}
 	{
 		var _g1 = new haxe_ds_StringMap();
-		var value8 = ds_StateObjectType.String;
+		var value7 = ds_StateObjectType.String;
 		if(__map_reserved["title"] != null) {
-			_g1.setReserved("title",value8);
+			_g1.setReserved("title",value7);
 		} else {
-			_g1.h["title"] = value8;
+			_g1.h["title"] = value7;
+		}
+		var value8 = ds_StateObjectType.Enumm;
+		if(__map_reserved["producer"] != null) {
+			_g1.setReserved("producer",value8);
+		} else {
+			_g1.h["producer"] = value8;
 		}
 		var value9 = ds_StateObjectType.Enumm;
-		if(__map_reserved["producer"] != null) {
-			_g1.setReserved("producer",value9);
-		} else {
-			_g1.h["producer"] = value9;
-		}
-		var value10 = ds_StateObjectType.Enumm;
 		if(__map_reserved["category"] != null) {
-			_g1.setReserved("category",value10);
+			_g1.setReserved("category",value9);
 		} else {
-			_g1.h["category"] = value10;
+			_g1.h["category"] = value9;
 		}
-		var value11 = ds_StateObjectType.Anonymous(_g1);
+		var value10 = ds_StateObjectType.Anonymous(_g1);
 		if(__map_reserved["data.Song"] != null) {
-			_g9.setReserved("data.Song",value11);
+			_g9.setReserved("data.Song",value10);
 		} else {
-			_g9.h["data.Song"] = value11;
+			_g9.h["data.Song"] = value10;
 		}
 	}
 	{
 		var _g2 = new haxe_ds_StringMap();
-		var value12 = ds_StateObjectType.String;
+		var value11 = ds_StateObjectType.String;
 		if(__map_reserved["username"] != null) {
-			_g2.setReserved("username",value12);
+			_g2.setReserved("username",value11);
 		} else {
-			_g2.h["username"] = value12;
+			_g2.h["username"] = value11;
 		}
-		var value13 = ds_StateObjectType.Enumm;
+		var value12 = ds_StateObjectType.Enumm;
 		if(__map_reserved["status"] != null) {
-			_g2.setReserved("status",value13);
+			_g2.setReserved("status",value12);
 		} else {
-			_g2.h["status"] = value13;
+			_g2.h["status"] = value12;
 		}
-		var value14 = ds_StateObjectType.String;
+		var value13 = ds_StateObjectType.String;
 		if(__map_reserved["groupname"] != null) {
-			_g2.setReserved("groupname",value14);
+			_g2.setReserved("groupname",value13);
 		} else {
-			_g2.h["groupname"] = value14;
+			_g2.h["groupname"] = value13;
 		}
-		var value15 = ds_StateObjectType.Anonymous(_g2);
+		var value14 = ds_StateObjectType.Anonymous(_g2);
 		if(__map_reserved["data.GroupApplication"] != null) {
-			_g9.setReserved("data.GroupApplication",value15);
+			_g9.setReserved("data.GroupApplication",value14);
 		} else {
-			_g9.h["data.GroupApplication"] = value15;
+			_g9.h["data.GroupApplication"] = value14;
 		}
 	}
 	{
 		var _g3 = new haxe_ds_StringMap();
-		var value16 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		var value15 = ds_StateObjectType.Array(ds_StateObjectType.String);
 		if(__map_reserved["songs"] != null) {
-			_g3.setReserved("songs",value16);
+			_g3.setReserved("songs",value15);
 		} else {
-			_g3.h["songs"] = value16;
+			_g3.h["songs"] = value15;
 		}
-		var value17 = ds_StateObjectType.Bool;
+		var value16 = ds_StateObjectType.Bool;
 		if(__map_reserved["sensus"] != null) {
-			_g3.setReserved("sensus",value17);
+			_g3.setReserved("sensus",value16);
 		} else {
-			_g3.h["sensus"] = value17;
+			_g3.h["sensus"] = value16;
 		}
-		var value18 = ds_StateObjectType.String;
+		var value17 = ds_StateObjectType.String;
 		if(__map_reserved["name"] != null) {
-			_g3.setReserved("name",value18);
+			_g3.setReserved("name",value17);
 		} else {
-			_g3.h["name"] = value18;
+			_g3.h["name"] = value17;
 		}
-		var value19 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		var value18 = ds_StateObjectType.Array(ds_StateObjectType.String);
 		if(__map_reserved["members"] != null) {
-			_g3.setReserved("members",value19);
+			_g3.setReserved("members",value18);
 		} else {
-			_g3.h["members"] = value19;
+			_g3.h["members"] = value18;
 		}
-		var value20 = ds_StateObjectType.String;
+		var value19 = ds_StateObjectType.String;
 		if(__map_reserved["info"] != null) {
-			_g3.setReserved("info",value20);
+			_g3.setReserved("info",value19);
 		} else {
-			_g3.h["info"] = value20;
+			_g3.h["info"] = value19;
 		}
-		var value21 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		var value20 = ds_StateObjectType.Array(ds_StateObjectType.String);
 		if(__map_reserved["admins"] != null) {
-			_g3.setReserved("admins",value21);
+			_g3.setReserved("admins",value20);
 		} else {
-			_g3.h["admins"] = value21;
+			_g3.h["admins"] = value20;
 		}
-		var value22 = ds_StateObjectType.Anonymous(_g3);
+		var value21 = ds_StateObjectType.Anonymous(_g3);
 		if(__map_reserved["data.Group"] != null) {
-			_g9.setReserved("data.Group",value22);
+			_g9.setReserved("data.Group",value21);
 		} else {
-			_g9.h["data.Group"] = value22;
+			_g9.h["data.Group"] = value21;
 		}
 	}
 	{
 		var _g8 = new haxe_ds_StringMap();
 		var _g4 = new haxe_ds_StringMap();
-		var value23 = ds_StateObjectType.String;
+		var value22 = ds_StateObjectType.String;
 		if(__map_reserved["username"] != null) {
-			_g4.setReserved("username",value23);
+			_g4.setReserved("username",value22);
 		} else {
-			_g4.h["username"] = value23;
+			_g4.h["username"] = value22;
 		}
-		var value24 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		var value23 = ds_StateObjectType.Array(ds_StateObjectType.String);
 		if(__map_reserved["songs"] != null) {
-			_g4.setReserved("songs",value24);
+			_g4.setReserved("songs",value23);
 		} else {
-			_g4.h["songs"] = value24;
+			_g4.h["songs"] = value23;
 		}
-		var value25 = ds_StateObjectType.Bool;
+		var value24 = ds_StateObjectType.Bool;
 		if(__map_reserved["sensus"] != null) {
-			_g4.setReserved("sensus",value25);
+			_g4.setReserved("sensus",value24);
 		} else {
-			_g4.h["sensus"] = value25;
+			_g4.h["sensus"] = value24;
+		}
+		var value25 = ds_StateObjectType.String;
+		if(__map_reserved["password"] != null) {
+			_g4.setReserved("password",value25);
+		} else {
+			_g4.h["password"] = value25;
 		}
 		var value26 = ds_StateObjectType.String;
-		if(__map_reserved["password"] != null) {
-			_g4.setReserved("password",value26);
+		if(__map_reserved["lastname"] != null) {
+			_g4.setReserved("lastname",value26);
 		} else {
-			_g4.h["password"] = value26;
+			_g4.h["lastname"] = value26;
 		}
 		var value27 = ds_StateObjectType.String;
-		if(__map_reserved["lastname"] != null) {
-			_g4.setReserved("lastname",value27);
+		if(__map_reserved["firstname"] != null) {
+			_g4.setReserved("firstname",value27);
 		} else {
-			_g4.h["lastname"] = value27;
+			_g4.h["firstname"] = value27;
 		}
-		var value28 = ds_StateObjectType.Array(ds_StateObjectType.String);
-		if(__map_reserved["groups"] != null) {
-			_g4.setReserved("groups",value28);
+		var value28 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g4));
+		if(__map_reserved["users"] != null) {
+			_g8.setReserved("users",value28);
 		} else {
-			_g4.h["groups"] = value28;
+			_g8.h["users"] = value28;
 		}
 		var value29 = ds_StateObjectType.String;
-		if(__map_reserved["firstname"] != null) {
-			_g4.setReserved("firstname",value29);
-		} else {
-			_g4.h["firstname"] = value29;
-		}
-		var value30 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g4));
-		if(__map_reserved["users"] != null) {
-			_g8.setReserved("users",value30);
-		} else {
-			_g8.h["users"] = value30;
-		}
-		var value31 = ds_StateObjectType.String;
 		if(__map_reserved["userId"] != null) {
-			_g8.setReserved("userId",value31);
+			_g8.setReserved("userId",value29);
 		} else {
-			_g8.h["userId"] = value31;
+			_g8.h["userId"] = value29;
 		}
 		var _g5 = new haxe_ds_StringMap();
-		var value32 = ds_StateObjectType.String;
+		var value30 = ds_StateObjectType.String;
 		if(__map_reserved["title"] != null) {
-			_g5.setReserved("title",value32);
+			_g5.setReserved("title",value30);
 		} else {
-			_g5.h["title"] = value32;
+			_g5.h["title"] = value30;
 		}
-		var value33 = ds_StateObjectType.Enumm;
+		var value31 = ds_StateObjectType.Enumm;
 		if(__map_reserved["producer"] != null) {
-			_g5.setReserved("producer",value33);
+			_g5.setReserved("producer",value31);
 		} else {
-			_g5.h["producer"] = value33;
+			_g5.h["producer"] = value31;
+		}
+		var value32 = ds_StateObjectType.Enumm;
+		if(__map_reserved["category"] != null) {
+			_g5.setReserved("category",value32);
+		} else {
+			_g5.h["category"] = value32;
+		}
+		var value33 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g5));
+		if(__map_reserved["songs"] != null) {
+			_g8.setReserved("songs",value33);
+		} else {
+			_g8.h["songs"] = value33;
 		}
 		var value34 = ds_StateObjectType.Enumm;
-		if(__map_reserved["category"] != null) {
-			_g5.setReserved("category",value34);
-		} else {
-			_g5.h["category"] = value34;
-		}
-		var value35 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g5));
-		if(__map_reserved["songs"] != null) {
-			_g8.setReserved("songs",value35);
-		} else {
-			_g8.h["songs"] = value35;
-		}
-		var value36 = ds_StateObjectType.Enumm;
 		if(__map_reserved["page"] != null) {
-			_g8.setReserved("page",value36);
+			_g8.setReserved("page",value34);
 		} else {
-			_g8.h["page"] = value36;
+			_g8.h["page"] = value34;
+		}
+		var value35 = ds_StateObjectType.Array(ds_StateObjectType.Recursive("data.GroupApplication"));
+		if(__map_reserved["invitations"] != null) {
+			_g8.setReserved("invitations",value35);
+		} else {
+			_g8.h["invitations"] = value35;
 		}
 		var _g6 = new haxe_ds_StringMap();
-		var value37 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		var value36 = ds_StateObjectType.Array(ds_StateObjectType.String);
 		if(__map_reserved["songs"] != null) {
-			_g6.setReserved("songs",value37);
+			_g6.setReserved("songs",value36);
 		} else {
-			_g6.h["songs"] = value37;
+			_g6.h["songs"] = value36;
 		}
-		var value38 = ds_StateObjectType.Bool;
+		var value37 = ds_StateObjectType.Bool;
 		if(__map_reserved["sensus"] != null) {
-			_g6.setReserved("sensus",value38);
+			_g6.setReserved("sensus",value37);
 		} else {
-			_g6.h["sensus"] = value38;
+			_g6.h["sensus"] = value37;
 		}
-		var value39 = ds_StateObjectType.String;
+		var value38 = ds_StateObjectType.String;
 		if(__map_reserved["name"] != null) {
-			_g6.setReserved("name",value39);
+			_g6.setReserved("name",value38);
 		} else {
-			_g6.h["name"] = value39;
+			_g6.h["name"] = value38;
 		}
-		var value40 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		var value39 = ds_StateObjectType.Array(ds_StateObjectType.String);
 		if(__map_reserved["members"] != null) {
-			_g6.setReserved("members",value40);
+			_g6.setReserved("members",value39);
 		} else {
-			_g6.h["members"] = value40;
+			_g6.h["members"] = value39;
 		}
-		var value41 = ds_StateObjectType.String;
+		var value40 = ds_StateObjectType.String;
 		if(__map_reserved["info"] != null) {
-			_g6.setReserved("info",value41);
+			_g6.setReserved("info",value40);
 		} else {
-			_g6.h["info"] = value41;
+			_g6.h["info"] = value40;
 		}
-		var value42 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		var value41 = ds_StateObjectType.Array(ds_StateObjectType.String);
 		if(__map_reserved["admins"] != null) {
-			_g6.setReserved("admins",value42);
+			_g6.setReserved("admins",value41);
 		} else {
-			_g6.h["admins"] = value42;
+			_g6.h["admins"] = value41;
 		}
-		var value43 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g6));
+		var value42 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g6));
 		if(__map_reserved["groups"] != null) {
-			_g8.setReserved("groups",value43);
+			_g8.setReserved("groups",value42);
 		} else {
-			_g8.h["groups"] = value43;
+			_g8.h["groups"] = value42;
 		}
 		var _g7 = new haxe_ds_StringMap();
-		var value44 = ds_StateObjectType.String;
+		var value43 = ds_StateObjectType.String;
 		if(__map_reserved["username"] != null) {
-			_g7.setReserved("username",value44);
+			_g7.setReserved("username",value43);
 		} else {
-			_g7.h["username"] = value44;
+			_g7.h["username"] = value43;
 		}
-		var value45 = ds_StateObjectType.Enumm;
+		var value44 = ds_StateObjectType.Enumm;
 		if(__map_reserved["status"] != null) {
-			_g7.setReserved("status",value45);
+			_g7.setReserved("status",value44);
 		} else {
-			_g7.h["status"] = value45;
+			_g7.h["status"] = value44;
 		}
-		var value46 = ds_StateObjectType.String;
+		var value45 = ds_StateObjectType.String;
 		if(__map_reserved["groupname"] != null) {
-			_g7.setReserved("groupname",value46);
+			_g7.setReserved("groupname",value45);
 		} else {
-			_g7.h["groupname"] = value46;
+			_g7.h["groupname"] = value45;
 		}
-		var value47 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g7));
-		if(__map_reserved["groupapplications"] != null) {
-			_g8.setReserved("groupapplications",value47);
+		var value46 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g7));
+		if(__map_reserved["applications"] != null) {
+			_g8.setReserved("applications",value46);
 		} else {
-			_g8.h["groupapplications"] = value47;
+			_g8.h["applications"] = value46;
 		}
-		var value48 = ds_StateObjectType.Anonymous(_g8);
+		var value47 = ds_StateObjectType.Anonymous(_g8);
 		if(__map_reserved["data.AppState"] != null) {
-			_g9.setReserved("data.AppState",value48);
+			_g9.setReserved("data.AppState",value47);
 		} else {
-			_g9.h["data.AppState"] = value48;
+			_g9.h["data.AppState"] = value47;
 		}
 	}
 	$r = _g9;
 	return $r;
 }(this));
 cx_Validation.emailReg = new EReg("^[\\w-\\.]{2,}@[\\w-\\.]{2,}\\.[a-z]{2,6}$","i");
-pushstate_PushState.ignoreAnchors = true;
 Client.main();
 })(typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);

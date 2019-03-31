@@ -68,8 +68,12 @@ body > footer {
 #footer {
     display: grid;
     font-size: 1.2vmax;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
     padding: 1vmax;
+}
+
+#footer ul {
+    padding: 0.4vmax 1vmax;
 }
 
 button {
@@ -136,7 +140,7 @@ section p {
     text-align: center;
     margin: 0 auto;  
     padding: .5em 5em .2em 5em;  
-    line-height: 4vmax;
+    line-height: 150%;
          
 }
 
@@ -281,17 +285,51 @@ article li.shop {
 /************************************************/
 
 .groupapplications {
-    display: grid;
-    grid-template-columns: 3fr 1fr;
+    padding-top: 2vmax;
 }
 
 .application {
-    border:1px solid black;
+    border:1px solid #aaa;
     border-radius: 2vmax;
     padding: 1vmax 2vmax;
     margin: .5vmax 1vmax;
-    background: lime;
+    background: gray;
     cursor:pointer;
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr;
+    grid-gap: 1vmax;
 }
 
+.application button {
+    font-size: 100%;
+}
 
+.application.start {
+    background:lime;
+}
+
+.application.pending {
+    background:skyblue;
+}
+
+.application.rejected {
+    background:tomato;
+}
+
+.groupapplications {
+    text-align:center;
+}
+
+.groupsearch {
+    margin: 0 20%;
+    text-align:center;
+    font-size: 2.2vmax;
+    width: 60%;
+}
+
+.groupinvitation input {
+    margin: 0 25%;
+    text-align:center;
+    font-size: 2.2vmax;
+    width: 50%;
+}
