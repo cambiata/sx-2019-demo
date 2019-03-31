@@ -19,6 +19,19 @@ typedef Group = {
 	final songs:ds.ImmutableArray<String>;
 }
 
+enum GroupApplicationStatus {
+	Start;
+	Pending;
+	// Accepted; // Not needed in demo
+	Rejected;
+}
+
+typedef GroupApplication = {
+	final username:String;
+	final groupname:String;
+	final status:GroupApplicationStatus;
+}
+
 typedef Song = {
 	final title:String;
 	final category:SongCategory;
@@ -69,16 +82,16 @@ class Default {
 				username: 'adam@adam.se',
 				password: 'adam1',
 				sensus: false,
-				songs: ['Kommersiell06', 'Kommersiell06'],
+				songs: ['Kommersiell06', 'Kommersiell07'],
 				groups: ['Örkelhåla kyrkokör', 'Bromölla Bandidos']
 			},
 			{
 				firstname: 'Beda',
-				lastname: 'Bedassib',
-				username: 'beda@beda.se',
+				lastname: 'Bensin',
+				username: 'beda@bensin.se',
 				password: 'beda',
 				sensus: false,
-				songs: [],
+				songs: ['Örkelhåla kyrkokör'],
 				groups: []
 			},
 			{
@@ -170,6 +183,38 @@ class Default {
 			{
 				name: 'Bromölla Bandidos',
 				info: 'Vi sjunger - ni pröjsar!',
+				admins: [],
+				members: [],
+				sensus: true,
+				songs: ['Kommersiell01', 'Sensus01'],
+			},
+			{
+				name: 'Lingonbergens sångfåglar',
+				info: 'Vi trallar så glatt! Vill du va me?',
+				admins: [],
+				members: [],
+				sensus: true,
+				songs: ['Kommersiell01', 'Sensus01'],
+			},
+			{
+				name: 'Avunda Kyrkokör',
+				info: 'Ju mer förr, desto bättre!',
+				admins: [],
+				members: [],
+				sensus: true,
+				songs: ['Kommersiell01', 'Sensus01'],
+			},
+			{
+				name: 'Nya kören, Hässleholm',
+				info: 'Information...',
+				admins: [],
+				members: [],
+				sensus: true,
+				songs: ['Kommersiell01', 'Sensus01'],
+			},
+			{
+				name: 'Nya kören, Hallandsåsen',
+				info: 'Information...',
 				admins: [],
 				members: [],
 				sensus: true,

@@ -103,6 +103,27 @@ class AppStore extends DeepStateContainer<AppState> {
 		}
 	}
 
+	public function addApplication(application:GroupApplication) {
+		try {
+			if (this.state.groupapplications.filter(a -> a.groupname == application.groupname
+				&& a.username == application.username).length > 0)
+				throw "Ansökan till denna grupp finns redan!";
+			this.update(this.state.groupapplications = this.state.groupapplications.push(application));
+			this.save();
+		} catch (e:Dynamic) {
+			Browser.alert(e);
+		}
+	}
+
+	public function removeApplication(application:GroupApplication) {
+		try {
+			this.update(this.state.groupapplications = this.state.groupapplications.remove(application));
+			this.save();
+		} catch (e:Dynamic) {
+			Browser.alert(e);
+		}
+	}
+
 	public function resetToDefaultData() {
 		js.Browser.alert('Reset data');
 		this.update(this.state = {
@@ -110,6 +131,7 @@ class AppStore extends DeepStateContainer<AppState> {
 			userId: null,
 			users: cast Default.users(),
 			groups: cast Default.groups(),
+			groupapplications: [{username: 'beda@bensin.se', groupname: 'Örkelhåla kyrkokör', status: Start}],
 			songs: cast Default.songs(),
 		}, 'do reset');
 		this.save();
@@ -122,5 +144,6 @@ typedef AppState = {
 	final userId:String;
 	final users:ImmutableArray<User>;
 	final groups:ImmutableArray<Group>;
+	final groupapplications:ImmutableArray<GroupApplication>;
 	final songs:ImmutableArray<Song>;
 }

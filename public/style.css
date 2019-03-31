@@ -25,7 +25,7 @@ body {
       padding-left: 2vmax;
       padding-right: 2vmax;
       margin: 0 auto;
-      /* text-align: center; */
+      text-align: center;
       /* border: 1px solid #ccc; */
 }
     
@@ -36,6 +36,14 @@ body {
 body > header {
     background: #eee;
     height: 5vmax;
+}
+
+body > footer {
+    background: #333;
+    color: white;
+    /* height: 4em; */
+    min-height: 4vmax;
+    display:grid;
 }
 
 #header {
@@ -53,23 +61,10 @@ body > header {
     border: 1px solid gray;
 }
 
-body > nav {
+nav {
     background: #333;
     color: white;
     height: 4em;
-}
-
-body > footer {
-    background: #333;
-    color: white;    
-    min-height: 4vmax;
-}
-
-#footer {
-    display: grid;
-    font-size: 1.2vmax;
-    grid-template-columns: 1fr 1fr 1fr;
-    padding: 1vmax;
 }
 
 button {
@@ -94,24 +89,6 @@ input {
 
 
 
-select {
-    text-align: center;
-    font-size: 2.4vmax;    
-    padding: 0.8vmax 1vmax;
-    
-    box-sizing: border-box;
-    margin: 0;
-    border: 1px solid #aaa;
-    box-shadow: 0 1px 0 1px rgba(0,0,0,.04);
-    border-radius: 2.4vmax;    
-    border:solid 0.2vmax #aaa;
-    background-color: #fff;
-}
-
-select * {
-    font-size: 2vmax;
-}
-
 section img {
     max-height: 40vmax;
     width: 100%;
@@ -135,7 +112,7 @@ section p {
     font-size: 3vmax;
     text-align: center;
     margin: 0 auto;  
-    padding: .5em 5em .2em 5em;  
+    padding: .5em 5em .8em 5em;  
     line-height: 4vmax;
          
 }
@@ -276,22 +253,6 @@ article li.sensus-singer {
 
 article li.shop {
     background: #aaf;
-}
-
-/************************************************/
-
-.groupapplications {
-    display: grid;
-    grid-template-columns: 3fr 1fr;
-}
-
-.application {
-    border:1px solid black;
-    border-radius: 2vmax;
-    padding: 1vmax 2vmax;
-    margin: .5vmax 1vmax;
-    background: lime;
-    cursor:pointer;
 }
 
 

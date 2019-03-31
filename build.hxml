@@ -1,11 +1,10 @@
 -cp src
-
 -cp ../fb-libs/src-cx
 -cp ../fb-libs/src-deepstate/0.13.0
 
+-lib mithril
 
 -D analyzer-optimize
 -main Client
 -js docs/client.js
 
--lib mithril

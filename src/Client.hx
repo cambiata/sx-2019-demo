@@ -17,6 +17,7 @@ class Client {
 			userId: null,
 			users: null,
 			groups: null,
+			groupapplications: null,
 			songs: null,
 		}));
 
@@ -45,7 +46,12 @@ class AppStoreView implements Mithril {
 class FooterView extends AppStoreView {
 	public function view() {
 		return [
-			m('ul', this.store.state.users.map(u -> m('li', '${u.firstname} ${u.lastname} ${u.username} ${u.password}'))),
+			m('ul', this.store.state.users.map(u -> m('li', {
+				onclick: e -> {
+					this.store.tryLogin(u.username, u.password);
+				},
+				style: {cursor: 'pointer'},
+			}, '${u.firstname} ${u.lastname}'))),
 			m('ul', this.store.state.groups.map(g -> m('li', '${g.name} ${g.sensus}'))),
 			m('ul',
 				this.store.state.songs.map(s -> m('li', '${s.title} ${s.category} ${s.producer}'))),
@@ -81,14 +87,52 @@ class Homeview extends AppStoreView {
 				case Title(title): m('h1.limit-width.center', title);
 				case Info(info): m('p.limit-width.center', info);
 				case Songlist(title, songs, filter): this.songlist(title, songs, filter);
-				case SearchChoir: m('div.center', [
-						m('input.center[placeholder=Sök din kör]', {
-							oninput: e -> {
-								trace(e.target.value);
-							},
-							style: {fontSize: '3vmax'},
-						}),
-					]);
+				case SearchChoir:
+					// skapa lista för eventuella gruppansökningar för inloggad användare
+
+					var applications:Vnodes = this.store.state.groupapplications != null ? this.store.state.groupapplications.filter(a -> a.username == this
+						.store.state.userId).map(a -> {
+						switch a.status {
+							case Start: cast [
+									m('div.application.start', 'Klicka här för att ansöka om medlemskap i ${a.groupname}'),
+									m('button', {
+										onclick: e -> {
+											this.store.removeApplication(a);
+										}
+									}, 'Ta bort')
+								];
+							case Pending: cast [
+									m('div.application.pending',
+										'Din ansökan om att gå med i ${a.groupname} väntar på att behandlas av gruppledaren.'),
+									m('button', {onclick: e -> {}}, 'Ta bort')
+								];
+
+							case Rejected: cast [
+									m('div.application.rejected', 'Din ansökan om medlemskap i ${a.groupname} har avslagits'),
+									m('button', {onclick: e -> {}}, 'Ta bort')
+								];
+						}
+					}) : m('div', 'No applications');
+
+						[
+							// sökfält för grupper
+							m('select', [m('option', 'Sök kör/grupp')].concat(this.store.state.groups.map(group -> m('option', {
+								onclick: e -> {
+									trace('click ' + group.name);
+									var newApplication:GroupApplication = {
+										groupname: group.name,
+										username: this.store.state.userId,
+										status: GroupApplicationStatus.Start,
+									};
+
+									this.store.addApplication(newApplication);
+								},
+								value: '${group.name}'
+							}, '${group.name}')))),
+
+							// visa aktuella gruppansökningar
+							[m('h3', 'Dina ansökningar'), m('div.groupapplications', applications)],
+						];
 				case BuySongs: m('div.center', [m('button.center', {
 						onclick: e -> {
 							trace('Click');
@@ -167,7 +211,7 @@ class Homeview extends AppStoreView {
 		return m('article.center', [
 			m('header', m('span', title), m('input[placeholder=Sök]')),
 
-			m('ul', songs.map(song -> m('li', [
+			m('ul', songs.filter(song -> song != null).map(song -> m('li', [
 				m('.thumb', m('img', {src: 'assets/scorx/${song.producer.getName()}.png'})),
 				m('.title', [m('h3', song.title), m('p', 'Information...')]),
 				m('.originators', 'Originators'),
