@@ -34,8 +34,19 @@ class FooterView extends AppStoreView {
 			cast m('div', [
 				m('p', 'Groups'),
 				m('ul', this.store.state.groups.map(g -> m('li', [
-					m('p', '${g.name} ${g.sensus}'),
-					m('ul', g.members.map(member -> m('li', member))),
+					m('p', '${g.name}:${g.sensus}'),
+					m('ul', g.admins.map(username -> m('li', {
+						onclick: e -> {
+							var user:User = this.store.getUser(username);
+							this.store.tryLogin(user.username, user.password);
+						}
+					}, 'Ledare:' + username))),
+					m('ul', g.members.map(username -> m('li', {
+						onclick: e -> {
+							var user:User = this.store.getUser(username);
+							this.store.tryLogin(user.username, user.password);
+						}
+					}, username))),
 
 				]))),
 			]),
@@ -59,13 +70,204 @@ class FooterView extends AppStoreView {
 	}
 }
 
-class ApplicationsView extends AppStoreView {
+class Pageview extends AppStoreView {
+	var home:Homeview;
+	var create:CreateUserView;
+
+	public function new(store:AppStore) {
+		super(store);
+		this.home = new Homeview(store);
+		this.create = new CreateUserView(store);
+	}
+
+	public function view() {
+		return switch this.store.state.page {
+			case Page.Home: this.home.view();
+			case Page.CreateUser: this.create.view();
+			case _: null;
+		}
+	}
+}
+
+class Homeview extends AppStoreView {
+	/**
+	 * Första vattendelare för hemsidan
+	 * Ifall userId är null, visa hemsidan för gäst
+	 * Ifall userId är satt, visa hemsidan för inloggad användare
+	 */
+	public function view() {
+		return this.store.state.userId == null ? this.guestView() : this.userView();
+	}
+
+	//-------------------------------------------------------------------------------------
+
+	/**
+	 * Returnera vy för gäst
+	 */
+	public function guestView() {
+		return [
+			buildCells([
+				Image('assets/img/old-town.jpg'),
+				Title('Sjung och spela var du vill'),
+				Info('ScorX spelare funkar både för mobil och surfplatta!'),
+			]),
+			buildCells([
+				Image('assets/img/happy.jpg'),
+				Title('Pröva ScorX gratis!'),
+				Info('Klicka på valfri titel i listan nedan, lyssna och sjung med!'),
+				Songlist('Gratislåtar', this.store.state.songs, [Category(Free), LimitNumber(5)]),
+			]),
+		];
+	}
+
+	//-------------------------------------------------------------------------------------
+
+	/**
+	 * Returnera vyer för inloggad användare
+	 */
+	function userView() {
+		return [choirMemberView(), choirAdminView(), mySongsView()];
+	}
+
+	function choirMemberView() {
+		var user:User = this.store.getUser();
+
+		var groups:Array<Group> = this.store.state.groups.filter(group -> group.members.indexOf(user.username) > -1);
+		var groupLists = groups.map(group -> buildCells([
+			Songlist(group.name, group.songs.map(title -> this.store.getSong(title)), [Group(group.name)])
+		]));
+
+		var choirsInfo = groupLists
+			.length > 0 ? 'Här visas de låtar som delats ut till dig av dina körer.' : 'Du verkar inte vara deltagare i någon kör eller grupp i ScorX.';
+
+		return m('div.center', [
+			buildCells([Title('Körernas låtar'), Info(choirsInfo),]),
+
+			groupLists,
+			groupLists.length == 0 ? buildCells([SearchChoir]) : null,
+
+			new UserInvitationsView(this.store).view(),
+
+		]);
+	}
+
+	function choirAdminView() {
+		var user:User = this.store.getUser();
+
+		var groups:Array<Group> = this.store.state.groups.filter(group -> group.admins.indexOf(user.username) > -1);
+		if (groups == null || groups.length == 0)
+			return null;
+
+		var groupLists = groups.map(group -> buildCells([
+			Songlist(group.name, group.songs.map(title -> this.store.getSong(title)), [Group(group.name)]),
+			Info('Gruppens nuvarande medlemmar:'),
+			ListGroupMembers(group.name),
+			Info('Här kan du bjuda in medlemmar till gruppen:'),
+			InviteGroupMembers(group.name),
+			Info('Här visas ansökningar från användare som vill bli medlemmar gruppen:'),
+			ApplicationsToGroup(group.name),
+
+		]));
+
+		return m('div.center', [buildCells([Title('Du leder följande körer'),]), groupLists,]);
+	}
+
+	function mySongsView() {
+		var user:User = this.store.getUser();
+		var mySongs:Array<Song> = user.songs.map(title -> this.store.getSong(title));
+		var myList = mySongs.length > 0 ? buildCells([Songlist('Mina låtar', mySongs, [LimitNumber(5)])]) : buildCells([BuySongs]);
+
+		return [
+			buildCells([
+				Title('Mina låtar'),
+				Info('Här visas de låtar som du har köpt eller valt genom förmånserbjudanden.'),
+			]),
+			myList
+		];
+	}
+
+	//-------------------------------------------------------------------------------------
+	// Hjälpfunktioner för att skapa element på sidan
+
+	function buildCells(cells:Array<HomeCell>) {
+		return m('section', cells.map(cell -> {
+			return switch cell {
+				case Image(url): m('img', {src: url});
+				case Title(title): m('h1.limit-width.center', title);
+				case Info(info): m('p.limit-width.center', info);
+				case Songlist(title, songs, filter): this.songlist(title, songs, filter);
+				case SearchChoir:
+					// skapa lista för eventuella gruppansökningar för inloggad användare
+					cast [new UserApplicationsView(this.store).view(),];
+				case BuySongs: m('div.center', [m('button.center', {
+						onclick: e -> {
+							trace('Click');
+						}
+					}, 'Gå till butiken'),]);
+				case ListGroupMembers(groupname):
+					var group:Group = this.store.getGroup(groupname);
+					m('div.groupmembers', [m('ul', group.members.map(member -> m('li', member)))]);
+				case InviteGroupMembers(groupname):
+					var group:Group = this.store.getGroup(groupname);
+					new LeaderInvitationsView(this.store, group).view();
+				case ApplicationsToGroup(groupname):
+					var group:Group = this.store.getGroup(groupname);
+					new LeaderApplicationsView(this.store, group).view();
+				case _: null;
+			}
+		}));
+	}
+
+	function songlist(title:String, songs:Array<Song>, filter:Array<SongFilter>) {
+		// var songs = this.store.state.songs.copy();
+		var totalNumber:Int = songs.length;
+
+		for (f in filter) {
+			switch f {
+				case Search(str):
+				case Category(cat):
+					songs = songs.filter(song -> {
+						return song.category.getName() == cat.getName();
+					});
+				case Producer(prod):
+					songs = songs.filter(song -> song.producer == prod);
+				case Group(groupname):
+					var group:Group = this.store.getGroup(groupname);
+					songs = group.songs.map(songtitle -> this.store.getSong(songtitle));
+					totalNumber = songs.length;
+
+				case LimitNumber(max):
+					// songs = songs.splice(max, 10000);
+					songs = songs.slice(0, 5);
+			}
+		}
+
+		return m('article.center', [
+			m('header', m('span', title), m('input[placeholder=Sök]')),
+
+			m('ul', songs.filter(song -> song != null).map(song -> m('li', [
+				m('.thumb', m('img', {src: 'assets/scorx/${song.producer.getName()}.png'})),
+				m('.title', [m('h3', song.title), m('p', 'Information...')]),
+				m('.originators', 'Originators'),
+			]))),
+
+			m('footer', [m('button', {onclick: e -> {}}, 'Visa alla ${totalNumber}'),]),
+		]);
+	}
+}
+
+class UserApplicationsView extends AppStoreView {
 	public function view() {
 		var itemsList:Vnodes = this.store.state.applications != null ? this.store.state.applications.filter(a -> a.username == this.store.state.userId)
 			.map(a -> {
 			switch a.status {
 				case Start: cast m('div.application.start', [
-						m('span', 'Klicka här för att ansöka om medlemskap i ${a.groupname}'),
+						m('span', 'Du kan nu skicka en ansöka om medlemskap i ${a.groupname}.'),
+						m('button', {
+							onclick: e -> {
+								this.store.changeApplicationStatus(a, Pending);
+							}
+						}, 'Skicka ansökan'),
 						m('button', {
 							onclick: e -> {
 								this.store.removeApplication(a);
@@ -88,9 +290,9 @@ class ApplicationsView extends AppStoreView {
 			[
 				// visa aktuella gruppansökningar
 				m('div.groupapplications', [
-					m('h3.groupsearch', 'Dina Ansökningar'),
+					m('h3.groupsearch', 'Mina ansökningar'),
 					m('p.groupsearch',
-						'Här kan du hitta den kör som du vill bli deltagare i, och skapa en ansökan som kommer att skickas till ledaren för den aktuella gruppen.'),
+						'Här kan du skapa ansökan om medlemskap för den kör/grupp som du vill bli deltagare i.'),
 					itemsList
 				]),
 
@@ -113,13 +315,17 @@ class ApplicationsView extends AppStoreView {
 	}
 }
 
-class InvitationsView extends AppStoreView {
+class UserInvitationsView extends AppStoreView {
 	public function view() {
 		var myInvitations = this.store.state.invitations.filter(a -> a.username == this.store.state.userId);
 		var itemsList:Vnodes = myInvitations != null ? myInvitations.map(a -> {
 			switch a.status {
 				case Start: cast m('div.application.start', [
-						m('span', 'Klicka här för att ansöka om medlemskap i ${a.groupname}'),
+						m('span', {
+							onclick: e->{
+								///
+							}
+						}, 'Klicka här för att ansöka om medlemskap i ${a.groupname}'),
 						m('button', {
 							onclick: e -> {
 								this.store.removeApplication(a);
@@ -128,10 +334,10 @@ class InvitationsView extends AppStoreView {
 					]);
 				case Pending: cast m('div.application.pending', [
 						m('span',
-							'Du har en inbjudan om att gå med i ${a.groupname}. Du kan välja om du vill gå med eller inte.'),
+							'Du har fått en inbjudan om att gå med i ${a.groupname}. Du kan välja om du vill gå med eller inte.'),
 						m('button', {
 							onclick: e -> {
-								this.store.addUsernameToGroupFromInvitation(a);
+								this.store.addUsernameToGroupFromLeaderInvitation(a);
 							}
 						}, 'Ja, jag vill gå med i ${a.groupname}'),
 						m('button', {onclick: e -> {}}, 'Nej, jag vill inte gå med i ${a.groupname}'),
@@ -145,11 +351,14 @@ class InvitationsView extends AppStoreView {
 		}) : m('div', 'No invitations');
 
 		// visa aktuella gruppansökningar
-		m('div.groupapplications', [myInvitations.length > 0 ? m('h3', 'Mina inbjudningar') : null, itemsList]);
+		m('div.groupapplications', [
+			myInvitations.length > 0 ? m('h3.groupsearch', 'Mina inbjudningar') : null,
+			itemsList
+		]);
 	}
 }
 
-class CreateInvitationsView extends AppStoreView {
+class LeaderInvitationsView extends AppStoreView {
 	var group:Group;
 
 	static var username:String;
@@ -162,7 +371,7 @@ class CreateInvitationsView extends AppStoreView {
 	public function view() {
 		function existsMessage(username):String {
 			return (this.store
-				.userExists(username)) ? ' Finns.' : ' (Användaren $username har ännu inte skapat något ScorX-konto, men kommer att nås av denna inbjudan när detta sker.)';
+				.userExists(username)) ? ' ' : ' (Användaren $username har ännu inte skapat något ScorX-konto, men kommer att nås av denna inbjudan när detta sker.)';
 		}
 
 		var itemsList:Vnodes = this.store.state.invitations != null ? this.store.state.invitations.filter(a -> a.groupname == this.group.name).map(a -> {
@@ -219,166 +428,55 @@ class CreateInvitationsView extends AppStoreView {
 	}
 }
 
-class Homeview extends AppStoreView {
-	public function view() {
-		return this.store.state.userId == null ? this.guest() : this.user();
-	}
+class LeaderApplicationsView extends AppStoreView {
+	var group:Group;
 
-	public function guest() {
-		return [
-			cells([
-				Image('assets/img/old-town.jpg'),
-				Title('Sjung och spela var du vill'),
-				Info('ScorX spelare funkar både för mobil och surfplatta!'),
-			]),
-			cells([
-				Image('assets/img/happy.jpg'),
-				Title('Pröva ScorX gratis!'),
-				Info('Klicka på valfri titel i listan nedan, lyssna och sjung med!'),
-				Songlist('Gratislåtar', this.store.state.songs, [Category(Free), LimitNumber(5)]),
-			]),
-		];
-	}
-
-	public function cells(cells:Array<HomeCell>) {
-		return m('section', cells.map(cell -> {
-			return switch cell {
-				case Image(url): m('img', {src: url});
-				case Title(title): m('h1.limit-width.center', title);
-				case Info(info): m('p.limit-width.center', info);
-				case Songlist(title, songs, filter): this.songlist(title, songs, filter);
-				case SearchChoir:
-					// skapa lista för eventuella gruppansökningar för inloggad användare
-					cast [new ApplicationsView(this.store).view(),];
-				case BuySongs: m('div.center', [m('button.center', {
-						onclick: e -> {
-							trace('Click');
-						}
-					}, 'Gå till butiken'),]);
-				case ListGroupMembers(groupname):
-					var group:Group = this.store.getGroup(groupname);
-					m('div.groupmembers', [m('ul', group.members.map(member -> m('li', member)))]);
-				case InviteGroupMembers(groupname):
-					var group:Group = this.store.getGroup(groupname);
-					new CreateInvitationsView(this.store, group).view();
-
-				case _: null;
-			}
-		}));
-	}
-
-	public function user() {
-		return [choirMember(), choirAdmin(), mySongs()];
-	}
-
-	public function mySongs() {
-		var user:User = this.store.getUser();
-		var mySongs:Array<Song> = user.songs.map(title -> this.store.getSong(title));
-		var myList = mySongs.length > 0 ? cells([Songlist('Mina låtar', mySongs, [LimitNumber(5)])]) : cells([BuySongs]);
-
-		return [
-			cells([
-				Title('Mina låtar'),
-				Info('Här visas de låtar som du har köpt eller valt genom förmånserbjudanden.'),
-			]),
-			myList
-		];
-	}
-
-	public function choirAdmin() {
-		var user:User = this.store.getUser();
-
-		var groups:Array<Group> = this.store.state.groups.filter(group -> group.admins.indexOf(user.username) > -1);
-		if (groups == null || groups.length == 0)
-			return null;
-
-		var groupLists = groups.map(group -> cells([
-			Songlist(group.name, group.songs.map(title -> this.store.getSong(title)), [Group(group.name)]),
-			Info('Gruppens nuvarande medlemmar:'),
-			ListGroupMembers(group.name),
-			Info('Här kan du bjuda in medlemmar till gruppen:'),
-			InviteGroupMembers(group.name),
-		]));
-
-		return m('div.center', [cells([Title('Du leder följande körer'),]), groupLists,]);
-	}
-
-	public function choirMember() {
-		var user:User = this.store.getUser();
-
-		var groups:Array<Group> = this.store.state.groups.filter(group -> group.members.indexOf(user.username) > -1);
-		var groupLists = groups.map(group -> cells([
-			Songlist(group.name, group.songs.map(title -> this.store.getSong(title)), [Group(group.name)])
-		]));
-
-		var choirsInfo = groupLists
-			.length > 0 ? 'Här visas de låtar dom delats ut till dig genom dina körer.' : 'Du verkar inte vara deltagare i någon kör eller grupp i ScorX.';
-
-		return m('div.center', [
-			cells([Title('Körernas låtar'), Info(choirsInfo),]),
-
-			groupLists,
-			groupLists.length == 0 ? cells([SearchChoir]) : null,
-
-			new InvitationsView(this.store).view(),
-
-		]);
-	}
-
-	public function songlist(title:String, songs:Array<Song>, filter:Array<SongFilter>) {
-		// var songs = this.store.state.songs.copy();
-		var totalNumber:Int = songs.length;
-
-		for (f in filter) {
-			switch f {
-				case Search(str):
-				case Category(cat):
-					songs = songs.filter(song -> {
-						return song.category.getName() == cat.getName();
-					});
-				case Producer(prod):
-					songs = songs.filter(song -> song.producer == prod);
-				case Group(groupname):
-					var group:Group = this.store.getGroup(groupname);
-					songs = group.songs.map(songtitle -> this.store.getSong(songtitle));
-					totalNumber = songs.length;
-
-				case LimitNumber(max):
-					// songs = songs.splice(max, 10000);
-					songs = songs.slice(0, 5);
-			}
-		}
-
-		return m('article.center', [
-			m('header', m('span', title), m('input[placeholder=Sök]')),
-
-			m('ul', songs.filter(song -> song != null).map(song -> m('li', [
-				m('.thumb', m('img', {src: 'assets/scorx/${song.producer.getName()}.png'})),
-				m('.title', [m('h3', song.title), m('p', 'Information...')]),
-				m('.originators', 'Originators'),
-			]))),
-
-			m('footer', [m('button', {onclick: e -> {}}, 'Visa alla ${totalNumber}'),]),
-		]);
-	}
-}
-
-class Pageview extends AppStoreView {
-	var home:Homeview;
-	var create:CreateUserView;
-
-	public function new(store:AppStore) {
+	public function new(store, group) {
 		super(store);
-		this.home = new Homeview(store);
-		this.create = new CreateUserView(store);
+		this.group = group;
 	}
 
 	public function view() {
-		return switch this.store.state.page {
-			case Page.Home: this.home.view();
-			case Page.CreateUser: this.create.view();
-			case _: null;
-		}
+		var items = this.store.state.applications.filter(app -> app.groupname == this.group.name);
+
+		var itemsList:Vnodes = items != null ? items.map(a -> {
+			var user:User = this.store.getUser(a.username);
+			switch a.status {
+				case Start: cast m('div.application.start', [
+						m('span', {
+							onclick: e->{
+								///
+							}
+						}, 'Ska inte visas!'),
+						m('button', {
+							onclick: e -> {
+								this.store.removeApplication(a);
+							}
+						}, 'Ta bort')
+					]);
+				case Pending: cast m('div.application.pending', [
+						m('span',
+							'Användaren ${user.firstname} ${user.lastname} önskar bli medlem i ${this.group.name}. Du kan välja om du accepterar denna ansökan eller inte.'),
+						m('button', {
+							onclick: e -> {
+								this.store.addUsernameToGroupFromUserApplication(a);
+							}
+						}, 'Ja, ansökan från ${user.firstname} accepteras'),
+						m('button', {onclick: e -> {}}, 'Nej, ansökan avslås'),
+					]);
+
+				case Rejected: cast m('div.application.rejected', [
+						m('span', 'Din ansökan om medlemskap i ${a.groupname} har avslagits'),
+						m('button', {onclick: e -> {}}, 'Ta bort')
+					]);
+			}
+		}) : m('div', 'No invitations');
+
+		// visa aktuella gruppansökningar
+		m('div.groupapplications', [
+			items.length > 0 ? m('h3.groupsearch', 'Ansökningar till gruppen') : null,
+			itemsList
+		]);
 	}
 }
 
@@ -389,9 +487,10 @@ class CreateUserView extends AppStoreView {
 	var lastname:String = 'a';
 
 	public function view()
-		[
-			m('h1', 'Create user'),
-			m('div', [
+		m('div.createuser', [
+			m('h1', 'Skapa konto'),
+			m('h2', 'Kontouppgifter'),
+			m('div.createuserform', [
 				m('input[placeholder=Användarnamn][required]', {
 					oninput: e -> {
 						this.tryUsername = e.target.value;
@@ -443,27 +542,45 @@ class CreateUserView extends AppStoreView {
 					}
 				}, 'Skapa användare'),
 			]),
-		];
+			m('h2', 'Vill du ta del av Sensus förmånserbjudanden?'),
+			m('div.createuserform', [
+				m('p', '(Detta är ett försök att hantera de fria Sensus-valen..!)'),
+				m('p',
+					'Som sångare i Sensus-kör så får du ta del av förmånserbjudanden som exempelvis gratis tillgång av låtar som du själv väljer.'),
+				m('p',
+					'Du behöver ange ditt personnummer för att vi ska kunna säkerställa att du verkligen är en Sensus-sångare.'),
+				m('input[placeholder=Personnummer]'),
+				m('div', [
+					m('input[type=checkbox]'),
+					m('span', 'Ja, jag sjunger i en Sensus-kör och vill ta del av förmånserbjudanden'),
+				]),
+			]),
+			m('h2', 'Sök din kör'),
+			m('div.createuserform', [
+				m('p', 'Här kan du söka och hitta den kör eller grupp som du är medlem i. '),
+				m('p', '(Du kan också ange om du är ledare för gruppen i fråga. ???)'),
+			]),
+		]);
 }
 
 class MenuView extends AppStoreView {
 	public function view()
 		[
-			m('button', {
+			m('span.button', {
 				onclick: e -> {
 					this.store.update(this.store.state.page = Page.Home);
 				}
-			}, 'Home'),
-			m('button', {
+			}, 'Hem'),
+			m('span.button', {
 				onclick: e -> {
 					this.store.update(this.store.state.page = Page.CreateUser);
 				}
-			}, 'Create user'),
-			m('button', {
+			}, 'Skapa konto'),
+			m('span.button', {
 				onclick: e -> {
 					this.store.resetToDefaultData();
 				}
-			}, 'Reset data'),
+			}, 'Nollställ demodata'),
 		];
 }
 
@@ -475,18 +592,19 @@ class Userview extends AppStoreView {
 	public function user() {
 		if (this.store.getUser() == null)
 			return null;
-		return [
-			m('h3', 'Välkommen, ${this.store.getUser().firstname}!'),
+		return m('div', [
+
+			m('span', 'Välkommen, ${this.store.getUser().firstname}! '),
 			m('button', {
 				onclick: e -> {
 					this.store.logout();
 				}
 			}, 'Logga ut'),
-		];
+		]);
 	}
 
-	var tryUsername:String = 'adam@adam.se';
-	var tryPassword:String = 'adam1';
+	var tryUsername:String = '';
+	var tryPassword:String = '';
 
 	public function guest() {
 		return [

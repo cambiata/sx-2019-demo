@@ -9,8 +9,49 @@ using cx.ArrayItems;
 using cx.Validation;
 
 /**
+ * Applikationens state-objekt (à la Redux)
+ */
+typedef AppState = {
+	/**
+	 * userId = inloggad användares e-postadress
+	 * Om värdet är null så finns ingen inloggad användare
+	 */
+	final userId:String;
+
+	/**
+	 * Lista med användare
+	 */
+	final users:ImmutableArray<User>;
+
+	/**
+	 * Lista med grupper
+	 */
+	final groups:ImmutableArray<Group>;
+
+	/**
+	 * Lista med gruppansökningar, skapade av användare som vill bli medlem i grupp
+	 */
+	final applications:ImmutableArray<GroupApplication>;
+
+	/**
+	 * Lista med gruppinbjudningar, skapade av ledare som vill bjuda in användare till sin grupp
+	 */
+	final invitations:ImmutableArray<GroupApplication>;
+
+	/**
+	 * Lista med låtar
+	 */
+	final songs:ImmutableArray<Song>;
+
+	/**
+	 * Info om aktuell "sida", i brist på riktig url-router i denna demo
+	 */
+	final page:Page;
+}
+
+/**
  * AppStore
- * Demosystemets state-hanterare (tänk Redux)
+ * Demosystemets state-hanterare (à la Redux)
  * Fungerar även som databas som jobbar gentemot browserns localStorage
  */
 class AppStore extends DeepStateContainer<AppState> {
@@ -171,7 +212,7 @@ class AppStore extends DeepStateContainer<AppState> {
 	 * 2. Ta bort ansökan från state.applications
 	 * @param application
 	 */
-	public function addUsernameToGroupFromInvitation(application:GroupApplication) {
+	public function addUsernameToGroupFromLeaderInvitation(application:GroupApplication) {
 		try {
 			var group:Group = this.getGroup(application.groupname);
 			if (group == null)
@@ -182,6 +223,30 @@ class AppStore extends DeepStateContainer<AppState> {
 			var members = group.members.push(application.username);
 			this.update(state.groups[groupIndex].members = members,
 				state.invitations = cast state.invitations.filter(app -> app.groupname != application.groupname
+					&& app.username != application.username));
+			this.save();
+		} catch (e:Dynamic) {
+			Browser.alert(e);
+		}
+	}
+
+	/**
+	 * Slutför gruppansökan genom att
+	 * 1. Lägga till aktuell användare till group.members
+	 * 2. Ta bort ansökan från state.applications
+	 * @param application
+	 */
+	public function addUsernameToGroupFromUserApplication(application:GroupApplication) {
+		try {
+			var group:Group = this.getGroup(application.groupname);
+			if (group == null)
+				throw "Can not resolve application to group " + application.groupname;
+			if (group.members.filter(member -> member == application.username).length > 0)
+				throw 'User ${application.username} is already a member of ${application.groupname}';
+			var groupIndex = this.state.groups.indexOf(group);
+			var members = group.members.push(application.username);
+			this.update(state.groups[groupIndex].members = members,
+				state.applications = cast state.applications.filter(app -> app.groupname != application.groupname
 					&& app.username != application.username));
 			this.save();
 		} catch (e:Dynamic) {
@@ -242,8 +307,36 @@ class AppStore extends DeepStateContainer<AppState> {
 	 */
 	public function changeApplicationStatus(item:GroupApplication, newStatus:GroupApplicationStatus) {
 		try {
+			var index = this.state.applications.indexOf(item);
+			trace(index);
+			if (index < 0)
+				throw 'Denna ansökan verkar inte finnas i ansökningstabellen';
+
+			var newItem:GroupApplication = {
+				groupname: item.groupname,
+				username: item.username,
+				status: newStatus
+			};
+
+			this.update(this.state.applications[index] = newItem);
+			trace(this.state.applications);
+			this.save();
+		} catch (e:Dynamic) {
+			Browser.alert(e);
+		}
+	}
+
+	/**
+	 * Ändra inbjudans status
+	 * @param item
+	 * @param newStatus
+	 */
+	public function changeInvitationStatus(item:GroupApplication, newStatus:GroupApplicationStatus) {
+		try {
 			var invitationIndex = this.state.invitations.indexOf(item);
 			trace(invitationIndex);
+			if (invitationIndex < 0)
+				throw 'Denna ansökan verkar inte finnas i inbjudningstabellen';
 
 			var newItem:GroupApplication = {
 				groupname: item.groupname,

@@ -635,8 +635,8 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 	,tryLogin: function(tryUsername,tryPassword) {
 		var _gthis = this;
 		try {
-			console.log("src/data/AppStore.hx:70:",tryUsername);
-			console.log("src/data/AppStore.hx:71:",this.get_state().users.length);
+			console.log("src/data/AppStore.hx:111:",tryUsername);
+			console.log("src/data/AppStore.hx:112:",this.get_state().users.length);
 			var foundUser;
 			var _g = ds__$ImmutableArray_ImmutableArray_$Impl_$.first(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().users,function(u) {
 				return u.username == tryUsername;
@@ -715,7 +715,7 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 			js_Browser.alert(((e) instanceof js__$Boot_HaxeError) ? e.val : e);
 		}
 	}
-	,addUsernameToGroupFromInvitation: function(application) {
+	,addUsernameToGroupFromLeaderInvitation: function(application) {
 		try {
 			var group = this.getGroup(application.groupname);
 			if(group == null) {
@@ -728,7 +728,32 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 			}
 			var groupIndex = ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(this.get_state().groups,group);
 			var members = ds__$ImmutableArray_ImmutableArray_$Impl_$.push(group.members,application.username);
-			this.updateState({ type : "AppStore.addUsernameToGroupFromInvitation", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("groups"),ds_PathAccess.Array(groupIndex),ds_PathAccess.Field("members")]), value : members},{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("invitations")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().invitations,function(app) {
+			this.updateState({ type : "AppStore.addUsernameToGroupFromLeaderInvitation", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("groups"),ds_PathAccess.Array(groupIndex),ds_PathAccess.Field("members")]), value : members},{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("invitations")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().invitations,function(app) {
+				if(app.groupname != application.groupname) {
+					return app.username != application.username;
+				} else {
+					return false;
+				}
+			})}])});
+			this.save();
+		} catch( e ) {
+			js_Browser.alert(((e) instanceof js__$Boot_HaxeError) ? e.val : e);
+		}
+	}
+	,addUsernameToGroupFromUserApplication: function(application) {
+		try {
+			var group = this.getGroup(application.groupname);
+			if(group == null) {
+				throw new js__$Boot_HaxeError("Can not resolve application to group " + application.groupname);
+			}
+			if(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(group.members,function(member) {
+				return member == application.username;
+			}).length > 0) {
+				throw new js__$Boot_HaxeError("User " + application.username + " is already a member of " + application.groupname);
+			}
+			var groupIndex = ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(this.get_state().groups,group);
+			var members = ds__$ImmutableArray_ImmutableArray_$Impl_$.push(group.members,application.username);
+			this.updateState({ type : "AppStore.addUsernameToGroupFromUserApplication", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("groups"),ds_PathAccess.Array(groupIndex),ds_PathAccess.Field("members")]), value : members},{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("applications")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().applications,function(app) {
 				if(app.groupname != application.groupname) {
 					return app.username != application.username;
 				} else {
@@ -779,10 +804,27 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 	}
 	,changeApplicationStatus: function(item,newStatus) {
 		try {
+			var index = ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(this.get_state().applications,item);
+			console.log("src/data/AppStore.hx:311:",index);
+			if(index < 0) {
+				throw new js__$Boot_HaxeError("Denna ansökan verkar inte finnas i ansökningstabellen");
+			}
+			this.updateState({ type : "AppStore.changeApplicationStatus", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("applications"),ds_PathAccess.Array(index)]), value : { groupname : item.groupname, username : item.username, status : newStatus}}])});
+			console.log("src/data/AppStore.hx:322:",this.get_state().applications);
+			this.save();
+		} catch( e ) {
+			js_Browser.alert(((e) instanceof js__$Boot_HaxeError) ? e.val : e);
+		}
+	}
+	,changeInvitationStatus: function(item,newStatus) {
+		try {
 			var invitationIndex = ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(this.get_state().invitations,item);
-			console.log("src/data/AppStore.hx:246:",invitationIndex);
-			this.updateState({ type : "AppStore.changeApplicationStatus", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("invitations"),ds_PathAccess.Array(invitationIndex)]), value : { groupname : item.groupname, username : item.username, status : newStatus}}])});
-			console.log("src/data/AppStore.hx:255:",this.get_state().invitations);
+			console.log("src/data/AppStore.hx:337:",invitationIndex);
+			if(invitationIndex < 0) {
+				throw new js__$Boot_HaxeError("Denna ansökan verkar inte finnas i inbjudningstabellen");
+			}
+			this.updateState({ type : "AppStore.changeInvitationStatus", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("invitations"),ds_PathAccess.Array(invitationIndex)]), value : { groupname : item.groupname, username : item.username, status : newStatus}}])});
+			console.log("src/data/AppStore.hx:348:",this.get_state().invitations);
 			this.save();
 		} catch( e ) {
 			js_Browser.alert(((e) instanceof js__$Boot_HaxeError) ? e.val : e);
@@ -802,7 +844,7 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 		}).length == 1;
 	}
 	,resetToDefaultData: function() {
-		console.log("src/data/AppStore.hx:287:","Reset data");
+		console.log("src/data/AppStore.hx:380:","Reset data");
 		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { page : data_Page.Home, userId : null, users : data_Default.users(), groups : data_Default.groups(), applications : data_Default.applications(), invitations : data_Default.invitations(), songs : data_Default.songs()}}])});
 		this.save();
 	}
@@ -829,7 +871,7 @@ var data_SongFilter = $hxEnums["data.SongFilter"] = { __ename__ : true, __constr
 	,Group: ($_=function(groupname) { return {_hx_index:3,groupname:groupname,__enum__:"data.SongFilter",toString:$estr}; },$_.__params__ = ["groupname"],$_)
 	,LimitNumber: ($_=function(max) { return {_hx_index:4,max:max,__enum__:"data.SongFilter",toString:$estr}; },$_.__params__ = ["max"],$_)
 };
-var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs__ : ["Image","Title","Info","Button","Songlist","SearchChoir","ListGroupMembers","InviteGroupMembers","BuySongs"]
+var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs__ : ["Image","Title","Info","Button","Songlist","SearchChoir","ListGroupMembers","InviteGroupMembers","ApplicationsToGroup","BuySongs"]
 	,Image: ($_=function(url) { return {_hx_index:0,url:url,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["url"],$_)
 	,Title: ($_=function(title) { return {_hx_index:1,title:title,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["title"],$_)
 	,Info: ($_=function(info) { return {_hx_index:2,info:info,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["info"],$_)
@@ -838,7 +880,8 @@ var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs
 	,SearchChoir: {_hx_index:5,__enum__:"data.HomeCell",toString:$estr}
 	,ListGroupMembers: ($_=function(groupname) { return {_hx_index:6,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
 	,InviteGroupMembers: ($_=function(groupname) { return {_hx_index:7,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
-	,BuySongs: {_hx_index:8,__enum__:"data.HomeCell",toString:$estr}
+	,ApplicationsToGroup: ($_=function(groupname) { return {_hx_index:8,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
+	,BuySongs: {_hx_index:9,__enum__:"data.HomeCell",toString:$estr}
 };
 var data_Page = $hxEnums["data.Page"] = { __ename__ : true, __constructs__ : ["Home","Other","CreateUser"]
 	,Home: {_hx_index:0,__enum__:"data.Page",toString:$estr}
@@ -849,10 +892,10 @@ var data_Default = function() { };
 $hxClasses["data.Default"] = data_Default;
 data_Default.__name__ = true;
 data_Default.users = function() {
-	return [{ firstname : "Adam", lastname : "Adamsson", username : "adam@adam.se", password : "adam1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell06","Kommersiell07"])},{ firstname : "Beda", lastname : "Bensin", username : "beda@bensin.se", password : "beda", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Caesar", lastname : "Citrus", username : "caesar@citrus.se", password : "caesar", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Avledare", lastname : "Jonsson", username : "avledare@kor.se", password : "avledare", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel1", lastname : "Örkelsson", username : "orkel1@orkel.se", password : "orkel1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel2", lastname : "Örkelsson", username : "orkel2@orkel.se", password : "orkel2", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel3", lastname : "Örkelsson", username : "orkel3@orkel.se", password : "orkel3", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel4", lastname : "Örkelsson", username : "orkel4@orkel.se", password : "orkel4", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro1", lastname : "Brorsson", username : "bro1@bro.se", password : "bro1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro2", lastname : "Brorsson", username : "bro2@bro.se", password : "bro2", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro3", lastname : "Brorsson", username : "bro3@bro.se", password : "bro3", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro4", lastname : "Brorsson", username : "bro4@bro.se", password : "bro4", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
+	return [{ firstname : "Adam", lastname : "Adamsson", username : "adam@adam.se", password : "adam", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell06","Kommersiell07"])},{ firstname : "Beda", lastname : "Bensin", username : "beda@bensin.se", password : "beda", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Caesar", lastname : "Citrus", username : "caesar@citrus.se", password : "caesar", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Avledare", lastname : "Jonsson", username : "avledare@kor.se", password : "avledare", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel1", lastname : "Örkelsson", username : "orkel1@orkel.se", password : "orkel1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel2", lastname : "Örkelsson", username : "orkel2@orkel.se", password : "orkel2", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel3", lastname : "Örkelsson", username : "orkel3@orkel.se", password : "orkel3", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel4", lastname : "Örkelsson", username : "orkel4@orkel.se", password : "orkel4", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro1", lastname : "Brorsson", username : "bro1@bro.se", password : "bro1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro2", lastname : "Brorsson", username : "bro2@bro.se", password : "bro2", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro3", lastname : "Brorsson", username : "bro3@bro.se", password : "bro3", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro4", lastname : "Brorsson", username : "bro4@bro.se", password : "bro4", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
 };
 data_Default.applications = function() {
-	return [{ username : "beda@bensin.se", groupname : "Örkelhåla kyrkokör", status : data_GroupApplicationStatus.Start}];
+	return [];
 };
 data_Default.invitations = function() {
 	return [{ username : "beda@bensin.se", groupname : "Avunda Kyrkokör", status : data_GroupApplicationStatus.Pending}];
@@ -1532,8 +1575,18 @@ view_FooterView.prototype = $extend(view_AppStoreView.prototype,{
 				return;
 			}, style : { cursor : "pointer"}},"" + u.firstname + " " + u.lastname);
 		}))]),m.m("div",[m.m("p","Groups"),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().groups,function(g) {
-			return m.m("li",[m.m("p","" + g.name + " " + (g.sensus == null ? "null" : "" + g.sensus)),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(g.members,function(member) {
-				return m.m("li",member);
+			return m.m("li",[m.m("p","" + g.name + ":" + (g.sensus == null ? "null" : "" + g.sensus)),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(g.admins,function(username) {
+				return m.m("li",{ onclick : function(e1) {
+					var user = _gthis.store.getUser(username);
+					_gthis.store.tryLogin(user.username,user.password);
+					return;
+				}},"Ledare:" + username);
+			})),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(g.members,function(username1) {
+				return m.m("li",{ onclick : function(e2) {
+					var user1 = _gthis.store.getUser(username1);
+					_gthis.store.tryLogin(user1.username,user1.password);
+					return;
+				}},username1);
 			}))]);
 		}))]),m.m("div",[m.m("p","Songs"),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().songs,function(s) {
 			return m.m("li","" + s.title + " " + Std.string(s.category) + " " + Std.string(s.producer));
@@ -1545,137 +1598,27 @@ view_FooterView.prototype = $extend(view_AppStoreView.prototype,{
 	}
 	,__class__: view_FooterView
 });
-var view_ApplicationsView = function(store) {
+var view_Pageview = function(store) {
 	view_AppStoreView.call(this,store);
+	this.home = new view_Homeview(store);
+	this.create = new view_CreateUserView(store);
 };
-$hxClasses["view.ApplicationsView"] = view_ApplicationsView;
-view_ApplicationsView.__name__ = true;
-view_ApplicationsView.__super__ = view_AppStoreView;
-view_ApplicationsView.prototype = $extend(view_AppStoreView.prototype,{
+$hxClasses["view.Pageview"] = view_Pageview;
+view_Pageview.__name__ = true;
+view_Pageview.__super__ = view_AppStoreView;
+view_Pageview.prototype = $extend(view_AppStoreView.prototype,{
 	view: function() {
-		var _gthis = this;
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		var itemsList = this.store.get_state().applications != null ? ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().applications,function(a) {
-			return a.username == _gthis.store.get_state().userId;
-		}),function(a1) {
-			switch(a1.status._hx_index) {
-			case 0:
-				return m.m("div.application.start",[m.m("span","Klicka här för att ansöka om medlemskap i " + a1.groupname),m.m("button",{ onclick : function(e) {
-					_gthis.store.removeApplication(a1);
-					return;
-				}},"Ta bort")]);
-			case 1:
-				return m.m("div.application.pending",[m.m("span","Din ansökan om att gå med i " + a1.groupname + " väntar på att behandlas av gruppledaren."),m.m("button",{ onclick : function(e1) {
-					return { };
-				}},"Ta bort")]);
-			case 2:
-				return m.m("div.application.rejected",[m.m("span","Din ansökan om medlemskap i " + a1.groupname + " har avslagits"),m.m("button",{ onclick : function(e2) {
-					return { };
-				}},"Ta bort")]);
-			}
-		})) : m.m("div","No applications");
-		return [m.m("div.groupapplications",[m.m("h3.groupsearch","Dina Ansökningar"),m.m("p.groupsearch","Här kan du hitta den kör som du vill bli deltagare i, och skapa en ansökan som kommer att skickas till ledaren för den aktuella gruppen."),itemsList]),m.m("select.groupsearch",[m.m("option","Sök din kör eller grupp här")].concat(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().groups,function(group) {
-			return m.m("option",{ onclick : function(e3) {
-				console.log("src/view/Views.hx:100:","click " + group.name);
-				var newApplication = { groupname : group.name, username : _gthis.store.get_state().userId, status : data_GroupApplicationStatus.Start};
-				_gthis.store.addApplication(newApplication);
-				return;
-			}, value : "" + group.name},"" + group.name);
-		}))))];
+		switch(this.store.get_state().page._hx_index) {
+		case 0:
+			return this.home.view();
+		case 2:
+			return this.create.view();
+		default:
+			return null;
+		}
 	}
-	,__class__: view_ApplicationsView
-});
-var view_InvitationsView = function(store) {
-	view_AppStoreView.call(this,store);
-};
-$hxClasses["view.InvitationsView"] = view_InvitationsView;
-view_InvitationsView.__name__ = true;
-view_InvitationsView.__super__ = view_AppStoreView;
-view_InvitationsView.prototype = $extend(view_AppStoreView.prototype,{
-	view: function() {
-		var _gthis = this;
-		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		var myInvitations = ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().invitations,function(a) {
-			return a.username == _gthis.store.get_state().userId;
-		});
-		var itemsList = myInvitations != null ? ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(myInvitations,function(a1) {
-			switch(a1.status._hx_index) {
-			case 0:
-				return m.m("div.application.start",[m.m("span","Klicka här för att ansöka om medlemskap i " + a1.groupname),m.m("button",{ onclick : function(e) {
-					_gthis.store.removeApplication(a1);
-					return;
-				}},"Ta bort")]);
-			case 1:
-				return m.m("div.application.pending",[m.m("span","Du har en inbjudan om att gå med i " + a1.groupname + ". Du kan välja om du vill gå med eller inte."),m.m("button",{ onclick : function(e1) {
-					_gthis.store.addUsernameToGroupFromInvitation(a1);
-					return;
-				}},"Ja, jag vill gå med i " + a1.groupname),m.m("button",{ onclick : function(e2) {
-					return { };
-				}},"Nej, jag vill inte gå med i " + a1.groupname)]);
-			case 2:
-				return m.m("div.application.rejected",[m.m("span","Din ansökan om medlemskap i " + a1.groupname + " har avslagits"),m.m("button",{ onclick : function(e3) {
-					return { };
-				}},"Ta bort")]);
-			}
-		})) : m.m("div","No invitations");
-		return m.m("div.groupapplications",[myInvitations.length > 0 ? m.m("h3","Mina inbjudningar") : null,itemsList]);
-	}
-	,__class__: view_InvitationsView
-});
-var view_CreateInvitationsView = function(store,group) {
-	view_AppStoreView.call(this,store);
-	this.group = group;
-};
-$hxClasses["view.CreateInvitationsView"] = view_CreateInvitationsView;
-view_CreateInvitationsView.__name__ = true;
-view_CreateInvitationsView.__super__ = view_AppStoreView;
-view_CreateInvitationsView.prototype = $extend(view_AppStoreView.prototype,{
-	view: function() {
-		var _gthis = this;
-		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		var existsMessage = function(username) {
-			if(_gthis.store.userExists(username)) {
-				return " Finns.";
-			} else {
-				return " (Användaren " + username + " har ännu inte skapat något ScorX-konto, men kommer att nås av denna inbjudan när detta sker.)";
-			}
-		};
-		var itemsList = this.store.get_state().invitations != null ? ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().invitations,function(a) {
-			return a.groupname == _gthis.group.name;
-		}),function(a1) {
-			switch(a1.status._hx_index) {
-			case 0:
-				var itemsList1 = "Klicka här för att skapa en inbjudan till " + a1.username + " om att bli medlem i " + a1.groupname + "." + existsMessage(a1.username);
-				return m.m("div.application.start",[m.m("span",{ onclick : function(e) {
-					_gthis.store.changeApplicationStatus(a1,data_GroupApplicationStatus.Pending);
-					return;
-				}},itemsList1),m.m("button",{ onclick : function(e1) {
-					_gthis.store.removeApplication(a1);
-					return;
-				}},"Ta bort")]);
-			case 1:
-				return m.m("div.application.pending",[m.m("span","Du har skickat en inbjudan till " + a1.username + " om att gå med i gruppen " + a1.groupname + "." + existsMessage(a1.username)),m.m("button",{ onclick : function(e2) {
-					_gthis.store.removeInvitation(a1);
-					return;
-				}},"Ta bort")]);
-			case 2:
-				return m.m("div.application.rejected",[m.m("span","Din ansökan om medlemskap i " + a1.groupname + " har avslagits"),m.m("button",{ onclick : function(e3) {
-					return { };
-				}},"Ta bort")]);
-			}
-		})) : m.m("div","No invitations");
-		return m.m("div.groupinvitation",[m.m("div",[m.m("input[placeholder=Medlemmens e-postadress]",{ oninput : function(e4) {
-			view_CreateInvitationsView.username = e4.target.value;
-			console.log("src/view/Views.hx:204:",view_CreateInvitationsView.username);
-			return;
-		}}),m.m("button",{ onclick : function(e5) {
-			console.log("src/view/Views.hx:210:",view_CreateInvitationsView.username);
-			var application = { username : view_CreateInvitationsView.username, groupname : _gthis.group.name, status : data_GroupApplicationStatus.Start};
-			_gthis.store.addInvitation(application);
-			return;
-		}},"Skapa en inbjudan"),itemsList])]);
-	}
-	,__class__: view_CreateInvitationsView
+	,__class__: view_Pageview
 });
 var view_Homeview = function(store) {
 	view_AppStoreView.call(this,store);
@@ -1687,57 +1630,34 @@ view_Homeview.prototype = $extend(view_AppStoreView.prototype,{
 	view: function() {
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
 		if(this.store.get_state().userId == null) {
-			return this.guest();
+			return this.guestView();
 		} else {
-			return this.user();
+			return this.userView();
 		}
 	}
-	,guest: function() {
-		return [this.cells([data_HomeCell.Image("assets/img/old-town.jpg"),data_HomeCell.Title("Sjung och spela var du vill"),data_HomeCell.Info("ScorX spelare funkar både för mobil och surfplatta!")]),this.cells([data_HomeCell.Image("assets/img/happy.jpg"),data_HomeCell.Title("Pröva ScorX gratis!"),data_HomeCell.Info("Klicka på valfri titel i listan nedan, lyssna och sjung med!"),data_HomeCell.Songlist("Gratislåtar",ds__$ImmutableArray_ImmutableArray_$Impl_$.array(this.store.get_state().songs),[data_SongFilter.Category(data_SongCategory.Free),data_SongFilter.LimitNumber(5)])])];
+	,guestView: function() {
+		return [this.buildCells([data_HomeCell.Image("assets/img/old-town.jpg"),data_HomeCell.Title("Sjung och spela var du vill"),data_HomeCell.Info("ScorX spelare funkar både för mobil och surfplatta!")]),this.buildCells([data_HomeCell.Image("assets/img/happy.jpg"),data_HomeCell.Title("Pröva ScorX gratis!"),data_HomeCell.Info("Klicka på valfri titel i listan nedan, lyssna och sjung med!"),data_HomeCell.Songlist("Gratislåtar",ds__$ImmutableArray_ImmutableArray_$Impl_$.array(this.store.get_state().songs),[data_SongFilter.Category(data_SongCategory.Free),data_SongFilter.LimitNumber(5)])])];
 	}
-	,cells: function(cells) {
+	,userView: function() {
+		return [this.choirMemberView(),this.choirAdminView(),this.mySongsView()];
+	}
+	,choirMemberView: function() {
 		var _gthis = this;
-		return m.m("section",cells.map(function(cell) {
-			switch(cell._hx_index) {
-			case 0:
-				return m.m("img",{ src : cell.url});
-			case 1:
-				return m.m("h1.limit-width.center",cell.title);
-			case 2:
-				return m.m("p.limit-width.center",cell.info);
-			case 4:
-				return _gthis.songlist(cell.title,cell.songs,cell.filter);
-			case 5:
-				return [new view_ApplicationsView(_gthis.store).view()];
-			case 6:
-				return m.m("div.groupmembers",[m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(_gthis.store.getGroup(cell.groupname).members,function(member) {
-					return m.m("li",member);
-				}))]);
-			case 7:
-				var group = _gthis.store.getGroup(cell.groupname);
-				return new view_CreateInvitationsView(_gthis.store,group).view();
-			case 8:
-				return m.m("div.center",[m.m("button.center",{ onclick : function(e) {
-					console.log("src/view/Views.hx:255:","Click");
-					return;
-				}},"Gå till butiken")]);
-			default:
-				return null;
-			}
-		}));
+		var user = this.store.getUser();
+		var groupLists = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().groups,function(group) {
+			return ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(group.members,user.username) > -1;
+		})).map(function(group1) {
+			var group2 = group1.name;
+			var groupLists1 = ds__$ImmutableArray_ImmutableArray_$Impl_$.map(group1.songs,function(title) {
+				return _gthis.store.getSong(title);
+			});
+			var groupLists2 = data_SongFilter.Group(group1.name);
+			var groupLists3 = data_HomeCell.Songlist(group2,ds__$ImmutableArray_ImmutableArray_$Impl_$.array(groupLists1),[groupLists2]);
+			return _gthis.buildCells([groupLists3]);
+		});
+		return m.m("div.center",[this.buildCells([data_HomeCell.Title("Körernas låtar"),data_HomeCell.Info(groupLists.length > 0 ? "Här visas de låtar som delats ut till dig av dina körer." : "Du verkar inte vara deltagare i någon kör eller grupp i ScorX.")]),groupLists,groupLists.length == 0 ? this.buildCells([data_HomeCell.SearchChoir]) : null,new view_UserInvitationsView(this.store).view()]);
 	}
-	,user: function() {
-		return [this.choirMember(),this.choirAdmin(),this.mySongs()];
-	}
-	,mySongs: function() {
-		var _gthis = this;
-		var mySongs = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.getUser().songs,function(title) {
-			return _gthis.store.getSong(title);
-		}));
-		var myList = mySongs.length > 0 ? this.cells([data_HomeCell.Songlist("Mina låtar",mySongs,[data_SongFilter.LimitNumber(5)])]) : this.cells([data_HomeCell.BuySongs]);
-		return [this.cells([data_HomeCell.Title("Mina låtar"),data_HomeCell.Info("Här visas de låtar som du har köpt eller valt genom förmånserbjudanden.")]),myList];
-	}
-	,choirAdmin: function() {
+	,choirAdminView: function() {
 		var _gthis = this;
 		var user = this.store.getUser();
 		var groups = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().groups,function(group) {
@@ -1753,25 +1673,51 @@ view_Homeview.prototype = $extend(view_AppStoreView.prototype,{
 			});
 			var groupLists2 = data_SongFilter.Group(group1.name);
 			var groupLists3 = data_HomeCell.Songlist(group2,ds__$ImmutableArray_ImmutableArray_$Impl_$.array(groupLists1),[groupLists2]);
-			return _gthis.cells([groupLists3,data_HomeCell.Info("Gruppens nuvarande medlemmar:"),data_HomeCell.ListGroupMembers(group1.name),data_HomeCell.Info("Här kan du bjuda in medlemmar till gruppen:"),data_HomeCell.InviteGroupMembers(group1.name)]);
+			return _gthis.buildCells([groupLists3,data_HomeCell.Info("Gruppens nuvarande medlemmar:"),data_HomeCell.ListGroupMembers(group1.name),data_HomeCell.Info("Här kan du bjuda in medlemmar till gruppen:"),data_HomeCell.InviteGroupMembers(group1.name),data_HomeCell.Info("Här visas ansökningar från användare som vill bli medlemmar gruppen:"),data_HomeCell.ApplicationsToGroup(group1.name)]);
 		});
-		return m.m("div.center",[this.cells([data_HomeCell.Title("Du leder följande körer")]),groupLists]);
+		return m.m("div.center",[this.buildCells([data_HomeCell.Title("Du leder följande körer")]),groupLists]);
 	}
-	,choirMember: function() {
+	,mySongsView: function() {
 		var _gthis = this;
-		var user = this.store.getUser();
-		var groupLists = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().groups,function(group) {
-			return ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(group.members,user.username) > -1;
-		})).map(function(group1) {
-			var group2 = group1.name;
-			var groupLists1 = ds__$ImmutableArray_ImmutableArray_$Impl_$.map(group1.songs,function(title) {
-				return _gthis.store.getSong(title);
-			});
-			var groupLists2 = data_SongFilter.Group(group1.name);
-			var groupLists3 = data_HomeCell.Songlist(group2,ds__$ImmutableArray_ImmutableArray_$Impl_$.array(groupLists1),[groupLists2]);
-			return _gthis.cells([groupLists3]);
-		});
-		return m.m("div.center",[this.cells([data_HomeCell.Title("Körernas låtar"),data_HomeCell.Info(groupLists.length > 0 ? "Här visas de låtar dom delats ut till dig genom dina körer." : "Du verkar inte vara deltagare i någon kör eller grupp i ScorX.")]),groupLists,groupLists.length == 0 ? this.cells([data_HomeCell.SearchChoir]) : null,new view_InvitationsView(this.store).view()]);
+		var mySongs = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.getUser().songs,function(title) {
+			return _gthis.store.getSong(title);
+		}));
+		var myList = mySongs.length > 0 ? this.buildCells([data_HomeCell.Songlist("Mina låtar",mySongs,[data_SongFilter.LimitNumber(5)])]) : this.buildCells([data_HomeCell.BuySongs]);
+		return [this.buildCells([data_HomeCell.Title("Mina låtar"),data_HomeCell.Info("Här visas de låtar som du har köpt eller valt genom förmånserbjudanden.")]),myList];
+	}
+	,buildCells: function(cells) {
+		var _gthis = this;
+		return m.m("section",cells.map(function(cell) {
+			switch(cell._hx_index) {
+			case 0:
+				return m.m("img",{ src : cell.url});
+			case 1:
+				return m.m("h1.limit-width.center",cell.title);
+			case 2:
+				return m.m("p.limit-width.center",cell.info);
+			case 4:
+				return _gthis.songlist(cell.title,cell.songs,cell.filter);
+			case 5:
+				return [new view_UserApplicationsView(_gthis.store).view()];
+			case 6:
+				return m.m("div.groupmembers",[m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(_gthis.store.getGroup(cell.groupname).members,function(member) {
+					return m.m("li",member);
+				}))]);
+			case 7:
+				var group = _gthis.store.getGroup(cell.groupname);
+				return new view_LeaderInvitationsView(_gthis.store,group).view();
+			case 8:
+				var group1 = _gthis.store.getGroup(cell.groupname);
+				return new view_LeaderApplicationsView(_gthis.store,group1).view();
+			case 9:
+				return m.m("div.center",[m.m("button.center",{ onclick : function(e) {
+					console.log("src/view/Views.hx:204:","Click");
+					return;
+				}},"Gå till butiken")]);
+			default:
+				return null;
+			}
+		}));
 	}
 	,songlist: function(title,songs,filter) {
 		var _gthis = this;
@@ -1822,27 +1768,183 @@ view_Homeview.prototype = $extend(view_AppStoreView.prototype,{
 	}
 	,__class__: view_Homeview
 });
-var view_Pageview = function(store) {
+var view_UserApplicationsView = function(store) {
 	view_AppStoreView.call(this,store);
-	this.home = new view_Homeview(store);
-	this.create = new view_CreateUserView(store);
 };
-$hxClasses["view.Pageview"] = view_Pageview;
-view_Pageview.__name__ = true;
-view_Pageview.__super__ = view_AppStoreView;
-view_Pageview.prototype = $extend(view_AppStoreView.prototype,{
+$hxClasses["view.UserApplicationsView"] = view_UserApplicationsView;
+view_UserApplicationsView.__name__ = true;
+view_UserApplicationsView.__super__ = view_AppStoreView;
+view_UserApplicationsView.prototype = $extend(view_AppStoreView.prototype,{
 	view: function() {
+		var _gthis = this;
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		switch(this.store.get_state().page._hx_index) {
-		case 0:
-			return this.home.view();
-		case 2:
-			return this.create.view();
-		default:
-			return null;
-		}
+		var itemsList = this.store.get_state().applications != null ? ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().applications,function(a) {
+			return a.username == _gthis.store.get_state().userId;
+		}),function(a1) {
+			switch(a1.status._hx_index) {
+			case 0:
+				return m.m("div.application.start",[m.m("span","Du kan nu skicka en ansöka om medlemskap i " + a1.groupname + "."),m.m("button",{ onclick : function(e) {
+					_gthis.store.changeApplicationStatus(a1,data_GroupApplicationStatus.Pending);
+					return;
+				}},"Skicka ansökan"),m.m("button",{ onclick : function(e1) {
+					_gthis.store.removeApplication(a1);
+					return;
+				}},"Ta bort")]);
+			case 1:
+				return m.m("div.application.pending",[m.m("span","Din ansökan om att gå med i " + a1.groupname + " väntar på att behandlas av gruppledaren."),m.m("button",{ onclick : function(e2) {
+					return { };
+				}},"Ta bort")]);
+			case 2:
+				return m.m("div.application.rejected",[m.m("span","Din ansökan om medlemskap i " + a1.groupname + " har avslagits"),m.m("button",{ onclick : function(e3) {
+					return { };
+				}},"Ta bort")]);
+			}
+		})) : m.m("div","No applications");
+		return [m.m("div.groupapplications",[m.m("h3.groupsearch","Mina ansökningar"),m.m("p.groupsearch","Här kan du skapa ansökan om medlemskap för den kör/grupp som du vill bli deltagare i."),itemsList]),m.m("select.groupsearch",[m.m("option","Sök din kör eller grupp här")].concat(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().groups,function(group) {
+			return m.m("option",{ onclick : function(e4) {
+				console.log("src/view/Views.hx:302:","click " + group.name);
+				var newApplication = { groupname : group.name, username : _gthis.store.get_state().userId, status : data_GroupApplicationStatus.Start};
+				_gthis.store.addApplication(newApplication);
+				return;
+			}, value : "" + group.name},"" + group.name);
+		}))))];
 	}
-	,__class__: view_Pageview
+	,__class__: view_UserApplicationsView
+});
+var view_UserInvitationsView = function(store) {
+	view_AppStoreView.call(this,store);
+};
+$hxClasses["view.UserInvitationsView"] = view_UserInvitationsView;
+view_UserInvitationsView.__name__ = true;
+view_UserInvitationsView.__super__ = view_AppStoreView;
+view_UserInvitationsView.prototype = $extend(view_AppStoreView.prototype,{
+	view: function() {
+		var _gthis = this;
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		var myInvitations = ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().invitations,function(a) {
+			return a.username == _gthis.store.get_state().userId;
+		});
+		var itemsList = myInvitations != null ? ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(myInvitations,function(a1) {
+			switch(a1.status._hx_index) {
+			case 0:
+				return m.m("div.application.start",[m.m("span",{ onclick : function(e) {
+					return { };
+				}},"Klicka här för att ansöka om medlemskap i " + a1.groupname),m.m("button",{ onclick : function(e1) {
+					_gthis.store.removeApplication(a1);
+					return;
+				}},"Ta bort")]);
+			case 1:
+				return m.m("div.application.pending",[m.m("span","Du har fått en inbjudan om att gå med i " + a1.groupname + ". Du kan välja om du vill gå med eller inte."),m.m("button",{ onclick : function(e2) {
+					_gthis.store.addUsernameToGroupFromLeaderInvitation(a1);
+					return;
+				}},"Ja, jag vill gå med i " + a1.groupname),m.m("button",{ onclick : function(e3) {
+					return { };
+				}},"Nej, jag vill inte gå med i " + a1.groupname)]);
+			case 2:
+				return m.m("div.application.rejected",[m.m("span","Din ansökan om medlemskap i " + a1.groupname + " har avslagits"),m.m("button",{ onclick : function(e4) {
+					return { };
+				}},"Ta bort")]);
+			}
+		})) : m.m("div","No invitations");
+		return m.m("div.groupapplications",[myInvitations.length > 0 ? m.m("h3.groupsearch","Mina inbjudningar") : null,itemsList]);
+	}
+	,__class__: view_UserInvitationsView
+});
+var view_LeaderInvitationsView = function(store,group) {
+	view_AppStoreView.call(this,store);
+	this.group = group;
+};
+$hxClasses["view.LeaderInvitationsView"] = view_LeaderInvitationsView;
+view_LeaderInvitationsView.__name__ = true;
+view_LeaderInvitationsView.__super__ = view_AppStoreView;
+view_LeaderInvitationsView.prototype = $extend(view_AppStoreView.prototype,{
+	view: function() {
+		var _gthis = this;
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		var existsMessage = function(username) {
+			if(_gthis.store.userExists(username)) {
+				return " ";
+			} else {
+				return " (Användaren " + username + " har ännu inte skapat något ScorX-konto, men kommer att nås av denna inbjudan när detta sker.)";
+			}
+		};
+		var itemsList = this.store.get_state().invitations != null ? ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().invitations,function(a) {
+			return a.groupname == _gthis.group.name;
+		}),function(a1) {
+			switch(a1.status._hx_index) {
+			case 0:
+				var itemsList1 = "Klicka här för att skapa en inbjudan till " + a1.username + " om att bli medlem i " + a1.groupname + "." + existsMessage(a1.username);
+				return m.m("div.application.start",[m.m("span",{ onclick : function(e) {
+					_gthis.store.changeApplicationStatus(a1,data_GroupApplicationStatus.Pending);
+					return;
+				}},itemsList1),m.m("button",{ onclick : function(e1) {
+					_gthis.store.removeApplication(a1);
+					return;
+				}},"Ta bort")]);
+			case 1:
+				return m.m("div.application.pending",[m.m("span","Du har skickat en inbjudan till " + a1.username + " om att gå med i gruppen " + a1.groupname + "." + existsMessage(a1.username)),m.m("button",{ onclick : function(e2) {
+					_gthis.store.removeInvitation(a1);
+					return;
+				}},"Ta bort")]);
+			case 2:
+				return m.m("div.application.rejected",[m.m("span","Din ansökan om medlemskap i " + a1.groupname + " har avslagits"),m.m("button",{ onclick : function(e3) {
+					return { };
+				}},"Ta bort")]);
+			}
+		})) : m.m("div","No invitations");
+		return m.m("div.groupinvitation",[m.m("div",[m.m("input[placeholder=Medlemmens e-postadress]",{ oninput : function(e4) {
+			view_LeaderInvitationsView.username = e4.target.value;
+			console.log("src/view/Views.hx:413:",view_LeaderInvitationsView.username);
+			return;
+		}}),m.m("button",{ onclick : function(e5) {
+			console.log("src/view/Views.hx:419:",view_LeaderInvitationsView.username);
+			var application = { username : view_LeaderInvitationsView.username, groupname : _gthis.group.name, status : data_GroupApplicationStatus.Start};
+			_gthis.store.addInvitation(application);
+			return;
+		}},"Skapa en inbjudan"),itemsList])]);
+	}
+	,__class__: view_LeaderInvitationsView
+});
+var view_LeaderApplicationsView = function(store,group) {
+	view_AppStoreView.call(this,store);
+	this.group = group;
+};
+$hxClasses["view.LeaderApplicationsView"] = view_LeaderApplicationsView;
+view_LeaderApplicationsView.__name__ = true;
+view_LeaderApplicationsView.__super__ = view_AppStoreView;
+view_LeaderApplicationsView.prototype = $extend(view_AppStoreView.prototype,{
+	view: function() {
+		var _gthis = this;
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		var items = ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().applications,function(app) {
+			return app.groupname == _gthis.group.name;
+		});
+		var itemsList = items != null ? ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(items,function(a) {
+			var user = _gthis.store.getUser(a.username);
+			switch(a.status._hx_index) {
+			case 0:
+				return m.m("div.application.start",[m.m("span",{ onclick : function(e) {
+					return { };
+				}},"Ska inte visas!"),m.m("button",{ onclick : function(e1) {
+					_gthis.store.removeApplication(a);
+					return;
+				}},"Ta bort")]);
+			case 1:
+				return m.m("div.application.pending",[m.m("span","Användaren " + user.firstname + " " + user.lastname + " önskar bli medlem i " + _gthis.group.name + ". Du kan välja om du accepterar denna ansökan eller inte."),m.m("button",{ onclick : function(e2) {
+					_gthis.store.addUsernameToGroupFromUserApplication(a);
+					return;
+				}},"Ja, ansökan från " + user.firstname + " accepteras"),m.m("button",{ onclick : function(e3) {
+					return { };
+				}},"Nej, ansökan avslås")]);
+			case 2:
+				return m.m("div.application.rejected",[m.m("span","Din ansökan om medlemskap i " + a.groupname + " har avslagits"),m.m("button",{ onclick : function(e4) {
+					return { };
+				}},"Ta bort")]);
+			}
+		})) : m.m("div","No invitations");
+		return m.m("div.groupapplications",[items.length > 0 ? m.m("h3.groupsearch","Ansökningar till gruppen") : null,itemsList]);
+	}
+	,__class__: view_LeaderApplicationsView
 });
 var view_CreateUserView = function(store) {
 	this.lastname = "a";
@@ -1858,10 +1960,10 @@ view_CreateUserView.prototype = $extend(view_AppStoreView.prototype,{
 	view: function() {
 		var _gthis = this;
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		return [m.m("h1","Create user"),m.m("div",[m.m("input[placeholder=Användarnamn][required]",{ oninput : function(e) {
+		return m.m("div.createuser",[m.m("h1","Skapa konto"),m.m("h2","Kontouppgifter"),m.m("div.createuserform",[m.m("input[placeholder=Användarnamn][required]",{ oninput : function(e) {
 			_gthis.tryUsername = e.target.value;
-			console.log("src/view/Views.hx:398:",e.target.value);
-			console.log("src/view/Views.hx:399:",_gthis.tryUsername);
+			console.log("src/view/Views.hx:497:",e.target.value);
+			console.log("src/view/Views.hx:498:",_gthis.tryUsername);
 			return;
 		}}),m.m("input[placeholder=Lösenord][required]",{ oninput : function(e1) {
 			return _gthis.tryPassword = e1.target.value;
@@ -1870,20 +1972,20 @@ view_CreateUserView.prototype = $extend(view_AppStoreView.prototype,{
 		}}),m.m("input[placeholder=Lastname][required]",{ oninput : function(e3) {
 			return _gthis.lastname = e3.target.value;
 		}}),m.m("button",{ onclick : function(e4) {
-			console.log("src/view/Views.hx:424:",_gthis.tryUsername + " " + _gthis.tryPassword + " " + _gthis.firstname + " " + _gthis.lastname);
+			console.log("src/view/Views.hx:523:",_gthis.tryUsername + " " + _gthis.tryPassword + " " + _gthis.firstname + " " + _gthis.lastname);
 			try {
 				cx_Validation.asEmail(_gthis.tryUsername);
 				cx_Validation.asPassword(_gthis.tryPassword);
 				cx_Validation.asFirstname(_gthis.firstname);
 				cx_Validation.asLastname(_gthis.lastname);
 				var newUser = { firstname : _gthis.firstname, lastname : _gthis.lastname, password : _gthis.tryPassword, username : _gthis.tryUsername, sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])};
-				console.log("src/view/Views.hx:438:",newUser);
+				console.log("src/view/Views.hx:537:",newUser);
 				_gthis.store.addUser(newUser);
 			} catch( e5 ) {
 				js_Browser.alert(((e5) instanceof js__$Boot_HaxeError) ? e5.val : e5);
 			}
 			return;
-		}},"Skapa användare")])];
+		}},"Skapa användare")]),m.m("h2","Vill du ta del av Sensus förmånserbjudanden?"),m.m("div.createuserform",[m.m("p","(Detta är ett försök att hantera de fria Sensus-valen..!)"),m.m("p","Som sångare i Sensus-kör så får du ta del av förmånserbjudanden som exempelvis gratis tillgång av låtar som du själv väljer."),m.m("p","Du behöver ange ditt personnummer för att vi ska kunna säkerställa att du verkligen är en Sensus-sångare."),m.m("input[placeholder=Personnummer]"),m.m("div",[m.m("input[type=checkbox]"),m.m("span","Ja, jag sjunger i en Sensus-kör och vill ta del av förmånserbjudanden")])]),m.m("h2","Sök din kör"),m.m("div.createuserform",[m.m("p","Här kan du söka och hitta den kör eller grupp som du är medlem i. "),m.m("p","(Du kan också ange om du är ledare för gruppen i fråga. ???)")])]);
 	}
 	,__class__: view_CreateUserView
 });
@@ -1897,22 +1999,22 @@ view_MenuView.prototype = $extend(view_AppStoreView.prototype,{
 	view: function() {
 		var _gthis = this;
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		return [m.m("button",{ onclick : function(e) {
+		return [m.m("span.button",{ onclick : function(e) {
 			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("page")]), value : data_Page.Home}])});
 			return;
-		}},"Home"),m.m("button",{ onclick : function(e1) {
+		}},"Hem"),m.m("span.button",{ onclick : function(e1) {
 			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("page")]), value : data_Page.CreateUser}])});
 			return;
-		}},"Create user"),m.m("button",{ onclick : function(e2) {
+		}},"Skapa konto"),m.m("span.button",{ onclick : function(e2) {
 			_gthis.store.resetToDefaultData();
 			return;
-		}},"Reset data")];
+		}},"Nollställ demodata")];
 	}
 	,__class__: view_MenuView
 });
 var view_Userview = function(store) {
-	this.tryPassword = "adam1";
-	this.tryUsername = "adam@adam.se";
+	this.tryPassword = "";
+	this.tryUsername = "";
 	view_AppStoreView.call(this,store);
 };
 $hxClasses["view.Userview"] = view_Userview;
@@ -1932,10 +2034,10 @@ view_Userview.prototype = $extend(view_AppStoreView.prototype,{
 		if(this.store.getUser() == null) {
 			return null;
 		}
-		return [m.m("h3","Välkommen, " + this.store.getUser().firstname + "!"),m.m("button",{ onclick : function(e) {
+		return m.m("div",[m.m("span","Välkommen, " + this.store.getUser().firstname + "! "),m.m("button",{ onclick : function(e) {
 			_gthis.store.logout();
 			return;
-		}},"Logga ut")];
+		}},"Logga ut")]);
 	}
 	,guest: function() {
 		var _gthis = this;

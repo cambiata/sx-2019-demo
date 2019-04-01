@@ -1,3 +1,8 @@
+
+/*
+This file is a mess! :-)
+*/
+
 * {
     margin: 0;
     box-sizing: border-box;
@@ -8,25 +13,13 @@ body {
     font-size: 2vmax;
 }
 
-/* @media (min-width: 760px) {
-    body {
-      font-size: 12px;
-    }
-  }
-
-  @media (min-height: 1000px) {
-    body {
-      font-size: 12px;
-    }
-  } */
-
-  .center {
-      max-width: 1000px;
-      padding-left: 2vmax;
-      padding-right: 2vmax;
-      margin: 0 auto;
-      /* text-align: center; */
-      /* border: 1px solid #ccc; */
+.center {
+    max-width: 1000px;
+    padding-left: 2vmax;
+    padding-right: 2vmax;
+    margin: 0 auto;
+    /* text-align: center; */
+    /* border: 1px solid #ccc; */
 }
     
 .limit-width {
@@ -36,11 +29,13 @@ body {
 body > header {
     background: #eee;
     height: 5vmax;
+    padding: 1vmax;
 }
 
 #header {
     display: flex;
     justify-content: space-between;
+    flex-flow: row-reverse;
 }
 
 #logo {
@@ -55,8 +50,8 @@ body > header {
 
 body > nav {
     background: #333;
-    color: white;
-    height: 4em;
+    color: #aaa;   
+    padding: 1vmax; 
 }
 
 body > footer {
@@ -87,6 +82,7 @@ button {
     border-radius: 2.4vmax;    
     cursor: pointer;
 }
+
 input {
     font-size: 1.2vmax;
     padding: 0.2vmax 1vmax;
@@ -95,8 +91,6 @@ input {
     border-radius: 2.4vmax;
     margin-right: 1vmax;
 }
-
-
 
 select {
     text-align: center;
@@ -289,11 +283,12 @@ article li.shop {
 }
 
 .application {
-    border:1px solid #aaa;
+    border:5px solid #555;
+    background: #eee;
     border-radius: 2vmax;
     padding: 1vmax 2vmax;
     margin: .5vmax 1vmax;
-    background: gray;
+    text-align: left;
     cursor:pointer;
     display: grid;
     grid-template-columns: 3fr 1fr 1fr;
@@ -309,7 +304,7 @@ article li.shop {
 }
 
 .application.pending {
-    background:skyblue;
+   background:skyblue;
 }
 
 .application.rejected {
@@ -321,10 +316,14 @@ article li.shop {
 }
 
 .groupsearch {
-    margin: 0 20%;
+    margin: 0 10%;
     text-align:center;
     font-size: 2.2vmax;
-    width: 60%;
+    width: 80%;
+}
+
+h3.groupsearch {
+    font-size: 3vmax;
 }
 
 .groupinvitation input {
@@ -332,4 +331,41 @@ article li.shop {
     text-align:center;
     font-size: 2.2vmax;
     width: 50%;
+}
+
+span.button {
+    padding: 1vmax;
+    margin-right: 1vmax;
+    cursor:pointer;
+}
+
+span.button:hover {
+    background: #666;
+}
+
+.createuser {
+    display: grid;
+    grid-gap: 2vmax;
+    width: 80%;
+    margin: 3vmax 10%;
+    
+}
+
+.createuser h2 {
+    margin-top: 3vmax;
+}
+
+.createuserform {
+    display: grid;
+    grid-gap: 2vmax;
+    width: 80%;
+    margin: 0 10%;    
+}
+
+.createuserform input {
+    font-size: 2vmax;
+}
+
+.createuserform button {
+    font-size: 2vmax;
 }

@@ -8,19 +8,6 @@ using cx.ArrayItems;
 using cx.Validation;
 
 /**
- * Applikationens state-objekt (à la Redux)
- */
-typedef AppState = {
-	final page:Page;
-	final userId:String;
-	final users:ImmutableArray<User>;
-	final groups:ImmutableArray<Group>;
-	final applications:ImmutableArray<GroupApplication>;
-	final invitations:ImmutableArray<GroupApplication>;
-	final songs:ImmutableArray<Song>;
-}
-
-/**
  * Användare
  */
 typedef User = {
@@ -113,6 +100,7 @@ enum HomeCell {
 	SearchChoir;
 	ListGroupMembers(groupname:String);
 	InviteGroupMembers(groupname:String);
+	ApplicationsToGroup(groupname:String);
 	BuySongs;
 }
 
@@ -135,7 +123,7 @@ class Default {
 				firstname: 'Adam',
 				lastname: 'Adamsson',
 				username: 'adam@adam.se',
-				password: 'adam1',
+				password: 'adam',
 				sensus: false,
 				songs: ['Kommersiell06', 'Kommersiell07'],
 			},
@@ -234,7 +222,8 @@ class Default {
 	}
 
 	static public function applications():Array<GroupApplication> {
-		return [{username: 'beda@bensin.se', groupname: 'Örkelhåla kyrkokör', status: Start}];
+		return [];
+		// return [{username: 'beda@bensin.se', groupname: 'Örkelhåla kyrkokör', status: Start}];
 	}
 
 	static public function invitations():Array<GroupApplication> {
