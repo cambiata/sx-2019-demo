@@ -9,7 +9,9 @@ import mithril.M.m;
 
 using cx.Validation;
 
-// Base class for views
+/**
+ * Base class for views
+ */
 class AppStoreView implements Mithril {
 	var store:AppStore;
 
