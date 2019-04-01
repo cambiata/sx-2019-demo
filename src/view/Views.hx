@@ -39,7 +39,8 @@ class FooterView extends AppStoreView {
 						onclick: e -> {
 							var user:User = this.store.getUser(username);
 							this.store.tryLogin(user.username, user.password);
-						}
+						},
+						style: {cursor: 'pointer'},
 					}, 'Ledare:' + username))),
 					m('ul', g.members.map(username -> m('li', {
 						onclick: e -> {
@@ -377,11 +378,13 @@ class LeaderInvitationsView extends AppStoreView {
 		var itemsList:Vnodes = this.store.state.invitations != null ? this.store.state.invitations.filter(a -> a.groupname == this.group.name).map(a -> {
 			switch a.status {
 				case Start: cast m('div.application.start', [
-						m('span', {
+						m('span', 'Här kan du skicka inbjudan till ${a.username} om att bli medlem i ${a.groupname}.'
+							+ existsMessage(a.username)),
+						m('button', {
 							onclick: e -> {
-								this.store.changeApplicationStatus(a, Pending);
+								this.store.changeInvitationStatus(a, Pending);
 							}
-						}, 'Klicka här för att skapa en inbjudan till ${a.username} om att bli medlem i ${a.groupname}.' + existsMessage(a.username)),
+						}, 'Skicka inbjudan till ${a.username}'),
 						m('button', {
 							onclick: e -> {
 								this.store.removeApplication(a);

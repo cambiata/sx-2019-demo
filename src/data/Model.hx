@@ -125,7 +125,7 @@ class Default {
 				username: 'adam@adam.se',
 				password: 'adam',
 				sensus: false,
-				songs: ['Kommersiell06', 'Kommersiell07'],
+				songs: ['Köptitel06', 'Köptitel07'],
 			},
 			{
 				firstname: 'Beda',
@@ -246,7 +246,7 @@ class Default {
 				admins: [],
 				members: [],
 				sensus: true,
-				songs: ['Kommersiell01', 'Sensus01'],
+				songs: ['Köptitel01', 'Sensus01'],
 			},
 			{
 				name: 'Lingonbergens sångfåglar',
@@ -254,7 +254,7 @@ class Default {
 				admins: [],
 				members: [],
 				sensus: true,
-				songs: ['Kommersiell01', 'Sensus01'],
+				songs: ['Köptitel01', 'Sensus01'],
 			},
 			{
 				name: 'Avunda Kyrkokör',
@@ -262,7 +262,7 @@ class Default {
 				admins: ['avledare@kor.se'],
 				members: [],
 				sensus: true,
-				songs: ['Kommersiell01', 'Sensus01'],
+				songs: ['Köptitel01', 'Sensus01'],
 			},
 			{
 				name: 'Nya kören, Hässleholm',
@@ -270,7 +270,7 @@ class Default {
 				admins: [],
 				members: [],
 				sensus: true,
-				songs: ['Kommersiell01', 'Sensus01'],
+				songs: ['Köptitel01', 'Sensus01'],
 			},
 			{
 				name: 'Nya kören, Hallandsåsen',
@@ -278,26 +278,26 @@ class Default {
 				admins: [],
 				members: [],
 				sensus: true,
-				songs: ['Kommersiell01', 'Sensus01'],
+				songs: ['Köptitel01', 'Sensus01'],
 			},
 		];
 	}
 
 	static public function songs():Array<Song> {
 		return [
-			{title: 'Ave veum corpus', category: Free, producer: Korakademin}, {title: 'Kommersiell titel', category: Commercial, producer: Other},
+			{title: 'Ave veum corpus', category: Free, producer: Korakademin}, {title: 'Köptitel titel', category: Commercial, producer: Other},
 
 			{title: 'Gratis01', category: Free, producer: Korakademin}, {title: 'Gratis02', category: Free, producer: Korakademin},
 			{title: 'Gratis03', category: Free, producer: Korakademin}, {title: 'Gratis04', category: Free, producer: Korakademin},
 			{title: 'Gratis05', category: Free, producer: Korakademin}, {title: 'Gratis06', category: Free, producer: Other},
 			{title: 'Gratis07', category: Free, producer: Other}, {title: 'Gratis08', category: Free, producer: Other},
 			{title: 'Gratis09', category: Free, producer: Other}, {title: 'Gratis10', category: Free, producer: Other},
-			{title: 'Gratis11', category: Free, producer: Other}, {title: 'Kommersiell01', category: Commercial, producer: Other},
+			{title: 'Gratis11', category: Free, producer: Other}, {title: 'Köptitel01', category: Commercial, producer: Other},
 
-			{title: 'Kommersiell02', category: Commercial, producer: Other}, {title: 'Kommersiell03', category: Commercial, producer: Other},
-			{title: 'Kommersiell04', category: Commercial, producer: Other}, {title: 'Kommersiell05', category: Commercial, producer: Other},
-			{title: 'Kommersiell06', category: Commercial, producer: Other}, {title: 'Kommersiell07', category: Commercial, producer: Other},
-			{title: 'Kommersiell08', category: Commercial, producer: Other}, {title: 'Sensus01', category: Commercial, producer: Korakademin},
+			{title: 'Köptitel02', category: Commercial, producer: Other}, {title: 'Köptitel03', category: Commercial, producer: Other},
+			{title: 'Köptitel04', category: Commercial, producer: Other}, {title: 'Köptitel05', category: Commercial, producer: Other},
+			{title: 'Köptitel06', category: Commercial, producer: Other}, {title: 'Köptitel07', category: Commercial, producer: Other},
+			{title: 'Köptitel08', category: Commercial, producer: Other}, {title: 'Sensus01', category: Commercial, producer: Korakademin},
 
 			{title: 'Sensus02', category: Commercial, producer: Korakademin}, {title: 'Sensus03', category: Commercial, producer: Korakademin},
 			{title: 'Sensus04', category: Commercial, producer: Korakademin}, {title: 'Sensus05', category: Commercial, producer: Korakademin},

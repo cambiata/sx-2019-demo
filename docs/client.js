@@ -892,7 +892,7 @@ var data_Default = function() { };
 $hxClasses["data.Default"] = data_Default;
 data_Default.__name__ = true;
 data_Default.users = function() {
-	return [{ firstname : "Adam", lastname : "Adamsson", username : "adam@adam.se", password : "adam", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell06","Kommersiell07"])},{ firstname : "Beda", lastname : "Bensin", username : "beda@bensin.se", password : "beda", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Caesar", lastname : "Citrus", username : "caesar@citrus.se", password : "caesar", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Avledare", lastname : "Jonsson", username : "avledare@kor.se", password : "avledare", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel1", lastname : "Örkelsson", username : "orkel1@orkel.se", password : "orkel1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel2", lastname : "Örkelsson", username : "orkel2@orkel.se", password : "orkel2", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel3", lastname : "Örkelsson", username : "orkel3@orkel.se", password : "orkel3", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel4", lastname : "Örkelsson", username : "orkel4@orkel.se", password : "orkel4", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro1", lastname : "Brorsson", username : "bro1@bro.se", password : "bro1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro2", lastname : "Brorsson", username : "bro2@bro.se", password : "bro2", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro3", lastname : "Brorsson", username : "bro3@bro.se", password : "bro3", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro4", lastname : "Brorsson", username : "bro4@bro.se", password : "bro4", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
+	return [{ firstname : "Adam", lastname : "Adamsson", username : "adam@adam.se", password : "adam", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Köptitel06","Köptitel07"])},{ firstname : "Beda", lastname : "Bensin", username : "beda@bensin.se", password : "beda", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Caesar", lastname : "Citrus", username : "caesar@citrus.se", password : "caesar", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Avledare", lastname : "Jonsson", username : "avledare@kor.se", password : "avledare", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel1", lastname : "Örkelsson", username : "orkel1@orkel.se", password : "orkel1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel2", lastname : "Örkelsson", username : "orkel2@orkel.se", password : "orkel2", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel3", lastname : "Örkelsson", username : "orkel3@orkel.se", password : "orkel3", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel4", lastname : "Örkelsson", username : "orkel4@orkel.se", password : "orkel4", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro1", lastname : "Brorsson", username : "bro1@bro.se", password : "bro1", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro2", lastname : "Brorsson", username : "bro2@bro.se", password : "bro2", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro3", lastname : "Brorsson", username : "bro3@bro.se", password : "bro3", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro4", lastname : "Brorsson", username : "bro4@bro.se", password : "bro4", sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
 };
 data_Default.applications = function() {
 	return [];
@@ -901,10 +901,10 @@ data_Default.invitations = function() {
 	return [{ username : "beda@bensin.se", groupname : "Avunda Kyrkokör", status : data_GroupApplicationStatus.Pending}];
 };
 data_Default.groups = function() {
-	return [{ name : "Örkelhåla kyrkokör", info : "Soli deo gloria. Plus vår körledare.", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["orkel1@orkel.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["adam@adam.se","orkel1@orkel.se","orkel2@orkel.se","orkel3@orkel.se"]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Sensus01","Sensus02","Sensus03"])},{ name : "Bromölla Bandidos", info : "Vi sjunger - ni pröjsar!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])},{ name : "Lingonbergens sångfåglar", info : "Vi trallar så glatt! Vill du va me?", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])},{ name : "Avunda Kyrkokör", info : "Ju mer förr, desto bättre!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["avledare@kor.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])},{ name : "Nya kören, Hässleholm", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])},{ name : "Nya kören, Hallandsåsen", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Kommersiell01","Sensus01"])}];
+	return [{ name : "Örkelhåla kyrkokör", info : "Soli deo gloria. Plus vår körledare.", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["orkel1@orkel.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["adam@adam.se","orkel1@orkel.se","orkel2@orkel.se","orkel3@orkel.se"]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Sensus01","Sensus02","Sensus03"])},{ name : "Bromölla Bandidos", info : "Vi sjunger - ni pröjsar!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Köptitel01","Sensus01"])},{ name : "Lingonbergens sångfåglar", info : "Vi trallar så glatt! Vill du va me?", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Köptitel01","Sensus01"])},{ name : "Avunda Kyrkokör", info : "Ju mer förr, desto bättre!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["avledare@kor.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Köptitel01","Sensus01"])},{ name : "Nya kören, Hässleholm", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Köptitel01","Sensus01"])},{ name : "Nya kören, Hallandsåsen", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["Köptitel01","Sensus01"])}];
 };
 data_Default.songs = function() {
-	return [{ title : "Ave veum corpus", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Kommersiell titel", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Gratis01", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis02", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis03", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis04", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis05", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis06", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis07", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis08", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis09", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis10", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis11", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Kommersiell01", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell02", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell03", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell04", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell05", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell06", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell07", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Kommersiell08", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Sensus01", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus02", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus03", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus04", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus05", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin}];
+	return [{ title : "Ave veum corpus", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Köptitel titel", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Gratis01", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis02", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis03", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis04", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis05", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis06", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis07", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis08", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis09", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis10", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis11", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Köptitel01", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel02", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel03", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel04", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel05", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel06", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel07", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel08", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Sensus01", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus02", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus03", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus04", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus05", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin}];
 };
 var ds_PathAccess = $hxEnums["ds.PathAccess"] = { __ename__ : true, __constructs__ : ["Field","Array","Map"]
 	,Field: ($_=function(name) { return {_hx_index:0,name:name,__enum__:"ds.PathAccess",toString:$estr}; },$_.__params__ = ["name"],$_)
@@ -1580,7 +1580,7 @@ view_FooterView.prototype = $extend(view_AppStoreView.prototype,{
 					var user = _gthis.store.getUser(username);
 					_gthis.store.tryLogin(user.username,user.password);
 					return;
-				}},"Ledare:" + username);
+				}, style : { cursor : "pointer"}},"Ledare:" + username);
 			})),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(g.members,function(username1) {
 				return m.m("li",{ onclick : function(e2) {
 					var user1 = _gthis.store.getUser(username1);
@@ -1711,7 +1711,7 @@ view_Homeview.prototype = $extend(view_AppStoreView.prototype,{
 				return new view_LeaderApplicationsView(_gthis.store,group1).view();
 			case 9:
 				return m.m("div.center",[m.m("button.center",{ onclick : function(e) {
-					console.log("src/view/Views.hx:204:","Click");
+					console.log("src/view/Views.hx:205:","Click");
 					return;
 				}},"Gå till butiken")]);
 			default:
@@ -1802,7 +1802,7 @@ view_UserApplicationsView.prototype = $extend(view_AppStoreView.prototype,{
 		})) : m.m("div","No applications");
 		return [m.m("div.groupapplications",[m.m("h3.groupsearch","Mina ansökningar"),m.m("p.groupsearch","Här kan du skapa ansökan om medlemskap för den kör/grupp som du vill bli deltagare i."),itemsList]),m.m("select.groupsearch",[m.m("option","Sök din kör eller grupp här")].concat(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().groups,function(group) {
 			return m.m("option",{ onclick : function(e4) {
-				console.log("src/view/Views.hx:302:","click " + group.name);
+				console.log("src/view/Views.hx:303:","click " + group.name);
 				var newApplication = { groupname : group.name, username : _gthis.store.get_state().userId, status : data_GroupApplicationStatus.Start};
 				_gthis.store.addApplication(newApplication);
 				return;
@@ -1873,11 +1873,10 @@ view_LeaderInvitationsView.prototype = $extend(view_AppStoreView.prototype,{
 		}),function(a1) {
 			switch(a1.status._hx_index) {
 			case 0:
-				var itemsList1 = "Klicka här för att skapa en inbjudan till " + a1.username + " om att bli medlem i " + a1.groupname + "." + existsMessage(a1.username);
-				return m.m("div.application.start",[m.m("span",{ onclick : function(e) {
-					_gthis.store.changeApplicationStatus(a1,data_GroupApplicationStatus.Pending);
+				return m.m("div.application.start",[m.m("span","Här kan du skicka inbjudan till " + a1.username + " om att bli medlem i " + a1.groupname + "." + existsMessage(a1.username)),m.m("button",{ onclick : function(e) {
+					_gthis.store.changeInvitationStatus(a1,data_GroupApplicationStatus.Pending);
 					return;
-				}},itemsList1),m.m("button",{ onclick : function(e1) {
+				}},"Skicka inbjudan till " + a1.username),m.m("button",{ onclick : function(e1) {
 					_gthis.store.removeApplication(a1);
 					return;
 				}},"Ta bort")]);
@@ -1894,10 +1893,10 @@ view_LeaderInvitationsView.prototype = $extend(view_AppStoreView.prototype,{
 		})) : m.m("div","No invitations");
 		return m.m("div.groupinvitation",[m.m("div",[m.m("input[placeholder=Medlemmens e-postadress]",{ oninput : function(e4) {
 			view_LeaderInvitationsView.username = e4.target.value;
-			console.log("src/view/Views.hx:413:",view_LeaderInvitationsView.username);
+			console.log("src/view/Views.hx:416:",view_LeaderInvitationsView.username);
 			return;
 		}}),m.m("button",{ onclick : function(e5) {
-			console.log("src/view/Views.hx:419:",view_LeaderInvitationsView.username);
+			console.log("src/view/Views.hx:422:",view_LeaderInvitationsView.username);
 			var application = { username : view_LeaderInvitationsView.username, groupname : _gthis.group.name, status : data_GroupApplicationStatus.Start};
 			_gthis.store.addInvitation(application);
 			return;
@@ -1962,8 +1961,8 @@ view_CreateUserView.prototype = $extend(view_AppStoreView.prototype,{
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
 		return m.m("div.createuser",[m.m("h1","Skapa konto"),m.m("h2","Kontouppgifter"),m.m("div.createuserform",[m.m("input[placeholder=Användarnamn][required]",{ oninput : function(e) {
 			_gthis.tryUsername = e.target.value;
-			console.log("src/view/Views.hx:497:",e.target.value);
-			console.log("src/view/Views.hx:498:",_gthis.tryUsername);
+			console.log("src/view/Views.hx:500:",e.target.value);
+			console.log("src/view/Views.hx:501:",_gthis.tryUsername);
 			return;
 		}}),m.m("input[placeholder=Lösenord][required]",{ oninput : function(e1) {
 			return _gthis.tryPassword = e1.target.value;
@@ -1972,14 +1971,14 @@ view_CreateUserView.prototype = $extend(view_AppStoreView.prototype,{
 		}}),m.m("input[placeholder=Lastname][required]",{ oninput : function(e3) {
 			return _gthis.lastname = e3.target.value;
 		}}),m.m("button",{ onclick : function(e4) {
-			console.log("src/view/Views.hx:523:",_gthis.tryUsername + " " + _gthis.tryPassword + " " + _gthis.firstname + " " + _gthis.lastname);
+			console.log("src/view/Views.hx:526:",_gthis.tryUsername + " " + _gthis.tryPassword + " " + _gthis.firstname + " " + _gthis.lastname);
 			try {
 				cx_Validation.asEmail(_gthis.tryUsername);
 				cx_Validation.asPassword(_gthis.tryPassword);
 				cx_Validation.asFirstname(_gthis.firstname);
 				cx_Validation.asLastname(_gthis.lastname);
 				var newUser = { firstname : _gthis.firstname, lastname : _gthis.lastname, password : _gthis.tryPassword, username : _gthis.tryUsername, sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])};
-				console.log("src/view/Views.hx:537:",newUser);
+				console.log("src/view/Views.hx:540:",newUser);
 				_gthis.store.addUser(newUser);
 			} catch( e5 ) {
 				js_Browser.alert(((e5) instanceof js__$Boot_HaxeError) ? e5.val : e5);
