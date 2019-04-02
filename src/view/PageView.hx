@@ -24,7 +24,8 @@ class PageView extends AppBaseView {
 			case Page.Home: this.home.view();
 			case Page.CreateUser: new CreateUserView(this.store).view(); // this.create.view();
 			case Page.Email: new EmailView(this.store).view();
-			case Page.Other: new SearchGroupView(this.store, group -> trace('Group ' + group)).view();
+			case Page.Other: new LeaderInviteUsers(this.store, this.store.state.groups[0]).view();
+			case Page.UserSettings: new UserSettingsView(this.store).view();
 			case _: null;
 		}
 	}

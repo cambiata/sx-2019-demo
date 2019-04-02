@@ -100,7 +100,7 @@ enum HomeCell {
 	SearchChoir;
 	ListGroupMembers(groupname:String);
 	InviteGroupMembers(groupname:String);
-	ApplicationsToGroup(groupname:String);
+	// ApplicationsToGroup(groupname:String);
 	BuySongs;
 }
 
@@ -112,6 +112,7 @@ enum Page {
 	Email;
 	Other;
 	CreateUser;
+	UserSettings;
 }
 
 typedef EmailMessage = {
@@ -127,6 +128,10 @@ enum EmailType {
 	UserAccountActivationAndGroupjoin(email:String, pass:String, firstname:String, lastname:String, groupname:String);
 	AfterUserActivationSuccess;
 	SimpleMessage(title:String, text:String);
+}
+
+enum OverlayPage {
+	SongList(filter:SongFilter);
 }
 
 /**

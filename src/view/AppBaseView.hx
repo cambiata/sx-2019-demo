@@ -15,6 +15,6 @@ class AppBaseView implements Mithril {
 	}
 
 	function detailsSummary(title:String, summaryView:Vnodes) {
-		return m('details.center', [m('summary', title), summaryView,]);
+		return m('details', [m('summary', title), summaryView,]);
 	}
 }

@@ -10,20 +10,33 @@
 </head>
 
 <body>
-    <header>
-        <div id="header" class="center">
+
+    <div id="overlay">
+        <header>Overlay header</header>
+        <section>
+            <div id="scorxlist">List</div>
+            <div id="scorxplayer">
+                    <iframe id="theiFrame" src="https://my.scorecloud.com/song/embed/05e99ae7b0ba2d4a6c75fa8362c2168c?scorx_auth_key=da45cd3c4f84332576a9ae8827611ddec6aae8109304bcc2b3ac48454d46b7fa9ef4f249c1a82f811a6491efe6ba43cc5dfcf219ac215793f483ee051b9bf451_1&amp;lang=scorx-se" allowfullscreen="" webkitallowfullscreen="" mozallowfullscreen="">
+                    </iframe>
+            </div>
+        </section>
+    </div>
+
+    <div id="body">
+        <header>
+            <div id="header" class="center">
 
 
-        </div>
-    </header>
-    <nav>
-        <div id="nav" class="center">
+            </div>
+        </header>
+        <nav>
+            <div id="nav" class="center">
 
-        </div>
+            </div>
 
-    </nav>
+        </nav>
 
-    <main>
+        <main>
             <!-- <section>
                     <img src="assets/img/old-town.jpg" alt="" srcset="">
                     <div class="center">
@@ -33,12 +46,15 @@
             
                     </div>
                 </section> -->
-    </main>
-    <footer>
-        <div id="footer" class="center">
-            Footer
-        </div>
-    </footer>
+        </main>
+        <footer>
+            <div id="footer" class="center">
+                Footer
+            </div>
+        </footer>
+
+
+    </div>
     <script src="mithril.min.js"></script>
     <script src="client.js"></script>
 </body>

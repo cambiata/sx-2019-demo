@@ -1,5 +1,6 @@
 package view;
 
+import js.Browser;
 import data.Model;
 import data.AppStore;
 import view.*;
@@ -75,12 +76,8 @@ class HomeView extends AppBaseView {
 
 		var groupLists = groups.map(group -> buildCells([
 			Songlist(group.name, group.songs.map(title -> this.store.getSong(title)), [Group(group.name)]),
-			Info('Gruppens nuvarande medlemmar:'),
 			ListGroupMembers(group.name),
-			Info('Här kan du bjuda in medlemmar till gruppen:'),
 			InviteGroupMembers(group.name),
-			Info('Här visas ansökningar från användare som vill bli medlemmar gruppen:'),
-			ApplicationsToGroup(group.name),
 
 		]));
 
@@ -114,7 +111,19 @@ class HomeView extends AppBaseView {
 				case SearchChoir:
 					// skapa lista för eventuella gruppansökningar för inloggad användare
 					// cast [new UserApplicationsView(this.store).view(),];
-					new SearchGroupView(this.store).view();
+					new SearchGroupView(this.store,
+						'Skriv körens namn i listan för att hitta din kör. Klicka därefter på körens namn för att ansluta dig till gruppen.', group -> {
+						this.store.addGroupMember(this.store.state.userId, group.name);
+						// group.admins.map(admin->this.store.sendEmailMessage({to:admin.username, from:'admin@scorx.org', })
+						this.store.sendEmailMessage({to: this.store.state.userId, from: 'admin@scorx.org', type: EmailType.UserGroupjoinInfo(group.name)});
+						group.admins.map(admin -> {
+							this.store.sendEmailMessage({
+								to: admin,
+								from: 'admin@scorx.org',
+								type: EmailType.AdminGroupjoinInfo(this.store.state.userId, group.name)
+							});
+						});
+					}).view();
 				case BuySongs: m('div.center', [m('button.center', {
 						onclick: e -> {
 							trace('Click');
@@ -122,8 +131,12 @@ class HomeView extends AppBaseView {
 					}, 'Gå till butiken'),]);
 				case ListGroupMembers(groupname):
 					var group:Group = this.store.getGroup(groupname);
-					m('div.groupmembers', [m('ul', group.members.map(member -> m('li', member)))]);
-				// case InviteGroupMembers(groupname):
+					this.detailsSummary('Gruppens medlemmar', [m('ul', group.members.map(member -> m('li', member)))]);
+
+				case InviteGroupMembers(groupname):
+					var group:Group = this.store.getGroup(groupname);
+					this.detailsSummary('Bjud in medlemmar', new LeaderInviteUsers(this.store, group).view());
+
 				// 	var group:Group = this.store.getGroup(groupname);
 				// 	new LeaderInvitationsView(this.store, group).view();
 				// case ApplicationsToGroup(groupname):

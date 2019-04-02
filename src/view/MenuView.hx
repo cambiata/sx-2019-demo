@@ -1,5 +1,6 @@
 package view;
 
+import js.Browser;
 import data.Model;
 import data.AppStore;
 import view.*;
@@ -32,6 +33,12 @@ class MenuView extends AppBaseView {
 					this.store.resetToDefaultData();
 					this.store.gotoPage(Page.Home);
 				}
-			}, 'Nollställ demodata'),
+			}, 'Reset'),
+			m('span.button', {
+				onclick: e -> {
+					var overlay = Browser.document.querySelector("body");
+					overlay.classList.toggle('hide-overlay');
+				}
+			}, 'Ovl'),
 		];
 }

@@ -17,6 +17,11 @@ class Userview extends AppBaseView {
 			m('span', 'Välkommen, ${this.store.getUser().firstname}! '),
 			m('button', {
 				onclick: e -> {
+					this.store.gotoPage(Page.UserSettings);
+				}
+			}, 'Inställningar'),
+			m('button', {
+				onclick: e -> {
 					this.store.logout();
 				}
 			}, 'Logga ut'),
@@ -31,7 +36,7 @@ class Userview extends AppBaseView {
 
 			m('div', [
 
-				m('input[placeholder=Användarnamn][required]', {
+				m('input[placeholder=E-postadress][required]', {
 					oninput: e -> {
 						tryUsername = e.target.value;
 					},

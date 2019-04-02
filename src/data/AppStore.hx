@@ -50,6 +50,7 @@ typedef AppState = {
 	 * Info om aktuell "sida", i brist på riktig url-router i denna demo
 	 */
 	final page:Page;
+	final overlay:ImmutableArray<OverlayPage>;
 }
 
 /**
@@ -143,6 +144,7 @@ class AppStore extends DeepStateContainer<AppState> {
 	public function logout() {
 		this.update(state.userId = null);
 		this.save();
+		this.gotoPage(Page.Home);
 	}
 
 	/**
@@ -368,7 +370,48 @@ class AppStore extends DeepStateContainer<AppState> {
 
 				case UserGroupjoinInfo(groupname):
 				case AdminGroupjoinInfo(joinedUsername, groupname):
-				case UserAccountActivationAndGroupjoin(email, pass, firstname, lastname, groupname):
+				case UserAccountActivationAndGroupjoin(email, password, firstname, lastname, groupname):
+					var group:Group = this.getGroup(groupname);
+					if (group == null)
+						throw 'Gruppen $groupname finns inte';
+
+					var newUser:User = {
+						username: email,
+						password: password,
+						firstname: firstname,
+						lastname: lastname,
+						sensus: false,
+						songs: []
+					};
+					this.addUser(newUser);
+
+					this.addGroupMember(email, groupname);
+
+					Browser.alert('Bekräftelsemejl om att konto skapats skickas till användaren');
+
+					this.sendEmailMessage({
+						to: email,
+						from: 'admin@scorx.org',
+						type: AfterUserActivationSuccess,
+					});
+
+					Browser.alert('Bekräftelsemejl om att anslutan till gruppen skickas till användaren');
+
+					this.sendEmailMessage({
+						to: email,
+						from: 'admin@scorx.org',
+						type: EmailType.UserGroupjoinInfo(groupname),
+					});
+
+					Browser.alert('Bekräftelsemejl skickas till gruppens administratörer om att användaren har anslutits');
+					group.admins.map(admin -> {
+						this.sendEmailMessage({
+							to: admin,
+							from: 'admin@scorx.org',
+							type: EmailType.AdminGroupjoinInfo(email, groupname),
+						});
+					});
+
 				case AfterUserActivationSuccess:
 					this.gotoPage(Page.Home);
 					js.Browser.alert('Användaren har klickat på sitt Välkommen-meddelande.');
@@ -392,11 +435,35 @@ class AppStore extends DeepStateContainer<AppState> {
 	 * @param groupname
 	 * @return Bool
 	 */
-	public function isMemberOfGroup(username:String, groupname:String):Bool {
+	public function isGroupMember(username:String, groupname:String):Bool {
 		var group = this.getGroup(groupname);
 		if (group.members.filter(member -> member == username).length > 0)
 			return true;
 		return false;
+	}
+
+	public function addGroupMember(username:String, groupname:String) {
+		try {
+			if (!this.groupExists(groupname))
+				throw 'Gruppen $groupname finns inte!';
+			var group = this.getGroup(groupname);
+
+			if (!this.userExists(username))
+				throw 'Användaren $username finns inte!';
+			var user = this.getUser(username);
+
+			if (this.isGroupMember(username, groupname))
+				throw 'Användaren ${username} är redan deltagare i gruppen ${groupname}';
+			var groupIndex = this.state.groups.indexOf(group);
+			var members = this.state.groups[groupIndex].members;
+			trace(members);
+			members = members.push(user.username);
+			trace(members);
+			this.update(this.state.groups[groupIndex].members = members);
+			this.save();
+		} catch (e:Dynamic) {
+			Browser.alert(e);
+		}
 	}
 
 	/**
@@ -405,6 +472,10 @@ class AppStore extends DeepStateContainer<AppState> {
 	 */
 	public function userExists(username:String) {
 		return this.state.users.filter(user -> user.username == username).length == 1;
+	}
+
+	public function groupExists(groupname:String) {
+		return this.state.groups.filter(group -> group.name == groupname).length == 1;
 	}
 
 	public function gotoPage(page:Page) {
@@ -417,7 +488,6 @@ class AppStore extends DeepStateContainer<AppState> {
 	public function resetToDefaultData() {
 		trace('Reset data');
 		this.update(this.state = {
-			page: Home,
 			userId: null,
 			users: cast Default.users(),
 			groups: cast Default.groups(),
@@ -425,6 +495,8 @@ class AppStore extends DeepStateContainer<AppState> {
 			// invitations: cast Default.invitations(),
 			songs: cast Default.songs(),
 			messages: cast Default.messages(),
+			page: Home,
+			overlay: cast [SongList(null), ScorxPlayer(123)],
 		}, 'do reset');
 		this.save();
 	}

@@ -61,8 +61,8 @@ class EmailView extends AppBaseView {
 				case UserGroupjoinInfo(groupname):
 					var user = this.store.getUser(mess.to);
 					'Välkommen, ${user.firstname}, med i ScorX-gruppen ' + groupname;
-				case UserAccountActivationAndGroupjoin(email, pass, firstname, lastname, groupname): 'Välkommen, ${firstname} ${lastname}, till ditt nya Scorx-konto och gruppen '
-					+ groupname;
+				case UserAccountActivationAndGroupjoin(email, pass, firstname, lastname, groupname): 'Inbjudan till ScorX-gruppen $groupname';
+
 				case AdminGroupjoinInfo(joinedUsername, groupname):
 					'En ny medlem har anslutit sig till ScorX-gruppen ' + groupname;
 
@@ -80,8 +80,9 @@ class EmailView extends AppBaseView {
 				case UserGroupjoinInfo(groupname):
 					var user = this.store.getUser(mess.to);
 					'Hej ${user.firstname}! Du är nu  medlem i ScorX-gruppen ' + groupname;
-				case UserAccountActivationAndGroupjoin(email, pass, firstname, lastname, groupname): 'Hej ${firstname}! Klicka på denna länk för att aktivera ditt nya Scorx-konto och samtidigt bli medlem i gruppen '
-					+ groupname;
+				case UserAccountActivationAndGroupjoin(email, pass, firstname, lastname, groupname):
+					'Hej ${firstname}! Du har bjudits in som medlem i ScorX-gruppen $groupname. Eftersom du inte har någt ScorX-konto så kan skapas det ett sådant när du klickar på denna länk. Du loggar in med din e-postadress och lösenordet $pass';
+
 				case AdminGroupjoinInfo(joinedUsername, groupname): {
 						var joinedUser:User = this.store.getUser(joinedUsername);
 						var user = this.store.getUser(mess.to);

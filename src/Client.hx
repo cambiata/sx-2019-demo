@@ -12,14 +12,13 @@ class Client {
 		 * Initiera state-hanteraren (à la Redux)
 		 */
 		var store = new AppStore(new DeepState<AppState>({
-			page: Home,
 			userId: null,
 			users: null,
 			groups: null,
-			// applications: null,
-			// invitations: null,
 			songs: null,
 			messages: null,
+			page: Home,
+			overlay: null,
 		}));
 
 		/**
@@ -42,5 +41,6 @@ class Client {
 		M.mount(js.Browser.document.querySelector('#nav'), new MenuView(store));
 		M.mount(js.Browser.document.querySelector('#footer'), new FooterView(store));
 		M.mount(js.Browser.document.querySelector('main'), new PageView(store));
+		M.mount(js.Browser.document.querySelector('#scorxlist'), new OverlayView(store));
 	}
 }

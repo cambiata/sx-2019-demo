@@ -11,7 +11,7 @@ var Client = function() { };
 $hxClasses["Client"] = Client;
 Client.__name__ = true;
 Client.main = function() {
-	var store = new data_AppStore(new DeepState_$data_$AppState({ page : data_Page.Home, userId : null, users : null, groups : null, songs : null, messages : null}));
+	var store = new data_AppStore(new DeepState_$data_$AppState({ userId : null, users : null, groups : null, songs : null, messages : null, page : data_Page.Home, overlay : null}));
 	store.load();
 	store.subscribeObserver(ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([""]),function(state) {
 		m.redraw();
@@ -21,6 +21,7 @@ Client.main = function() {
 	m.mount(window.document.querySelector("#nav"),new view_MenuView(store));
 	m.mount(window.document.querySelector("#footer"),new view_FooterView(store));
 	m.mount(window.document.querySelector("main"),new view_PageView(store));
+	m.mount(window.document.querySelector("#scorxlist"),new view_OverlayView(store));
 };
 var DeepState = function() { };
 $hxClasses["DeepState"] = DeepState;
@@ -305,6 +306,25 @@ EReg.prototype = {
 var HxOverrides = function() { };
 $hxClasses["HxOverrides"] = HxOverrides;
 HxOverrides.__name__ = true;
+HxOverrides.cca = function(s,index) {
+	var x = s.charCodeAt(index);
+	if(x != x) {
+		return undefined;
+	}
+	return x;
+};
+HxOverrides.substr = function(s,pos,len) {
+	if(len == null) {
+		len = s.length;
+	} else if(len < 0) {
+		if(pos == 0) {
+			len = s.length + len;
+		} else {
+			return "";
+		}
+	}
+	return s.substr(pos,len);
+};
 HxOverrides.remove = function(a,obj) {
 	var i = a.indexOf(obj);
 	if(i == -1) {
@@ -447,6 +467,15 @@ Reflect.fields = function(o) {
 	}
 	return a;
 };
+Reflect.compare = function(a,b) {
+	if(a == b) {
+		return 0;
+	} else if(a > b) {
+		return 1;
+	} else {
+		return -1;
+	}
+};
 Reflect.copy = function(o) {
 	var o2 = { };
 	var _g = 0;
@@ -463,6 +492,47 @@ $hxClasses["Std"] = Std;
 Std.__name__ = true;
 Std.string = function(s) {
 	return js_Boot.__string_rec(s,"");
+};
+Std.random = function(x) {
+	if(x <= 0) {
+		return 0;
+	} else {
+		return Math.floor(Math.random() * x);
+	}
+};
+var StringTools = function() { };
+$hxClasses["StringTools"] = StringTools;
+StringTools.__name__ = true;
+StringTools.isSpace = function(s,pos) {
+	var c = HxOverrides.cca(s,pos);
+	if(!(c > 8 && c < 14)) {
+		return c == 32;
+	} else {
+		return true;
+	}
+};
+StringTools.ltrim = function(s) {
+	var l = s.length;
+	var r = 0;
+	while(r < l && StringTools.isSpace(s,r)) ++r;
+	if(r > 0) {
+		return HxOverrides.substr(s,r,l - r);
+	} else {
+		return s;
+	}
+};
+StringTools.rtrim = function(s) {
+	var l = s.length;
+	var r = 0;
+	while(r < l && StringTools.isSpace(s,l - r - 1)) ++r;
+	if(r > 0) {
+		return HxOverrides.substr(s,0,l - r);
+	} else {
+		return s;
+	}
+};
+StringTools.trim = function(s) {
+	return StringTools.ltrim(StringTools.rtrim(s));
 };
 var Type = function() { };
 $hxClasses["Type"] = Type;
@@ -517,6 +587,311 @@ cx_ArrayItems.eighth = function(array) {
 };
 cx_ArrayItems.nineth = function(array) {
 	return array[8];
+};
+var cx_ArrayTools = function() { };
+$hxClasses["cx.ArrayTools"] = cx_ArrayTools;
+cx_ArrayTools.__name__ = true;
+cx_ArrayTools.sortA = function(a,fn) {
+	var copy = a.slice();
+	copy.sort(fn);
+	return copy;
+};
+cx_ArrayTools.str = function(a) {
+	return Std.string(a);
+};
+cx_ArrayTools.next = function(a,item) {
+	var idx = a.indexOf(item);
+	if(idx == -1) {
+		return null;
+	}
+	if(idx == a.length - 1) {
+		return null;
+	}
+	return a[idx + 1];
+};
+cx_ArrayTools.prev = function(a,item) {
+	var idx = a.indexOf(item);
+	if(idx <= 0) {
+		return null;
+	}
+	return a[idx - 1];
+};
+cx_ArrayTools.reverse = function(a) {
+	var result = [];
+	var _g = 0;
+	while(_g < a.length) result.unshift(a[_g++]);
+	return result;
+};
+cx_ArrayTools.copyUntil = function(a,f) {
+	var result = [];
+	var _g = 0;
+	while(_g < a.length) {
+		var item = a[_g];
+		++_g;
+		if(f(item)) {
+			break;
+		}
+		result.push(item);
+	}
+	return result;
+};
+cx_ArrayTools.copyUntilIncluding = function(a,f) {
+	var result = [];
+	var _g = 0;
+	while(_g < a.length) {
+		var item = a[_g];
+		++_g;
+		result.push(item);
+		if(f(item)) {
+			break;
+		}
+	}
+	return result;
+};
+cx_ArrayTools.has = function(a,item) {
+	return a.indexOf(item) != -1;
+};
+cx_ArrayTools.nextOrNull = function(a,item) {
+	var idx = a.indexOf(item) + 1;
+	if(a == null) {
+		return null;
+	} else if(idx < 0 || idx > a.length - 1) {
+		return null;
+	} else {
+		return a[idx];
+	}
+};
+cx_ArrayTools.indexOrNull = function(a,idx) {
+	if(a == null) {
+		return null;
+	}
+	if(idx < 0 || idx > a.length - 1) {
+		return null;
+	} else {
+		return a[idx];
+	}
+};
+cx_ArrayTools.nullOrEmpty = function(a) {
+	if(a != null) {
+		return a.length == 0;
+	} else {
+		return true;
+	}
+};
+cx_ArrayTools.indexOrValue = function(a,idx,fallbackValue) {
+	if((a == null ? null : idx < 0 || idx > a.length - 1 ? null : a[idx]) != null) {
+		return a[idx];
+	} else {
+		return fallbackValue;
+	}
+};
+cx_ArrayTools.equals = function(a,b) {
+	return a.toString() == b.toString();
+};
+cx_ArrayTools.unique = function(arr) {
+	var result = [];
+	var _g = 0;
+	while(_g < arr.length) {
+		var item = arr[_g];
+		++_g;
+		if(!Lambda.has(result,item)) {
+			result.push(item);
+		}
+	}
+	result.sort(function(a,b) {
+		return Reflect.compare(a,b);
+	});
+	return result;
+};
+cx_ArrayTools.fromIterator = function(it) {
+	var result = [];
+	while(it.hasNext()) result.push(it.next());
+	return result;
+};
+cx_ArrayTools.fromIterables = function(it) {
+	return cx_ArrayTools.fromIterator($getIterator(it));
+};
+cx_ArrayTools.fromHashKeys = function(it) {
+	return cx_ArrayTools.fromIterator(it);
+};
+cx_ArrayTools.allNull = function(it) {
+	var _g = 0;
+	while(_g < it.length) if(it[_g++] != null) {
+		return false;
+	}
+	return true;
+};
+cx_ArrayTools.doOverlap = function(array1,array2) {
+	var _g = 0;
+	while(_g < array1.length) if(Lambda.has(array2,array1[_g++])) {
+		return true;
+	}
+	return false;
+};
+cx_ArrayTools.overlap = function(array1,array2) {
+	return Lambda.array(array1.filter(function(value1) {
+		return Lambda.has(array2,value1);
+	}));
+};
+cx_ArrayTools.diff = function(array1,array2) {
+	var result = [];
+	var _g = 0;
+	while(_g < array1.length) {
+		var item = array1[_g];
+		++_g;
+		if(!Lambda.has(array2,item)) {
+			result.push(item);
+		}
+	}
+	var _g1 = 0;
+	while(_g1 < array2.length) {
+		var item1 = array2[_g1];
+		++_g1;
+		if(!Lambda.has(array1,item1)) {
+			result.push(item1);
+		}
+	}
+	return result;
+};
+cx_ArrayTools.hasNot = function(array1,array2) {
+	var result = [];
+	var _g = 0;
+	while(_g < array2.length) {
+		var item = array2[_g];
+		++_g;
+		if(!Lambda.has(array1,item)) {
+			result.push(item);
+		}
+	}
+	return result;
+};
+cx_ArrayTools.hasOtherThan = function(array1,array2) {
+	var _g = 0;
+	while(_g < array2.length) if(!Lambda.has(array1,array2[_g++])) {
+		return true;
+	}
+	return false;
+};
+cx_ArrayTools.index = function(array,item) {
+	return Lambda.indexOf(array,item);
+};
+cx_ArrayTools.shuffle = function(a) {
+	var t = cx_ArrayTools.range(a.length);
+	var arr = [];
+	while(t.length > 0) {
+		var pos = Std.random(t.length);
+		var index = t[pos];
+		t.splice(pos,1);
+		arr.push(a[index]);
+	}
+	return arr;
+};
+cx_ArrayTools.countItem = function(a,item) {
+	var cnt = 0;
+	var _g = 0;
+	while(_g < a.length) if(a[_g++] == item) {
+		++cnt;
+	}
+	return cnt;
+};
+cx_ArrayTools.sorta = function(a) {
+	a.sort(function(a1,b) {
+		return Reflect.compare(a1,b);
+	});
+	return a;
+};
+cx_ArrayTools.range = function(start,stop,step) {
+	if(step == null) {
+		step = 1;
+	}
+	if(null == stop) {
+		stop = start;
+		start = 0;
+	}
+	if((stop - start) / step == Infinity) {
+		throw new js__$Boot_HaxeError("infinite range");
+	}
+	var range = [];
+	var i = -1;
+	var j;
+	if(step < 0) {
+		while(true) {
+			j = start + step * ++i;
+			if(!(j > stop)) {
+				break;
+			}
+			range.push(j);
+		}
+	} else {
+		while(true) {
+			j = start + step * ++i;
+			if(!(j < stop)) {
+				break;
+			}
+			range.push(j);
+		}
+	}
+	return range;
+};
+cx_ArrayTools.intsMin = function(a) {
+	var r = a[0];
+	var _g = 0;
+	while(_g < a.length) {
+		var v = a[_g];
+		++_g;
+		if(v < r) {
+			r = v;
+		}
+	}
+	return r;
+};
+cx_ArrayTools.trimStrings = function(a) {
+	return a.map(function(s) {
+		return StringTools.trim(s);
+	});
+};
+cx_ArrayTools.cleaveL = function(a,f) {
+	var l = [];
+	var r = a.slice();
+	var _g = 0;
+	while(_g < a.length) {
+		var a1 = a[_g];
+		++_g;
+		l.push(a1);
+		r.shift();
+		if(f(a1)) {
+			break;
+		}
+	}
+	return { left : l, right : r};
+};
+cx_ArrayTools.cleaveR = function(a,f) {
+	var l = [];
+	var r = a.slice();
+	var _g = 0;
+	while(_g < a.length) {
+		var a1 = a[_g];
+		++_g;
+		if(f(a1)) {
+			break;
+		}
+		l.push(a1);
+		r.shift();
+	}
+	return { left : l, right : r};
+};
+cx_ArrayTools.filteri = function(it,f) {
+	var l = [];
+	var i = 0;
+	var _g = 0;
+	while(_g < it.length) {
+		var x = it[_g];
+		++_g;
+		if(f(i++,x)) {
+			l.push(x);
+		}
+	}
+	return l;
 };
 var cx_Random = function() { };
 $hxClasses["cx.Random"] = cx_Random;
@@ -635,8 +1010,8 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 	,tryLogin: function(tryUsername,tryPassword) {
 		var _gthis = this;
 		try {
-			console.log("src/data/AppStore.hx:114:",tryUsername);
-			console.log("src/data/AppStore.hx:115:",this.get_state().users.length);
+			console.log("src/data/AppStore.hx:115:",tryUsername);
+			console.log("src/data/AppStore.hx:116:",this.get_state().users.length);
 			var foundUser;
 			var _g = ds__$ImmutableArray_ImmutableArray_$Impl_$.first(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().users,function(u) {
 				return u.username == tryUsername;
@@ -662,6 +1037,7 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 	,logout: function() {
 		this.updateState({ type : "AppStore.logout", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("userId")]), value : null}])});
 		this.save();
+		this.gotoPage(data_Page.Home);
 	}
 	,addSong: function(title) {
 		this.updateState({ type : "AppStore.addSong", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("songs")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.push(this.get_state().songs,{ title : title, category : data_SongCategory.Free, producer : data_SongProducer.Korakademin})}])});
@@ -700,6 +1076,7 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 		}
 	}
 	,handleMessageClicks: function(mess) {
+		var _gthis = this;
 		try {
 			var _g = mess.type;
 			switch(_g._hx_index) {
@@ -714,6 +1091,23 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 			case 2:
 				break;
 			case 3:
+				var groupname = _g.groupname;
+				var email1 = _g.email;
+				var group = this.getGroup(groupname);
+				if(group == null) {
+					throw new js__$Boot_HaxeError("Gruppen " + groupname + " finns inte");
+				}
+				this.addUser({ username : email1, password : _g.pass, firstname : _g.firstname, lastname : _g.lastname, sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])});
+				this.addGroupMember(email1,groupname);
+				js_Browser.alert("Bekräftelsemejl om att konto skapats skickas till användaren");
+				this.sendEmailMessage({ to : email1, from : "admin@scorx.org", type : data_EmailType.AfterUserActivationSuccess});
+				js_Browser.alert("Bekräftelsemejl om att anslutan till gruppen skickas till användaren");
+				this.sendEmailMessage({ to : email1, from : "admin@scorx.org", type : data_EmailType.UserGroupjoinInfo(groupname)});
+				js_Browser.alert("Bekräftelsemejl skickas till gruppens administratörer om att användaren har anslutits");
+				ds__$ImmutableArray_ImmutableArray_$Impl_$.map(group.admins,function(admin) {
+					_gthis.sendEmailMessage({ to : admin, from : "admin@scorx.org", type : data_EmailType.AdminGroupjoinInfo(email1,groupname)});
+					return;
+				});
 				break;
 			case 4:
 				this.gotoPage(data_Page.Home);
@@ -727,12 +1121,12 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 		}
 	}
 	,sendEmailMessage: function(mess) {
-		console.log("src/data/AppStore.hx:383:",this.get_state().messages.length);
+		console.log("src/data/AppStore.hx:426:",this.get_state().messages.length);
 		this.updateState({ type : "AppStore.sendEmailMessage", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("messages")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.push(this.get_state().messages,mess)}])});
-		console.log("src/data/AppStore.hx:385:",this.get_state().messages.length);
+		console.log("src/data/AppStore.hx:428:",this.get_state().messages.length);
 		this.save();
 	}
-	,isMemberOfGroup: function(username,groupname) {
+	,isGroupMember: function(username,groupname) {
 		if(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.getGroup(groupname).members,function(member) {
 			return member == username;
 		}).length > 0) {
@@ -740,17 +1134,46 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 		}
 		return false;
 	}
+	,addGroupMember: function(username,groupname) {
+		try {
+			if(!this.groupExists(groupname)) {
+				throw new js__$Boot_HaxeError("Gruppen " + groupname + " finns inte!");
+			}
+			var group = this.getGroup(groupname);
+			if(!this.userExists(username)) {
+				throw new js__$Boot_HaxeError("Användaren " + username + " finns inte!");
+			}
+			var user = this.getUser(username);
+			if(this.isGroupMember(username,groupname)) {
+				throw new js__$Boot_HaxeError("Användaren " + username + " är redan deltagare i gruppen " + groupname);
+			}
+			var groupIndex = ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(this.get_state().groups,group);
+			var members = this.get_state().groups[groupIndex].members;
+			console.log("src/data/AppStore.hx:459:",members);
+			members = ds__$ImmutableArray_ImmutableArray_$Impl_$.push(members,user.username);
+			console.log("src/data/AppStore.hx:461:",members);
+			this.updateState({ type : "AppStore.addGroupMember", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("groups"),ds_PathAccess.Array(groupIndex),ds_PathAccess.Field("members")]), value : members}])});
+			this.save();
+		} catch( e ) {
+			js_Browser.alert(((e) instanceof js__$Boot_HaxeError) ? e.val : e);
+		}
+	}
 	,userExists: function(username) {
 		return ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().users,function(user) {
 			return user.username == username;
+		}).length == 1;
+	}
+	,groupExists: function(groupname) {
+		return ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().groups,function(group) {
+			return group.name == groupname;
 		}).length == 1;
 	}
 	,gotoPage: function(page) {
 		this.updateState({ type : "AppStore.gotoPage", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("page")]), value : page}])});
 	}
 	,resetToDefaultData: function() {
-		console.log("src/data/AppStore.hx:418:","Reset data");
-		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { page : data_Page.Home, userId : null, users : data_Default.users(), groups : data_Default.groups(), songs : data_Default.songs(), messages : data_Default.messages()}}])});
+		console.log("src/data/AppStore.hx:489:","Reset data");
+		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { userId : null, users : data_Default.users(), groups : data_Default.groups(), songs : data_Default.songs(), messages : data_Default.messages(), page : data_Page.Home, overlay : [data_OverlayPage.SongList(null),data_OverlayPage.ScorxPlayer(123)]}}])});
 		this.save();
 	}
 	,__class__: data_AppStore
@@ -776,7 +1199,7 @@ var data_SongFilter = $hxEnums["data.SongFilter"] = { __ename__ : true, __constr
 	,Group: ($_=function(groupname) { return {_hx_index:3,groupname:groupname,__enum__:"data.SongFilter",toString:$estr}; },$_.__params__ = ["groupname"],$_)
 	,LimitNumber: ($_=function(max) { return {_hx_index:4,max:max,__enum__:"data.SongFilter",toString:$estr}; },$_.__params__ = ["max"],$_)
 };
-var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs__ : ["Image","Title","Info","Button","Songlist","SearchChoir","ListGroupMembers","InviteGroupMembers","ApplicationsToGroup","BuySongs"]
+var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs__ : ["Image","Title","Info","Button","Songlist","SearchChoir","ListGroupMembers","InviteGroupMembers","BuySongs"]
 	,Image: ($_=function(url) { return {_hx_index:0,url:url,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["url"],$_)
 	,Title: ($_=function(title) { return {_hx_index:1,title:title,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["title"],$_)
 	,Info: ($_=function(info) { return {_hx_index:2,info:info,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["info"],$_)
@@ -785,14 +1208,14 @@ var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs
 	,SearchChoir: {_hx_index:5,__enum__:"data.HomeCell",toString:$estr}
 	,ListGroupMembers: ($_=function(groupname) { return {_hx_index:6,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
 	,InviteGroupMembers: ($_=function(groupname) { return {_hx_index:7,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
-	,ApplicationsToGroup: ($_=function(groupname) { return {_hx_index:8,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
-	,BuySongs: {_hx_index:9,__enum__:"data.HomeCell",toString:$estr}
+	,BuySongs: {_hx_index:8,__enum__:"data.HomeCell",toString:$estr}
 };
-var data_Page = $hxEnums["data.Page"] = { __ename__ : true, __constructs__ : ["Home","Email","Other","CreateUser"]
+var data_Page = $hxEnums["data.Page"] = { __ename__ : true, __constructs__ : ["Home","Email","Other","CreateUser","UserSettings"]
 	,Home: {_hx_index:0,__enum__:"data.Page",toString:$estr}
 	,Email: {_hx_index:1,__enum__:"data.Page",toString:$estr}
 	,Other: {_hx_index:2,__enum__:"data.Page",toString:$estr}
 	,CreateUser: {_hx_index:3,__enum__:"data.Page",toString:$estr}
+	,UserSettings: {_hx_index:4,__enum__:"data.Page",toString:$estr}
 };
 var data_EmailType = $hxEnums["data.EmailType"] = { __ename__ : true, __constructs__ : ["UserAccountActivation","UserGroupjoinInfo","AdminGroupjoinInfo","UserAccountActivationAndGroupjoin","AfterUserActivationSuccess","SimpleMessage"]
 	,UserAccountActivation: ($_=function(email,pass,firstname,lastname) { return {_hx_index:0,email:email,pass:pass,firstname:firstname,lastname:lastname,__enum__:"data.EmailType",toString:$estr}; },$_.__params__ = ["email","pass","firstname","lastname"],$_)
@@ -801,6 +1224,10 @@ var data_EmailType = $hxEnums["data.EmailType"] = { __ename__ : true, __construc
 	,UserAccountActivationAndGroupjoin: ($_=function(email,pass,firstname,lastname,groupname) { return {_hx_index:3,email:email,pass:pass,firstname:firstname,lastname:lastname,groupname:groupname,__enum__:"data.EmailType",toString:$estr}; },$_.__params__ = ["email","pass","firstname","lastname","groupname"],$_)
 	,AfterUserActivationSuccess: {_hx_index:4,__enum__:"data.EmailType",toString:$estr}
 	,SimpleMessage: ($_=function(title,text) { return {_hx_index:5,title:title,text:text,__enum__:"data.EmailType",toString:$estr}; },$_.__params__ = ["title","text"],$_)
+};
+var data_OverlayPage = $hxEnums["data.OverlayPage"] = { __ename__ : true, __constructs__ : ["SongList","ScorxPlayer"]
+	,SongList: ($_=function(filter) { return {_hx_index:0,filter:filter,__enum__:"data.OverlayPage",toString:$estr}; },$_.__params__ = ["filter"],$_)
+	,ScorxPlayer: ($_=function(id) { return {_hx_index:1,id:id,__enum__:"data.OverlayPage",toString:$estr}; },$_.__params__ = ["id"],$_)
 };
 var data_Default = function() { };
 $hxClasses["data.Default"] = data_Default;
@@ -1475,7 +1902,7 @@ view_AppBaseView.__name__ = true;
 view_AppBaseView.__interfaces__ = [mithril_Mithril];
 view_AppBaseView.prototype = {
 	detailsSummary: function(title,summaryView) {
-		return m.m("details.center",[m.m("summary",title),summaryView]);
+		return m.m("details",[m.m("summary",title),summaryView]);
 	}
 	,__class__: view_AppBaseView
 };
@@ -1576,7 +2003,7 @@ view_EmailView.prototype = $extend(view_AppBaseView.prototype,{
 				title = "En ny medlem har anslutit sig till ScorX-gruppen " + _g.groupname;
 				break;
 			case 3:
-				title = "Välkommen, " + _g.firstname + " " + _g.lastname + ", till ditt nya Scorx-konto och gruppen " + _g.groupname;
+				title = "Inbjudan till ScorX-gruppen " + _g.groupname;
 				break;
 			case 4:
 				title = "Välkommen till ScorX!";
@@ -1604,7 +2031,7 @@ view_EmailView.prototype = $extend(view_AppBaseView.prototype,{
 				message = "Hej " + this.store.getUser(mess.to).firstname + "! En ny deltagare har nu anslutit sig till gruppen " + _g1.groupname + ", nämligen " + joinedUser.firstname + " " + joinedUser.lastname;
 				break;
 			case 3:
-				message = "Hej " + _g1.firstname + "! Klicka på denna länk för att aktivera ditt nya Scorx-konto och samtidigt bli medlem i gruppen " + _g1.groupname;
+				message = "Hej " + _g1.firstname + "! Du har bjudits in som medlem i ScorX-gruppen " + _g1.groupname + ". Eftersom du inte har någt ScorX-konto så kan skapas det ett sådant när du klickar på denna länk. Du loggar in med din e-postadress och lösenordet " + _g1.pass;
 				break;
 			case 4:
 				var user = this.store.getUser(mess.to);
@@ -1713,7 +2140,7 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 			});
 			var groupLists2 = data_SongFilter.Group(group1.name);
 			var groupLists3 = data_HomeCell.Songlist(group2,ds__$ImmutableArray_ImmutableArray_$Impl_$.array(groupLists1),[groupLists2]);
-			return _gthis.buildCells([groupLists3,data_HomeCell.Info("Gruppens nuvarande medlemmar:"),data_HomeCell.ListGroupMembers(group1.name),data_HomeCell.Info("Här kan du bjuda in medlemmar till gruppen:"),data_HomeCell.InviteGroupMembers(group1.name),data_HomeCell.Info("Här visas ansökningar från användare som vill bli medlemmar gruppen:"),data_HomeCell.ApplicationsToGroup(group1.name)]);
+			return _gthis.buildCells([groupLists3,data_HomeCell.ListGroupMembers(group1.name),data_HomeCell.InviteGroupMembers(group1.name)]);
 		});
 		return m.m("div.center",[this.buildCells([data_HomeCell.Title("Du leder följande körer")]),groupLists]);
 	}
@@ -1738,14 +2165,26 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 			case 4:
 				return _gthis.songlist(cell.title,cell.songs,cell.filter);
 			case 5:
-				return new view_SearchGroupView(_gthis.store).view();
+				return new view_SearchGroupView(_gthis.store,"Skriv körens namn i listan för att hitta din kör. Klicka därefter på körens namn för att ansluta dig till gruppen.",function(group) {
+					_gthis.store.addGroupMember(_gthis.store.get_state().userId,group.name);
+					_gthis.store.sendEmailMessage({ to : _gthis.store.get_state().userId, from : "admin@scorx.org", type : data_EmailType.UserGroupjoinInfo(group.name)});
+					return ds__$ImmutableArray_ImmutableArray_$Impl_$.map(group.admins,function(admin) {
+						_gthis.store.sendEmailMessage({ to : admin, from : "admin@scorx.org", type : data_EmailType.AdminGroupjoinInfo(_gthis.store.get_state().userId,group.name)});
+						return;
+					});
+				}).view();
 			case 6:
-				return m.m("div.groupmembers",[m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(_gthis.store.getGroup(cell.groupname).members,function(member) {
+				var tmp = m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(_gthis.store.getGroup(cell.groupname).members,function(member) {
 					return m.m("li",member);
-				}))]);
-			case 9:
+				}));
+				return _gthis.detailsSummary("Gruppens medlemmar",[tmp]);
+			case 7:
+				var group1 = _gthis.store.getGroup(cell.groupname);
+				var tmp1 = new view_LeaderInviteUsers(_gthis.store,group1).view();
+				return _gthis.detailsSummary("Bjud in medlemmar",tmp1);
+			case 8:
 				return m.m("div.center",[m.m("button.center",{ onclick : function(e) {
-					console.log("src/view/HomeView.hx:120:","Click");
+					console.log("src/view/HomeView.hx:129:","Click");
 					return;
 				}},"Gå till butiken")]);
 			default:
@@ -1802,6 +2241,130 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 	}
 	,__class__: view_HomeView
 });
+var view_LeaderInviteUsers = function(store,group) {
+	view_AppBaseView.call(this,store);
+	this.group = group;
+};
+$hxClasses["view.LeaderInviteUsers"] = view_LeaderInviteUsers;
+view_LeaderInviteUsers.__name__ = true;
+view_LeaderInviteUsers.__super__ = view_AppBaseView;
+view_LeaderInviteUsers.prototype = $extend(view_AppBaseView.prototype,{
+	reset: function() {
+		view_LeaderInviteUsers.inputUsername = "";
+		view_LeaderInviteUsers.iviteUsernames = [];
+		view_LeaderInviteUsers.inviteFirstnames = [];
+		view_LeaderInviteUsers.inviteLastnames = [];
+	}
+	,view: function() {
+		var _gthis = this;
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		var finns = function(email) {
+			return _gthis.store.userExists(email);
+		};
+		var tmp = m.m("div.invitationform",[m.m("div","Ange e-postadress till den eller de personer som du vill bjuda in, och klicka på knappen Lägg till i inbjudningslistan. "),m.m("input[placeholder=E-postadress]",{ oninput : function(e) {
+			return view_LeaderInviteUsers.inputUsername = e.target.value;
+		}, value : view_LeaderInviteUsers.inputUsername}),m.m("button",{ onclick : function(e1) {
+			try {
+				cx_Validation.validateAsEmail(view_LeaderInviteUsers.inputUsername);
+				if(_gthis.store.isGroupMember(view_LeaderInviteUsers.inputUsername,_gthis.group.name)) {
+					throw new js__$Boot_HaxeError("Användaren " + view_LeaderInviteUsers.inputUsername + " finns redan i gruppen " + _gthis.group.name);
+				}
+				if(Lambda.has(view_LeaderInviteUsers.iviteUsernames,view_LeaderInviteUsers.inputUsername)) {
+					throw new js__$Boot_HaxeError("" + view_LeaderInviteUsers.inputUsername + " finns redan i inbjudningslistan");
+				}
+				view_LeaderInviteUsers.iviteUsernames.push(view_LeaderInviteUsers.inputUsername);
+				view_LeaderInviteUsers.inviteLastnames.push("");
+				view_LeaderInviteUsers.inviteFirstnames.push("");
+				view_LeaderInviteUsers.inputUsername = "";
+			} catch( e2 ) {
+				js_Browser.alert(((e2) instanceof js__$Boot_HaxeError) ? e2.val : e2);
+			}
+			return;
+		}},"Lägg till i inbjudningslistan:")]);
+		var tmp1 = m.m("h3","Inbjudningslistan");
+		var tmp2;
+		if(view_LeaderInviteUsers.iviteUsernames.length == 0) {
+			tmp2 = m.m("p","listan är tom");
+		} else {
+			var i = 0;
+			var _g = [];
+			var x = $getIterator(view_LeaderInviteUsers.iviteUsernames);
+			while(x.hasNext()) {
+				var x1 = x.next();
+				var index = [i++];
+				var email1 = [x1];
+				var tmp3 = "div.invite." + Std.string(finns(email1[0]));
+				var tmp4 = m.m("div","Inbjudan till " + email1[0]);
+				var tmp5;
+				if(finns(email1[0])) {
+					var user = _gthis.store.getUser(email1[0]);
+					tmp5 = "Finns i ScorX som " + Std.string(user);
+				} else {
+					tmp5 = [m.m("div","Finns ej i ScorX sedan tidigare. Ange för- och efternam."),m.m("input[placeholder=Förnamn][required]",{ oninput : (function(index1) {
+						return function(e3) {
+							return view_LeaderInviteUsers.inviteFirstnames[index1[0]] = e3.target.value;
+						};
+					})(index)}),m.m("input[placeholder=Efternamn][required]",{ oninput : (function(index2) {
+						return function(e4) {
+							return view_LeaderInviteUsers.inviteLastnames[index2[0]] = e4.target.value;
+						};
+					})(index)})];
+				}
+				_g.push(m.m(tmp3,[tmp4,m.m("div",tmp5),m.m("button",{ onclick : (function(email2) {
+					return function(e5) {
+						return HxOverrides.remove(view_LeaderInviteUsers.iviteUsernames,email2[0]);
+					};
+				})(email1)},"Ta bort")]));
+			}
+			tmp2 = [_g,m.m("button",{ onclick : function(e6) {
+				var i1 = 0;
+				var _g1 = [];
+				var x2 = $getIterator(view_LeaderInviteUsers.iviteUsernames);
+				while(x2.hasNext()) {
+					var x3 = x2.next();
+					var index3 = i1++;
+					try {
+						if(!finns(x3)) {
+							cx_Validation.validateAsFirstname(view_LeaderInviteUsers.inviteFirstnames[index3]);
+							cx_Validation.validateAsLastname(view_LeaderInviteUsers.inviteLastnames[index3]);
+						}
+					} catch( e7 ) {
+						js_Browser.alert("Fel gällande " + x3 + ": " + Std.string(((e7) instanceof js__$Boot_HaxeError) ? e7.val : e7));
+					}
+					_g1.push(null);
+				}
+				try {
+					var i2 = 0;
+					var _g2 = [];
+					var x4 = $getIterator(view_LeaderInviteUsers.iviteUsernames);
+					while(x4.hasNext()) {
+						var x5 = x4.next();
+						var index4 = i2++;
+						if(finns(x5)) {
+							js_Browser.alert("Finns " + x5);
+							_gthis.store.addGroupMember(x5,_gthis.group.name);
+							_gthis.store.sendEmailMessage({ to : x5, from : _gthis.store.get_state().userId, type : data_EmailType.UserGroupjoinInfo(_gthis.group.name)});
+						} else {
+							js_Browser.alert("Finns inte " + x5);
+							var firstname = view_LeaderInviteUsers.inviteFirstnames[index4];
+							var lastname = view_LeaderInviteUsers.inviteLastnames[index4];
+							var randomPassword = "slump" + (100 + Math.floor(900 * Math.random()));
+							_gthis.store.sendEmailMessage({ to : x5, from : _gthis.store.get_state().userId, type : data_EmailType.UserAccountActivationAndGroupjoin(x5,randomPassword,firstname,lastname,_gthis.group.name)});
+						}
+						_g2.push(null);
+					}
+					js_Browser.alert("Inbjudningmejl har skickats till namnen i listan.");
+					_gthis.reset();
+				} catch( e8 ) {
+					js_Browser.alert(((e8) instanceof js__$Boot_HaxeError) ? e8.val : e8);
+				}
+				return;
+			}},"Skicka inbjudningar")];
+		}
+		return [tmp,tmp1,tmp2];
+	}
+	,__class__: view_LeaderInviteUsers
+});
 var view_MenuView = function(store) {
 	view_AppBaseView.call(this,store);
 };
@@ -1828,9 +2391,27 @@ view_MenuView.prototype = $extend(view_AppBaseView.prototype,{
 			_gthis.store.resetToDefaultData();
 			_gthis.store.gotoPage(data_Page.Home);
 			return;
-		}},"Nollställ demodata")];
+		}},"Reset"),m.m("span.button",{ onclick : function(e5) {
+			var overlay = window.document.querySelector("body");
+			return overlay.classList.toggle("hide-overlay");
+		}},"Ovl")];
 	}
 	,__class__: view_MenuView
+});
+var view_OverlayView = function(store) {
+	view_AppBaseView.call(this,store);
+};
+$hxClasses["view.OverlayView"] = view_OverlayView;
+view_OverlayView.__name__ = true;
+view_OverlayView.__super__ = view_AppBaseView;
+view_OverlayView.prototype = $extend(view_AppBaseView.prototype,{
+	view: function() {
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		return m.m("div",m.m("h1","Overlay"),[ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().overlay,function(ovl) {
+			return m.m("h2","" + Std.string(ovl));
+		})]);
+	}
+	,__class__: view_OverlayView
 });
 var view_PageView = function(store) {
 	view_AppBaseView.call(this,store);
@@ -1848,19 +2429,19 @@ view_PageView.prototype = $extend(view_AppBaseView.prototype,{
 		case 1:
 			return new view_EmailView(this.store).view();
 		case 2:
-			return new view_SearchGroupView(this.store,function(group) {
-				console.log("src/view/PageView.hx:27:","Group " + Std.string(group));
-				return;
-			}).view();
+			return new view_LeaderInviteUsers(this.store,this.store.get_state().groups[0]).view();
 		case 3:
 			return new view_CreateUserView(this.store).view();
+		case 4:
+			return new view_UserSettingsView(this.store).view();
 		}
 	}
 	,__class__: view_PageView
 });
-var view_SearchGroupView = function(store,onGroupClick) {
+var view_SearchGroupView = function(store,info,cb) {
 	view_AppBaseView.call(this,store);
-	this.onGroupClick = onGroupClick;
+	this.info = info;
+	this.cb = cb;
 };
 $hxClasses["view.SearchGroupView"] = view_SearchGroupView;
 view_SearchGroupView.__name__ = true;
@@ -1870,8 +2451,7 @@ view_SearchGroupView.prototype = $extend(view_AppBaseView.prototype,{
 		var _gthis = this;
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
 		var groups = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(this.store.get_state().groups).slice();
-		var tmp = m.m("p","Skriv namnet på den kör du vill söka efter i sökfältet.");
-		var tmp1 = m.m("input[placeholder=Sök kör]",{ oninput : function(e) {
+		return this.detailsSummary("Sök kör",m.m("div",[m.m("div",this.info),m.m("input[placeholder=Sök kör]",{ oninput : function(e) {
 			view_SearchGroupView.searchChoirText = e.target.value;
 			if(view_SearchGroupView.searchChoirText.length > 0) {
 				return view_SearchGroupView.filteredGroups = groups.filter(function(group) {
@@ -1880,18 +2460,30 @@ view_SearchGroupView.prototype = $extend(view_AppBaseView.prototype,{
 			} else {
 				return view_SearchGroupView.filteredGroups = [];
 			}
-		}, value : view_SearchGroupView.searchChoirText});
-		var tmp2 = m.m("ul",view_SearchGroupView.filteredGroups.map(function(group1) {
+		}, value : view_SearchGroupView.searchChoirText}),m.m("ul",view_SearchGroupView.filteredGroups.map(function(group1) {
 			return m.m("li",{ onclick : function(e1) {
-				if(_gthis.onGroupClick != null) {
-					_gthis.onGroupClick(group1);
+				console.log("src/view/SearchGroupView.hx:40:",group1);
+				if(_gthis.cb != null) {
+					_gthis.cb(group1);
 				}
 				return;
 			}, style : { cursor : "pointer"}},group1.name);
-		}));
-		return this.detailsSummary("Sök kör",m.m("div",[tmp,tmp1,m.m("div",{ style : { padding : "1vmax", margin : "1vmax", maxHeight : "10vmax", overflowY : "scroll", border : "1px solid #ccc", borderRadius : "2vmax"}},[tmp2])]));
+		}))]));
 	}
 	,__class__: view_SearchGroupView
+});
+var view_UserSettingsView = function(store) {
+	view_AppBaseView.call(this,store);
+};
+$hxClasses["view.UserSettingsView"] = view_UserSettingsView;
+view_UserSettingsView.__name__ = true;
+view_UserSettingsView.__super__ = view_AppBaseView;
+view_UserSettingsView.prototype = $extend(view_AppBaseView.prototype,{
+	view: function() {
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		return m.m("h1","User Settings");
+	}
+	,__class__: view_UserSettingsView
 });
 var view_Userview = function(store) {
 	view_AppBaseView.call(this,store);
@@ -1914,13 +2506,16 @@ view_Userview.prototype = $extend(view_AppBaseView.prototype,{
 			return null;
 		}
 		return m.m("div",[m.m("span","Välkommen, " + this.store.getUser().firstname + "! "),m.m("button",{ onclick : function(e) {
+			_gthis.store.gotoPage(data_Page.UserSettings);
+			return;
+		}},"Inställningar"),m.m("button",{ onclick : function(e1) {
 			_gthis.store.logout();
 			return;
 		}},"Logga ut")]);
 	}
 	,guest: function() {
 		var _gthis = this;
-		return [m.m("div",[m.m("input[placeholder=Användarnamn][required]",{ oninput : function(e) {
+		return [m.m("div",[m.m("input[placeholder=E-postadress][required]",{ oninput : function(e) {
 			return view_Userview.tryUsername = e.target.value;
 		}, value : view_Userview.tryUsername}),m.m("input[placeholder=Lösenord][required]",{ oninput : function(e1) {
 			return view_Userview.tryPassword = e1.target.value;
@@ -2037,13 +2632,13 @@ DeepState_$data_$AppState._stateTypes = (function($this) {
 		} else {
 			_g1.h["title"] = value7;
 		}
-		var value8 = ds_StateObjectType.Enumm;
+		var value8 = ds_StateObjectType.Recursive("data.SongProducer");
 		if(__map_reserved["producer"] != null) {
 			_g1.setReserved("producer",value8);
 		} else {
 			_g1.h["producer"] = value8;
 		}
-		var value9 = ds_StateObjectType.Enumm;
+		var value9 = ds_StateObjectType.Recursive("data.SongCategory");
 		if(__map_reserved["category"] != null) {
 			_g1.setReserved("category",value9);
 		} else {
@@ -2186,13 +2781,13 @@ DeepState_$data_$AppState._stateTypes = (function($this) {
 		} else {
 			_g5.h["title"] = value30;
 		}
-		var value31 = ds_StateObjectType.Enumm;
+		var value31 = ds_StateObjectType.Recursive("data.SongProducer");
 		if(__map_reserved["producer"] != null) {
 			_g5.setReserved("producer",value31);
 		} else {
 			_g5.h["producer"] = value31;
 		}
-		var value32 = ds_StateObjectType.Enumm;
+		var value32 = ds_StateObjectType.Recursive("data.SongCategory");
 		if(__map_reserved["category"] != null) {
 			_g5.setReserved("category",value32);
 		} else {
@@ -2210,79 +2805,85 @@ DeepState_$data_$AppState._stateTypes = (function($this) {
 		} else {
 			_g8.h["page"] = value34;
 		}
-		var _g6 = new haxe_ds_StringMap();
-		var value35 = ds_StateObjectType.Enumm;
-		if(__map_reserved["type"] != null) {
-			_g6.setReserved("type",value35);
+		var value35 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
+		if(__map_reserved["overlay"] != null) {
+			_g8.setReserved("overlay",value35);
 		} else {
-			_g6.h["type"] = value35;
+			_g8.h["overlay"] = value35;
 		}
-		var value36 = ds_StateObjectType.String;
-		if(__map_reserved["to"] != null) {
-			_g6.setReserved("to",value36);
+		var _g6 = new haxe_ds_StringMap();
+		var value36 = ds_StateObjectType.Enumm;
+		if(__map_reserved["type"] != null) {
+			_g6.setReserved("type",value36);
 		} else {
-			_g6.h["to"] = value36;
+			_g6.h["type"] = value36;
 		}
 		var value37 = ds_StateObjectType.String;
-		if(__map_reserved["from"] != null) {
-			_g6.setReserved("from",value37);
+		if(__map_reserved["to"] != null) {
+			_g6.setReserved("to",value37);
 		} else {
-			_g6.h["from"] = value37;
+			_g6.h["to"] = value37;
 		}
-		var value38 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g6));
-		if(__map_reserved["messages"] != null) {
-			_g8.setReserved("messages",value38);
+		var value38 = ds_StateObjectType.String;
+		if(__map_reserved["from"] != null) {
+			_g6.setReserved("from",value38);
 		} else {
-			_g8.h["messages"] = value38;
+			_g6.h["from"] = value38;
+		}
+		var value39 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g6));
+		if(__map_reserved["messages"] != null) {
+			_g8.setReserved("messages",value39);
+		} else {
+			_g8.h["messages"] = value39;
 		}
 		var _g7 = new haxe_ds_StringMap();
-		var value39 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		var value40 = ds_StateObjectType.Array(ds_StateObjectType.String);
 		if(__map_reserved["songs"] != null) {
-			_g7.setReserved("songs",value39);
+			_g7.setReserved("songs",value40);
 		} else {
-			_g7.h["songs"] = value39;
+			_g7.h["songs"] = value40;
 		}
-		var value40 = ds_StateObjectType.Bool;
+		var value41 = ds_StateObjectType.Bool;
 		if(__map_reserved["sensus"] != null) {
-			_g7.setReserved("sensus",value40);
+			_g7.setReserved("sensus",value41);
 		} else {
-			_g7.h["sensus"] = value40;
+			_g7.h["sensus"] = value41;
 		}
-		var value41 = ds_StateObjectType.String;
+		var value42 = ds_StateObjectType.String;
 		if(__map_reserved["name"] != null) {
-			_g7.setReserved("name",value41);
+			_g7.setReserved("name",value42);
 		} else {
-			_g7.h["name"] = value41;
+			_g7.h["name"] = value42;
 		}
-		var value42 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		var value43 = ds_StateObjectType.Array(ds_StateObjectType.String);
 		if(__map_reserved["members"] != null) {
-			_g7.setReserved("members",value42);
+			_g7.setReserved("members",value43);
 		} else {
-			_g7.h["members"] = value42;
+			_g7.h["members"] = value43;
 		}
-		var value43 = ds_StateObjectType.String;
+		var value44 = ds_StateObjectType.String;
 		if(__map_reserved["info"] != null) {
-			_g7.setReserved("info",value43);
+			_g7.setReserved("info",value44);
 		} else {
-			_g7.h["info"] = value43;
+			_g7.h["info"] = value44;
 		}
-		var value44 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		var value45 = ds_StateObjectType.Array(ds_StateObjectType.String);
 		if(__map_reserved["admins"] != null) {
-			_g7.setReserved("admins",value44);
+			_g7.setReserved("admins",value45);
 		} else {
-			_g7.h["admins"] = value44;
+			_g7.h["admins"] = value45;
 		}
-		var value45 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g7));
+		var value46 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g7));
 		if(__map_reserved["groups"] != null) {
-			_g8.setReserved("groups",value45);
+			_g8.setReserved("groups",value46);
 		} else {
-			_g8.h["groups"] = value45;
+			_g8.h["groups"] = value46;
 		}
-		var value46 = ds_StateObjectType.Anonymous(_g8);
+		var value47 = ds_StateObjectType.Anonymous(_g8);
 		if(__map_reserved["data.AppState"] != null) {
-			_g9.setReserved("data.AppState",value46);
+			_g9.setReserved("data.AppState",value47);
 		} else {
-			_g9.h["data.AppState"] = value46;
+			_g9.h["data.AppState"] = value47;
 		}
 	}
 	$r = _g9;
@@ -2293,6 +2894,9 @@ view_CreateUserView.newUsername = "nisse@nisse.se";
 view_CreateUserView.newPassword = "nisse";
 view_CreateUserView.newFirstname = "Nils";
 view_CreateUserView.newLastname = "Nilsson";
+view_LeaderInviteUsers.iviteUsernames = [];
+view_LeaderInviteUsers.inviteFirstnames = [];
+view_LeaderInviteUsers.inviteLastnames = [];
 view_SearchGroupView.searchChoirText = "";
 view_SearchGroupView.filteredGroups = [];
 view_Userview.tryUsername = "";
