@@ -496,7 +496,7 @@ class AppStore extends DeepStateContainer<AppState> {
 			songs: cast Default.songs(),
 			messages: cast Default.messages(),
 			page: Home,
-			overlay: cast [SongList(null), ScorxPlayer(123)],
+			overlay: cast [SongList(null)],
 		}, 'do reset');
 		this.save();
 	}

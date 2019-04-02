@@ -1173,7 +1173,7 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 	}
 	,resetToDefaultData: function() {
 		console.log("src/data/AppStore.hx:489:","Reset data");
-		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { userId : null, users : data_Default.users(), groups : data_Default.groups(), songs : data_Default.songs(), messages : data_Default.messages(), page : data_Page.Home, overlay : [data_OverlayPage.SongList(null),data_OverlayPage.ScorxPlayer(123)]}}])});
+		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { userId : null, users : data_Default.users(), groups : data_Default.groups(), songs : data_Default.songs(), messages : data_Default.messages(), page : data_Page.Home, overlay : [data_OverlayPage.SongList(null)]}}])});
 		this.save();
 	}
 	,__class__: data_AppStore
@@ -1225,9 +1225,8 @@ var data_EmailType = $hxEnums["data.EmailType"] = { __ename__ : true, __construc
 	,AfterUserActivationSuccess: {_hx_index:4,__enum__:"data.EmailType",toString:$estr}
 	,SimpleMessage: ($_=function(title,text) { return {_hx_index:5,title:title,text:text,__enum__:"data.EmailType",toString:$estr}; },$_.__params__ = ["title","text"],$_)
 };
-var data_OverlayPage = $hxEnums["data.OverlayPage"] = { __ename__ : true, __constructs__ : ["SongList","ScorxPlayer"]
+var data_OverlayPage = $hxEnums["data.OverlayPage"] = { __ename__ : true, __constructs__ : ["SongList"]
 	,SongList: ($_=function(filter) { return {_hx_index:0,filter:filter,__enum__:"data.OverlayPage",toString:$estr}; },$_.__params__ = ["filter"],$_)
-	,ScorxPlayer: ($_=function(id) { return {_hx_index:1,id:id,__enum__:"data.OverlayPage",toString:$estr}; },$_.__params__ = ["id"],$_)
 };
 var data_Default = function() { };
 $hxClasses["data.Default"] = data_Default;

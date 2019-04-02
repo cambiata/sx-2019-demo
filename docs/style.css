@@ -10,6 +10,7 @@ This file is a mess! :-)
 
 html, body {
     height: 100%;
+    
 }
 
 body {
@@ -20,6 +21,7 @@ body {
 #body{
     height: 100%;
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .center {
