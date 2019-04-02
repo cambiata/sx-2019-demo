@@ -1,5 +1,24 @@
 class Main {
-	static function main() {
+	static public function main() {
+		var filename = 'korakademin.json';
+
+		var items:Array<ScorXItem> = haxe.Json.parse(sys.io.File.getContent(filename));
+		// trace(itemToString(items[4]));
+
+		// var items = items.slice(0, 2);
+
+		var lines = 'var items = ' + items.map(item -> itemToString(item)) + ';';
+		trace(items);
+		trace(lines);
+
+		sys.io.File.saveContent('types.txt', Std.string(lines));
+	}
+
+	static function itemToString(item:ScorXItem):String {
+		return '{' + Reflect.fields(item).map(f -> '' + f + ':"' + Reflect.field(item, f) + '"').join(',') + '}';
+	}
+
+	static function mainX() {
 		var filename = 'PLAY-titles available in ScorX.org e-shop - Blad1.tsv';
 		var fin = sys.io.File.read(filename, false);
 		var items:ScorXItems = [];
