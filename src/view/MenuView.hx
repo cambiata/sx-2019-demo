@@ -6,6 +6,8 @@ import data.AppStore;
 import view.*;
 
 class MenuView extends AppBaseView {
+	static var showOverlay:Bool;
+
 	public function view()
 		[
 			m('span.button', {
@@ -36,9 +38,8 @@ class MenuView extends AppBaseView {
 			}, 'Reset'),
 			m('span.button', {
 				onclick: e -> {
-					var overlay = Browser.document.querySelector("body");
-					overlay.classList.toggle('hide-overlay');
-					overlay.classList.toggle('webkit-scrolling');
+					showOverlay = !showOverlay;
+					this.store.update(this.store.state.overlay = showOverlay ? [SongList(null)] : null);
 				}
 			}, 'Ovl'),
 		];

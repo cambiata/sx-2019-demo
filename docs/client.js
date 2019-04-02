@@ -17,6 +17,17 @@ Client.main = function() {
 		m.redraw();
 		return;
 	}),store.get_state());
+	store.subscribeObserver(ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["overlay"]),function(overlay) {
+		var body = window.document.querySelector("body");
+		if(overlay == null || ds__$ImmutableArray_ImmutableArray_$Impl_$.array(overlay) == []) {
+			body.classList.add("hide-overlay");
+			body.classList.add("webkit-scrolling");
+		} else {
+			body.classList.remove("hide-overlay");
+			body.classList.remove("webkit-scrolling");
+		}
+		return;
+	}),null);
 	m.mount(window.document.querySelector("#header"),new view_Userview(store));
 	m.mount(window.document.querySelector("#nav"),new view_MenuView(store));
 	m.mount(window.document.querySelector("#footer"),new view_FooterView(store));
@@ -2391,9 +2402,9 @@ view_MenuView.prototype = $extend(view_AppBaseView.prototype,{
 			_gthis.store.gotoPage(data_Page.Home);
 			return;
 		}},"Reset"),m.m("span.button",{ onclick : function(e5) {
-			var overlay = window.document.querySelector("body");
-			overlay.classList.toggle("hide-overlay");
-			return overlay.classList.toggle("webkit-scrolling");
+			view_MenuView.showOverlay = !view_MenuView.showOverlay;
+			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("overlay")]), value : view_MenuView.showOverlay ? [data_OverlayPage.SongList(null)] : null}])});
+			return;
 		}},"Ovl")];
 	}
 	,__class__: view_MenuView
@@ -2407,6 +2418,9 @@ view_OverlayView.__super__ = view_AppBaseView;
 view_OverlayView.prototype = $extend(view_AppBaseView.prototype,{
 	view: function() {
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		if(this.store.get_state().overlay == null) {
+			return m.m("div","nothing");
+		}
 		return m.m("div",m.m("h1","Overlay"),[ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().overlay,function(ovl) {
 			return m.m("h2","" + Std.string(ovl));
 		})]);

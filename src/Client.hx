@@ -34,6 +34,17 @@ class Client {
 			M.redraw();
 		}, store.state);
 
+		store.subscribe(store.state.overlay, overlay -> {
+			var body = js.Browser.document.querySelector("body");
+			if (overlay == null || overlay == []) {
+				body.classList.add('hide-overlay');
+				body.classList.add('webkit-scrolling');
+			} else {
+				body.classList.remove('hide-overlay');
+				body.classList.remove('webkit-scrolling');
+			}
+		});
+
 		/**
 		 * Montera Mithril-vyerna i respektive index.html-element
 		 */
