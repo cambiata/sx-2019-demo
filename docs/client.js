@@ -1173,7 +1173,7 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 	}
 	,resetToDefaultData: function() {
 		console.log("src/data/AppStore.hx:489:","Reset data");
-		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { userId : null, users : data_Default.users(), groups : data_Default.groups(), songs : data_Default.songs(), messages : data_Default.messages(), page : data_Page.Home, overlay : [data_OverlayPage.SongList(null)]}}])});
+		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { userId : null, users : data_Default.users(), groups : data_Default.groups(), songs : data_Default.songs(), messages : data_Default.messages(), page : data_Page.Home, overlay : null}}])});
 		this.save();
 	}
 	,__class__: data_AppStore

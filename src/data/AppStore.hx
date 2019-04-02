@@ -496,7 +496,7 @@ class AppStore extends DeepStateContainer<AppState> {
 			songs: cast Default.songs(),
 			messages: cast Default.messages(),
 			page: Home,
-			overlay: cast [SongList(null)],
+			overlay: null, // cast [SongList(null)],
 		}, 'do reset');
 		this.save();
 	}
