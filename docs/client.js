@@ -254,6 +254,96 @@ ds_gen_DeepState.prototype = {
 	}
 	,__class__: ds_gen_DeepState
 };
+var haxe_IMap = function() { };
+$hxClasses["haxe.IMap"] = haxe_IMap;
+haxe_IMap.__name__ = true;
+haxe_IMap.prototype = {
+	__class__: haxe_IMap
+};
+var haxe_ds_StringMap = function() {
+	this.h = { };
+};
+$hxClasses["haxe.ds.StringMap"] = haxe_ds_StringMap;
+haxe_ds_StringMap.__name__ = true;
+haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
+haxe_ds_StringMap.prototype = {
+	set: function(key,value) {
+		if(__map_reserved[key] != null) {
+			this.setReserved(key,value);
+		} else {
+			this.h[key] = value;
+		}
+	}
+	,get: function(key) {
+		if(__map_reserved[key] != null) {
+			return this.getReserved(key);
+		}
+		return this.h[key];
+	}
+	,setReserved: function(key,value) {
+		if(this.rh == null) {
+			this.rh = { };
+		}
+		this.rh["$" + key] = value;
+	}
+	,getReserved: function(key) {
+		if(this.rh == null) {
+			return null;
+		} else {
+			return this.rh["$" + key];
+		}
+	}
+	,remove: function(key) {
+		if(__map_reserved[key] != null) {
+			key = "$" + key;
+			if(this.rh == null || !this.rh.hasOwnProperty(key)) {
+				return false;
+			}
+			delete(this.rh[key]);
+			return true;
+		} else {
+			if(!this.h.hasOwnProperty(key)) {
+				return false;
+			}
+			delete(this.h[key]);
+			return true;
+		}
+	}
+	,keys: function() {
+		return HxOverrides.iter(this.arrayKeys());
+	}
+	,arrayKeys: function() {
+		var out = [];
+		for( var key in this.h ) {
+		if(this.h.hasOwnProperty(key)) {
+			out.push(key);
+		}
+		}
+		if(this.rh != null) {
+			for( var key in this.rh ) {
+			if(key.charCodeAt(0) == 36) {
+				out.push(key.substr(1));
+			}
+			}
+		}
+		return out;
+	}
+	,copy: function() {
+		var copied = new haxe_ds_StringMap();
+		var key = this.keys();
+		while(key.hasNext()) {
+			var key1 = key.next();
+			var value = __map_reserved[key1] != null ? this.getReserved(key1) : this.h[key1];
+			if(__map_reserved[key1] != null) {
+				copied.setReserved(key1,value);
+			} else {
+				copied.h[key1] = value;
+			}
+		}
+		return copied;
+	}
+	,__class__: haxe_ds_StringMap
+};
 var ds_StateObjectType = $hxEnums["ds.StateObjectType"] = { __ename__ : true, __constructs__ : ["Bool","String","Int","Int32","Int64","Float","Date","Enumm","ImmutableList","ImmutableJson","Recursive","Anonymous","Instance","Array","Map"]
 	,Bool: {_hx_index:0,__enum__:"ds.StateObjectType",toString:$estr}
 	,String: {_hx_index:1,__enum__:"ds.StateObjectType",toString:$estr}
@@ -1525,12 +1615,6 @@ ds_Subscription.prototype = {
 	}
 	,__class__: ds_Subscription
 };
-var haxe_IMap = function() { };
-$hxClasses["haxe.IMap"] = haxe_IMap;
-haxe_IMap.__name__ = true;
-haxe_IMap.prototype = {
-	__class__: haxe_IMap
-};
 var haxe_Timer = function(time_ms) {
 	var me = this;
 	this.id = setInterval(function() {
@@ -1589,90 +1673,6 @@ haxe_ds__$List_ListNode.prototype = {
 var haxe_ds_Option = $hxEnums["haxe.ds.Option"] = { __ename__ : true, __constructs__ : ["Some","None"]
 	,Some: ($_=function(v) { return {_hx_index:0,v:v,__enum__:"haxe.ds.Option",toString:$estr}; },$_.__params__ = ["v"],$_)
 	,None: {_hx_index:1,__enum__:"haxe.ds.Option",toString:$estr}
-};
-var haxe_ds_StringMap = function() {
-	this.h = { };
-};
-$hxClasses["haxe.ds.StringMap"] = haxe_ds_StringMap;
-haxe_ds_StringMap.__name__ = true;
-haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
-haxe_ds_StringMap.prototype = {
-	set: function(key,value) {
-		if(__map_reserved[key] != null) {
-			this.setReserved(key,value);
-		} else {
-			this.h[key] = value;
-		}
-	}
-	,get: function(key) {
-		if(__map_reserved[key] != null) {
-			return this.getReserved(key);
-		}
-		return this.h[key];
-	}
-	,setReserved: function(key,value) {
-		if(this.rh == null) {
-			this.rh = { };
-		}
-		this.rh["$" + key] = value;
-	}
-	,getReserved: function(key) {
-		if(this.rh == null) {
-			return null;
-		} else {
-			return this.rh["$" + key];
-		}
-	}
-	,remove: function(key) {
-		if(__map_reserved[key] != null) {
-			key = "$" + key;
-			if(this.rh == null || !this.rh.hasOwnProperty(key)) {
-				return false;
-			}
-			delete(this.rh[key]);
-			return true;
-		} else {
-			if(!this.h.hasOwnProperty(key)) {
-				return false;
-			}
-			delete(this.h[key]);
-			return true;
-		}
-	}
-	,keys: function() {
-		return HxOverrides.iter(this.arrayKeys());
-	}
-	,arrayKeys: function() {
-		var out = [];
-		for( var key in this.h ) {
-		if(this.h.hasOwnProperty(key)) {
-			out.push(key);
-		}
-		}
-		if(this.rh != null) {
-			for( var key in this.rh ) {
-			if(key.charCodeAt(0) == 36) {
-				out.push(key.substr(1));
-			}
-			}
-		}
-		return out;
-	}
-	,copy: function() {
-		var copied = new haxe_ds_StringMap();
-		var key = this.keys();
-		while(key.hasNext()) {
-			var key1 = key.next();
-			var value = __map_reserved[key1] != null ? this.getReserved(key1) : this.h[key1];
-			if(__map_reserved[key1] != null) {
-				copied.setReserved(key1,value);
-			} else {
-				copied.h[key1] = value;
-			}
-		}
-		return copied;
-	}
-	,__class__: haxe_ds_StringMap
 };
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
@@ -2528,6 +2528,7 @@ view_Userview.prototype = $extend(view_AppBaseView.prototype,{
 function $getIterator(o) { if( o instanceof Array ) return HxOverrides.iter(o); else return o.iterator(); }
 var $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = m.bind(o); o.hx__closures__[m.__id__] = f; } return f; }
+var __map_reserved = {};
 $hxClasses["Math"] = Math;
 String.prototype.__class__ = $hxClasses["String"] = String;
 String.__name__ = true;
@@ -2539,7 +2540,6 @@ var Float = Number;
 var Bool = Boolean;
 var Class = { };
 var Enum = { };
-var __map_reserved = {};
 Object.defineProperty(js__$Boot_HaxeError.prototype,"message",{ get : function() {
 	return String(this.val);
 }});
