@@ -38,6 +38,7 @@ class MenuView extends AppBaseView {
 				onclick: e -> {
 					var overlay = Browser.document.querySelector("body");
 					overlay.classList.toggle('hide-overlay');
+					overlay.classList.toggle('webkit-scrolling');
 				}
 			}, 'Ovl'),
 		];
