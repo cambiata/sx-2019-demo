@@ -9,15 +9,28 @@
     <title>Document</title>
 </head>
 
+
+
 <body class="hide-overlay webkit-scrolling">
 
     <div id="overlay">
-        <header>Overlay header</header>
+        <header>
+           <button onclick="document.querySelector('#theiFrame').src ='https://my.scorecloud.com/song/embed/05e99ae7b0ba2d4a6c75fa8362c2168c?scorx_auth_key=da45cd3c4f84332576a9ae8827611ddec6aae8109304bcc2b3ac48454d46b7fa9ef4f249c1a82f811a6491efe6ba43cc5dfcf219ac215793f483ee051b9bf451_1&amp;lang=scorx-se' ">Click</button>
+
+        </header>
         <section>
-            <div id="scorxlist">List</div>
+            <div id="scorxlist">List
+            </div>
             <div id="scorxplayer">
-                    <iframe id="theiFrame" src="https://my.scorecloud.com/song/embed/05e99ae7b0ba2d4a6c75fa8362c2168c?scorx_auth_key=da45cd3c4f84332576a9ae8827611ddec6aae8109304bcc2b3ac48454d46b7fa9ef4f249c1a82f811a6491efe6ba43cc5dfcf219ac215793f483ee051b9bf451_1&amp;lang=scorx-se" allowfullscreen="" webkitallowfullscreen="" mozallowfullscreen="">
-                    </iframe>
+                <!-- <iframe id="theiFrame"
+                    src=""
+                    allowfullscreen="" webkitallowfullscreen="" mozallowfullscreen="">
+                </iframe> -->
+
+                <iframe id="theiFrame" src="https://my.scorecloud.com/song/embed/d88e4c09a781b6f3152a802ad520be79?scorx_auth_key=5d056dc63c1c529245ef8c96a5ca387f9ebea398b0ebce71bcad846bb5f35163a00bbde13937e28eed0edc14d571b4d676a581cd7419fcedc4673f3effdfb958_2&amp;lang=scorx-en" allowfullscreen="" webkitallowfullscreen="" mozallowfullscreen="">
+
+                </iframe>
+
             </div>
         </section>
     </div>

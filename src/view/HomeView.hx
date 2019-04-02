@@ -1,5 +1,6 @@
 package view;
 
+import data.KorakademinScorxItems;
 import js.Browser;
 import data.Model;
 import data.AppStore;
@@ -31,7 +32,7 @@ class HomeView extends AppBaseView {
 				Image('assets/img/happy.jpg'),
 				Title('Pröva ScorX gratis!'),
 				Info('Klicka på valfri titel i listan nedan, lyssna och sjung med!'),
-				Songlist('Gratislåtar', this.store.state.songs, [Category(Free), LimitNumber(5)]),
+				Songlist('Gratislåtar', KorakademinScorxItems.items(), [LicenseHolder('Upphovsrättsfri'), LimitNumber(5)]),
 			]),
 		];
 	}
@@ -50,7 +51,7 @@ class HomeView extends AppBaseView {
 
 		var groups:Array<Group> = this.store.state.groups.filter(group -> group.members.indexOf(user.username) > -1);
 		var groupLists = groups.map(group -> buildCells([
-			Songlist(group.name, group.songs.map(title -> this.store.getSong(title)), [Group(group.name)])
+			Songlist(group.name, KorakademinScorxItems.items(), [SelectProductIds(group.songs), LimitNumber(5)]),
 		]));
 
 		var choirsInfo = groupLists
@@ -75,7 +76,7 @@ class HomeView extends AppBaseView {
 			return null;
 
 		var groupLists = groups.map(group -> buildCells([
-			Songlist(group.name, group.songs.map(title -> this.store.getSong(title)), [Group(group.name)]),
+			Songlist(group.name, KorakademinScorxItems.items(), [SelectProductIds(group.songs), LimitNumber(5)]),
 			ListGroupMembers(group.name),
 			InviteGroupMembers(group.name),
 
@@ -86,16 +87,17 @@ class HomeView extends AppBaseView {
 
 	function mySongsView() {
 		var user:User = this.store.getUser();
-		var mySongs:Array<Song> = user.songs.map(title -> this.store.getSong(title));
-		var myList = mySongs.length > 0 ? buildCells([Songlist('Mina låtar', mySongs, [LimitNumber(5)])]) : buildCells([BuySongs]);
+		// var mySongs:Array<Song> = user.songs.map(title -> this.store.getSong(title));
+		// var myList = buildCells([Songlist('Mina låtar', KorakademinScorxItems.items(), [LimitNumber(5)])]) : buildCells([BuySongs]);
 
-		return [
+		return m('div.center', [
 			buildCells([
 				Title('Mina låtar'),
 				Info('Här visas de låtar som du har köpt eller valt genom förmånserbjudanden.'),
+				Songlist('Mina låtar', KorakademinScorxItems.items(), [SelectProductIds(user.songs), LimitNumber(5)]),
+				BuySongs,
 			]),
-			myList
-		];
+		]);
 	}
 
 	//-------------------------------------------------------------------------------------
@@ -107,7 +109,7 @@ class HomeView extends AppBaseView {
 				case Image(url): m('img', {src: url});
 				case Title(title): m('h1.limit-width.center', title);
 				case Info(info): m('p.limit-width.center', info);
-				case Songlist(title, songs, filter): this.songlist(title, songs, filter);
+				case Songlist(title, songs, filter): new SongListView(this.store, title, songs, filter).view();
 				case SearchChoir:
 					// skapa lista för eventuella gruppansökningar för inloggad användare
 					// cast [new UserApplicationsView(this.store).view(),];
@@ -147,40 +149,35 @@ class HomeView extends AppBaseView {
 		}));
 	}
 
-	function songlist(title:String, songs:Array<Song>, filter:Array<SongFilter>) {
-		// var songs = this.store.state.songs.copy();
-		var totalNumber:Int = songs.length;
-
-		for (f in filter) {
-			switch f {
-				case Search(str):
-				case Category(cat):
-					songs = songs.filter(song -> {
-						return song.category.getName() == cat.getName();
-					});
-				case Producer(prod):
-					songs = songs.filter(song -> song.producer == prod);
-				case Group(groupname):
-					var group:Group = this.store.getGroup(groupname);
-					songs = group.songs.map(songtitle -> this.store.getSong(songtitle));
-					totalNumber = songs.length;
-
-				case LimitNumber(max):
-					// songs = songs.splice(max, 10000);
-					songs = songs.slice(0, 5);
-			}
-		}
-
-		return m('article.center', [
-			m('header', m('span', title), m('input[placeholder=Sök]')),
-
-			m('ul', songs.filter(song -> song != null).map(song -> m('li', [
-				m('.thumb', m('img', {src: 'assets/scorx/${song.producer.getName()}.png'})),
-				m('.title', [m('h3', song.title), m('p', 'Information...')]),
-				m('.originators', 'Originators'),
-			]))),
-
-			m('footer', [m('button', {onclick: e -> {}}, 'Visa alla ${totalNumber}'),]),
-		]);
-	}
+	// function songlist(title:String, songs:Array<Song>, filter:Array<SongFilter>) {
+	// 	// var songs = this.store.state.songs.copy();
+	// 	var totalNumber:Int = songs.length;
+	// 	for (f in filter) {
+	// 		switch f {
+	// 			case Search(str):
+	// 			case Category(cat):
+	// 				songs = songs.filter(song -> {
+	// 					return song.category.getName() == cat.getName();
+	// 				});
+	// 			case Producer(prod):
+	// 				songs = songs.filter(song -> song.producer == prod);
+	// 			case Group(groupname):
+	// 				var group:Group = this.store.getGroup(groupname);
+	// 				songs = group.songs.map(songtitle -> this.store.getSong(songtitle));
+	// 				totalNumber = songs.length;
+	// 			case LimitNumber(max):
+	// 				// songs = songs.splice(max, 10000);
+	// 				songs = songs.slice(0, 5);
+	// 		}
+	// 	}
+	// 	return m('article.center', [
+	// 		m('header', m('span', title), m('input[placeholder=Sök]')),
+	// 		m('ul', songs.filter(song -> song != null).map(song -> m('li', [
+	// 			m('.thumb', m('img', {src: 'assets/scorx/${song.producer.getName()}.png'})),
+	// 			m('.title', [m('h3', song.title), m('p', 'Information...')]),
+	// 			m('.originators', 'Originators'),
+	// 		]))),
+	// 		m('footer', [m('button', {onclick: e -> {}}, 'Visa alla ${totalNumber}'),]),
+	// 	]);
+	// }
 }

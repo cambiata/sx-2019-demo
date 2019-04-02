@@ -1,5 +1,6 @@
 package view;
 
+import data.KorakademinScorxItems;
 import data.Model;
 import data.AppStore;
 import view.*;
@@ -24,7 +25,10 @@ class PageView extends AppBaseView {
 			case Page.Home: this.home.view();
 			case Page.CreateUser: new CreateUserView(this.store).view(); // this.create.view();
 			case Page.Email: new EmailView(this.store).view();
-			case Page.Other: new SongListView(this.store).view();
+			case Page.Other: new SongListView(this.store, 'Körakademins låtar', KorakademinScorxItems.items(), [
+					ScorxFilter.SelectProductIds([3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]),
+					ScorxFilter.LimitNumber(3)
+				]).view();
 			case Page.UserSettings: new UserSettingsView(this.store).view();
 			case _: null;
 		}

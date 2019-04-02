@@ -491,9 +491,10 @@ div.invitationform button {
     left: 0;
     width: 100%;
     bottom: 0px;
-    background-color: rgba(0, 0, 0, 0.8);
+    /* background-color: rgba(0, 0, 0, 0.8); */
+    background-color: white;
     transition: left .2s cubic-bezier(.25, .8, .25, 1);    
-    color: white;    
+    /* color: white;     */
 }
 
 .webkit-scrolling {
@@ -501,14 +502,14 @@ div.invitationform button {
 }
 
 #overlay header {
-    border: 1px solid red;
+    /* border: 1px solid red; */
     height: 10vmax;
 }
  
 #overlay section {
     height: calc(100% - 10vmax);
     overflow: auto;
-    border: 1px solid yellow;
+    /* border: 1px solid yellow; */
     display:grid;
     grid-template-columns: 1fr 1fr;
     padding: 1vmax;
@@ -523,4 +524,109 @@ div.invitationform button {
 #scorxlist {
     overflow-y:auto;
     -webkit-overflow-scrolling: touch;
+}
+
+/************************************************/
+
+h3.scorxlisttitle {
+    font-weight: normal;
+    font-size: 3vmax;
+}
+
+.scorxitem {
+    background: white;
+    border-bottom: 1px solid #ccc; 
+    /* padding: 1vmax 1vmax; */
+    font-size: 1.6vmax;
+    color: #444;
+    padding: 1.6vmax;
+    cursor:pointer;
+}
+
+.scorxitem:first-child {
+    border-top: 1px solid #ccc; 
+}
+
+.scorxitem .title {
+    font-weight: normal;
+    color: #000;
+    font-size: 2.3vmax;
+  
+}
+
+.orig {
+    padding-top: .4vmax;
+}
+
+.scorxitem .idnr {
+    color: #aaa;
+    margin-left: 1vmax;
+}
+
+.ensemble {
+    margin-left: 1vmax;
+    border: 1px solid #ddd;
+    padding: .2vmax .6vmax 0vmax;
+    border-radius: 1vmax;
+    font-weight: bold;
+    font-size: 1.2vmax;
+}
+
+.ensemble.SATB {
+    background: skyblue;
+}
+
+.ensemble.SAB {
+    background: lightgreen;
+}
+
+.ensemble.SA {
+    background: tomato;
+}
+
+.ensemble.SAA {
+    background: tomato;
+}
+
+.ensemble.SSA {
+    background: tomato;
+}
+
+.ensemble.SSAA {
+    background: tomato;
+}
+
+
+.orig span:first-child {
+    color: #aaa;
+    margin-right: .3vmax;
+}
+
+
+
+.searchinput {
+    padding: 1vmax;
+}
+
+.searchinput * {
+    padding: .4vmax;
+    font-size: 1.8vmax;
+}
+.searchinput input {
+    width: 40vmax;
+    padding-left: 2vmax;
+}
+
+.searchinput select {
+    
+}
+
+.showall {
+    margin: 0;
+    font-size: 2vmax;
+}
+.underlist {
+    padding: 2vmax;
+    display:flex;
+    justify-content: end;
 }

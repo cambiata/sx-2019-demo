@@ -1,5 +1,6 @@
 package data;
 
+import data.KorakademinScorxItems.ScorXItem;
 import js.Browser;
 import haxe.Json;
 import ds.ImmutableArray;
@@ -16,7 +17,7 @@ typedef User = {
 	final firstname:String;
 	final lastname:String;
 	final sensus:Bool;
-	final songs:ds.ImmutableArray<String>;
+	final songs:ds.ImmutableArray<Int>;
 }
 
 /**
@@ -28,7 +29,7 @@ typedef Group = {
 	final admins:ds.ImmutableArray<String>;
 	final sensus:Bool;
 	final members:ds.ImmutableArray<String>;
-	final songs:ds.ImmutableArray<String>;
+	final songs:ds.ImmutableArray<Int>;
 }
 
 /**
@@ -87,6 +88,12 @@ enum SongFilter {
 	LimitNumber(max:Int);
 }
 
+enum ScorxFilter {
+	SelectProductIds(ids:Array<Int>);
+	LicenseHolder(lic:String);
+	LimitNumber(num:Int);
+}
+
 /**
  * Celler som kan visas på hemsidan
  * Kombineras på lämpligt sätt i Array<HomeCell>
@@ -96,7 +103,7 @@ enum HomeCell {
 	Title(title:String);
 	Info(info:String);
 	Button(label:String, onclick:js.html.MouseEvent->Void);
-	Songlist(title:String, songs:Array<Song>, filter:Array<SongFilter>);
+	Songlist(title:String, songs:Array<ScorXItem>, filter:Array<ScorxFilter>);
 	SearchChoir;
 	ListGroupMembers(groupname:String);
 	InviteGroupMembers(groupname:String);
@@ -146,7 +153,7 @@ class Default {
 				username: 'adam@adam.se',
 				password: 'adam',
 				sensus: false,
-				songs: ['Köptitel06', 'Köptitel07'],
+				songs: [999, 789],
 			},
 			{
 				firstname: 'Beda',
@@ -259,7 +266,7 @@ class Default {
 				admins: ['orkel1@orkel.se'],
 				members: ['adam@adam.se', 'orkel1@orkel.se', 'orkel2@orkel.se', 'orkel3@orkel.se',],
 				sensus: true,
-				songs: ['Sensus01', 'Sensus02', 'Sensus03'],
+				songs: [56, 397, 58, 59, 1357, 975, 2405],
 			},
 			{
 				name: 'Bromölla Bandidos',
@@ -267,7 +274,7 @@ class Default {
 				admins: [],
 				members: [],
 				sensus: true,
-				songs: ['Köptitel01', 'Sensus01'],
+				songs: [1993, 1377, 639],
 			},
 			{
 				name: 'Lingonbergens sångfåglar',
@@ -275,7 +282,7 @@ class Default {
 				admins: [],
 				members: [],
 				sensus: true,
-				songs: ['Köptitel01', 'Sensus01'],
+				songs: [2096, 250, 63, 2315],
 			},
 			{
 				name: 'Avunda Kyrkokör',
@@ -283,7 +290,7 @@ class Default {
 				admins: ['avledare@kor.se'],
 				members: [],
 				sensus: true,
-				songs: ['Köptitel01', 'Sensus01'],
+				songs: [1784, 1778, 1780, 2467, 64, 1288, 598],
 			},
 			{
 				name: 'Nya kören, Hässleholm',
@@ -291,7 +298,7 @@ class Default {
 				admins: [],
 				members: [],
 				sensus: true,
-				songs: ['Köptitel01', 'Sensus01'],
+				songs: [],
 			},
 			{
 				name: 'Nya kören, Hallandsåsen',
@@ -299,7 +306,7 @@ class Default {
 				admins: [],
 				members: [],
 				sensus: true,
-				songs: ['Köptitel01', 'Sensus01'],
+				songs: [],
 			},
 		];
 	}
