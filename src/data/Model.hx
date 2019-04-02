@@ -109,12 +109,28 @@ enum HomeCell {
  */
 enum Page {
 	Home;
+	Email;
 	Other;
 	CreateUser;
 }
 
+typedef EmailMessage = {
+	final to:String;
+	final from:String;
+	final type:EmailType;
+}
+
+enum EmailType {
+	UserAccountActivation(email:String, pass:String, firstname:String, lastname:String);
+	UserGroupjoinInfo(groupname:String);
+	AdminGroupjoinInfo(joinedUsername:String, groupname:String);
+	UserAccountActivationAndGroupjoin(email:String, pass:String, firstname:String, lastname:String, groupname:String);
+	AfterUserActivationSuccess;
+	SimpleMessage(title:String, text:String);
+}
+
 /**
- * Defaultvärden för localStorage-databasen
+ * Defaultvärden så att vi har något att utgå ifrån
  */
 class Default {
 	static public function users():Array<User> {
@@ -298,9 +314,22 @@ class Default {
 			{title: 'Köptitel04', category: Commercial, producer: Other}, {title: 'Köptitel05', category: Commercial, producer: Other},
 			{title: 'Köptitel06', category: Commercial, producer: Other}, {title: 'Köptitel07', category: Commercial, producer: Other},
 			{title: 'Köptitel08', category: Commercial, producer: Other}, {title: 'Sensus01', category: Commercial, producer: Korakademin},
-
 			{title: 'Sensus02', category: Commercial, producer: Korakademin}, {title: 'Sensus03', category: Commercial, producer: Korakademin},
 			{title: 'Sensus04', category: Commercial, producer: Korakademin}, {title: 'Sensus05', category: Commercial, producer: Korakademin},
+		];
+	}
+
+	static public function messages() {
+		return [
+			{to: 'new@new.se', from: 'orkel1@orkel.se', type: EmailType.UserAccountActivation('new@new.se', 'pass12345', 'Nyamko', 'Neebie'),},
+			{to: 'adam@adam.se', from: 'orkel1@orkel.se', type: EmailType.UserGroupjoinInfo('Örkelhåla'),},
+			{
+				to: 'new@new.se',
+				from: 'orkel1@orkel.se',
+				type: EmailType.UserAccountActivationAndGroupjoin('new@new.se', 'pass1234', 'Nyamko', 'Neebie', 'Nisselunda'),
+			},
+			{to: 'adam@adam.se', from: 'orkel1@orkel.se', type: EmailType.AdminGroupjoinInfo('adam@adam.se', 'Nisselunda'),},
+			{to: 'adam@adam.se', from: 'beda@beda.se', type: EmailType.SimpleMessage('Hej snygging!', 'Ska vi ta en fika? :-) / Beda')},
 		];
 	}
 }

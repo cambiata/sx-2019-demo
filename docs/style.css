@@ -369,3 +369,47 @@ span.button:hover {
 .createuserform button {
     font-size: 2vmax;
 }
+
+/**********************************************************/
+
+.email {
+    display: grid;
+    padding: 2vmax;
+    grid-template-columns: 1fr 3fr;
+    background: #eee;
+    min-height: 30vmax;
+    font-size: 1.6vmax;
+}
+
+.emailLeft {
+
+}
+
+.emailRight {
+    background: white;
+    padding: 1vmax;
+}
+
+.emailRight details {
+    margin-bottom: 1vmax;
+    /* border: 1px solid red; */
+}
+
+.emailRight h3 {
+    border-bottom: solid 2px #555;
+    margin-bottom: 0.5vmax;
+}
+.emailSender {
+    padding: 0vmax 0vmax 0vmax 2vmax;
+    background: #ccc;
+}
+
+.emailMessage {
+    padding: 1vmax 1vmax 1vmax 2vmax;
+    border:1px solid #ccc;
+    cursor:pointer;
+}
+
+.emailRight details:last-child summary {
+    font-weight: bold;
+}

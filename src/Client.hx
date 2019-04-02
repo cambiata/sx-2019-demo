@@ -1,6 +1,6 @@
 import data.AppStore;
 import data.Model;
-import view.Views;
+import view.*;
 import mithril.M;
 import mithril.M.m;
 
@@ -16,9 +16,10 @@ class Client {
 			userId: null,
 			users: null,
 			groups: null,
-			applications: null,
-			invitations: null,
+			// applications: null,
+			// invitations: null,
 			songs: null,
+			messages: null,
 		}));
 
 		/**
@@ -40,6 +41,6 @@ class Client {
 		M.mount(js.Browser.document.querySelector('#header'), new Userview(store));
 		M.mount(js.Browser.document.querySelector('#nav'), new MenuView(store));
 		M.mount(js.Browser.document.querySelector('#footer'), new FooterView(store));
-		M.mount(js.Browser.document.querySelector('main'), new Pageview(store));
+		M.mount(js.Browser.document.querySelector('main'), new PageView(store));
 	}
 }

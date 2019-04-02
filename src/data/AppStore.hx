@@ -27,21 +27,24 @@ typedef AppState = {
 	 * Lista med grupper
 	 */
 	final groups:ImmutableArray<Group>;
-
 	/**
 	 * Lista med gruppansökningar, skapade av användare som vill bli medlem i grupp
 	 */
-	final applications:ImmutableArray<GroupApplication>;
-
+	// final applications:ImmutableArray<GroupApplication>;
 	/**
 	 * Lista med gruppinbjudningar, skapade av ledare som vill bjuda in användare till sin grupp
 	 */
-	final invitations:ImmutableArray<GroupApplication>;
+	// final invitations:ImmutableArray<GroupApplication>;
 
 	/**
 	 * Lista med låtar
 	 */
 	final songs:ImmutableArray<Song>;
+
+	/**
+	 * Lista med "e-postmeddelanden"
+	 */
+	final messages:ImmutableArray<EmailMessage>;
 
 	/**
 	 * Info om aktuell "sida", i brist på riktig url-router i denna demo
@@ -122,9 +125,11 @@ class AppStore extends DeepStateContainer<AppState> {
 			if (foundUser.password != tryPassword)
 				throw 'Password is wrong $foundUser : ' + foundUser.password + ' ' + tryPassword;
 
+			// Success! :-)
 			haxe.Timer.delay(() -> { // simulera fördrörjning vid inloggning
 				this.update(state.userId = foundUser.username);
 				this.save();
+				this.gotoPage(Page.Home);
 			}, cx.Random.int(100, 500));
 		} catch (e:Dynamic) {
 			js.Browser.alert(e);
@@ -191,165 +196,194 @@ class AppStore extends DeepStateContainer<AppState> {
 		}
 	}
 
-	/**
-	 * Lägg gruppansökan till state.applications
-	 * @param item
-	 */
-	public function addApplication(item:GroupApplication) {
+	// /**
+	//  * Lägg gruppansökan till state.applications
+	//  * @param item
+	//  */
+	// public function addApplication(item:GroupApplication) {
+	// 	try {
+	// 		if (this.state.applications.filter(a -> a.groupname == item.groupname && a.username == item.username).length > 0)
+	// 			throw "Ansökan till denna grupp finns redan!";
+	// 		this.update(this.state.applications = this.state.applications.push(item));
+	// 		this.save();
+	// 	} catch (e:Dynamic) {
+	// 		Browser.alert(e);
+	// 	}
+	// }
+	// /**
+	//  * Slutför gruppansökan genom att
+	//  * 1. Lägga till aktuell användare till group.members
+	//  * 2. Ta bort ansökan från state.applications
+	//  * @param application
+	//  */
+	// public function addUsernameToGroupFromLeaderInvitation(application:GroupApplication) {
+	// 	try {
+	// 		var group:Group = this.getGroup(application.groupname);
+	// 		if (group == null)
+	// 			throw "Can not resolve application to group " + application.groupname;
+	// 		if (group.members.filter(member -> member == application.username).length > 0)
+	// 			throw 'User ${application.username} is already a member of ${application.groupname}';
+	// 		var groupIndex = this.state.groups.indexOf(group);
+	// 		var members = group.members.push(application.username);
+	// 		this.update(state.groups[groupIndex].members = members,
+	// 			state.invitations = cast state.invitations.filter(app -> app.groupname != application.groupname
+	// 				&& app.username != application.username));
+	// 		this.save();
+	// 	} catch (e:Dynamic) {
+	// 		Browser.alert(e);
+	// 	}
+	// }
+	// /**
+	//  * Slutför gruppansökan genom att
+	//  * 1. Lägga till aktuell användare till group.members
+	//  * 2. Ta bort ansökan från state.applications
+	//  * @param application
+	//  */
+	// public function addUsernameToGroupFromUserApplication(application:GroupApplication) {
+	// 	try {
+	// 		var group:Group = this.getGroup(application.groupname);
+	// 		if (group == null)
+	// 			throw "Can not resolve application to group " + application.groupname;
+	// 		if (group.members.filter(member -> member == application.username).length > 0)
+	// 			throw 'User ${application.username} is already a member of ${application.groupname}';
+	// 		var groupIndex = this.state.groups.indexOf(group);
+	// 		var members = group.members.push(application.username);
+	// 		this.update(state.groups[groupIndex].members = members,
+	// 			state.applications = cast state.applications.filter(app -> app.groupname != application.groupname
+	// 				&& app.username != application.username));
+	// 		this.save();
+	// 	} catch (e:Dynamic) {
+	// 		Browser.alert(e);
+	// 	}
+	// }
+	// /**
+	//  * Ta bort ansökan
+	//  * @param item
+	//  */
+	// public function removeApplication(item:GroupApplication) {
+	// 	try {
+	// 		this.update(this.state.applications = this.state.applications.remove(item));
+	// 		this.save();
+	// 	} catch (e:Dynamic) {
+	// 		Browser.alert(e);
+	// 	}
+	// }
+	// /**
+	//  * Lägg till inbjudan till state.invitations
+	//  * @param item
+	//  */
+	// public function addInvitation(item:GroupApplication) {
+	// 	try {
+	// 		item.username.validateAsEmail();
+	// 		if (this.isMemberOfGroup(item.username, item.groupname))
+	// 			throw '${item.username} är redan medlem i ${item.groupname}';
+	// 		if (this.state.invitations.filter(a -> a.groupname == item.groupname && a.username == item.username).length > 0)
+	// 			throw 'Ansökan till ${item.groupname} från ${item.username} finns redan!';
+	// 		this.update(this.state.invitations = this.state.invitations.push(item));
+	// 		this.save();
+	// 	} catch (e:Dynamic) {
+	// 		Browser.alert(e);
+	// 	}
+	// }
+	// /**
+	//  * Ta bort inbjudan
+	//  * @param item
+	//  */
+	// public function removeInvitation(item:GroupApplication) {
+	// 	try {
+	// 		this.update(this.state.invitations = this.state.invitations.remove(item));
+	// 		this.save();
+	// 	} catch (e:Dynamic) {
+	// 		Browser.alert(e);
+	// 	}
+	// }
+	// /**
+	//  * Ändra ansökans status
+	//  * @param item
+	//  * @param newStatus
+	//  */
+	// public function changeApplicationStatus(item:GroupApplication, newStatus:GroupApplicationStatus) {
+	// 	try {
+	// 		var index = this.state.applications.indexOf(item);
+	// 		trace(index);
+	// 		if (index < 0)
+	// 			throw 'Denna ansökan verkar inte finnas i ansökningstabellen';
+	// 		var newItem:GroupApplication = {
+	// 			groupname: item.groupname,
+	// 			username: item.username,
+	// 			status: newStatus
+	// 		};
+	// 		this.update(this.state.applications[index] = newItem);
+	// 		trace(this.state.applications);
+	// 		this.save();
+	// 	} catch (e:Dynamic) {
+	// 		Browser.alert(e);
+	// 	}
+	// }
+	// /**
+	//  * Ändra inbjudans status
+	//  * @param item
+	//  * @param newStatus
+	//  */
+	// public function changeInvitationStatus(item:GroupApplication, newStatus:GroupApplicationStatus) {
+	// 	// try {
+	// 	// 	var invitationIndex = this.state.invitations.indexOf(item);
+	// 	// 	trace(invitationIndex);
+	// 	// 	if (invitationIndex < 0)
+	// 	// 		throw 'Denna ansökan verkar inte finnas i inbjudningstabellen';
+	// 	// 	var newItem:GroupApplication = {
+	// 	// 		groupname: item.groupname,
+	// 	// 		username: item.username,
+	// 	// 		status: newStatus
+	// 	// 	};
+	// 	// 	this.update(this.state.invitations[invitationIndex] = newItem);
+	// 	// 	trace(this.state.invitations);
+	// 	// 	this.save();
+	// 	// } catch (e:Dynamic) {
+	// 	// 	Browser.alert(e);
+	// 	// }
+	// }
+
+	public function handleMessageClicks(mess:EmailMessage) {
+		// js.Browser.alert('Handle message click: ' + mess);
+
 		try {
-			if (this.state.applications.filter(a -> a.groupname == item.groupname && a.username == item.username).length > 0)
-				throw "Ansökan till denna grupp finns redan!";
-			this.update(this.state.applications = this.state.applications.push(item));
-			this.save();
+			switch mess.type {
+				case UserAccountActivation(email, password, firstname, lastname):
+					var newUser:User = {
+						username: email,
+						password: password,
+						firstname: firstname,
+						lastname: lastname,
+						sensus: false,
+						songs: []
+					};
+					this.addUser(newUser);
+					js.Browser.alert('Kontot har skapats och ett bekräftelsemejl skickas till användaren.');
+					this.sendEmailMessage({
+						to: email,
+						from: 'admin@scorx.org',
+						type: AfterUserActivationSuccess,
+					});
+
+				case UserGroupjoinInfo(groupname):
+				case AdminGroupjoinInfo(joinedUsername, groupname):
+				case UserAccountActivationAndGroupjoin(email, pass, firstname, lastname, groupname):
+				case AfterUserActivationSuccess:
+					this.gotoPage(Page.Home);
+					js.Browser.alert('Användaren har klickat på sitt Välkommen-meddelande.');
+				case SimpleMessage(title, text):
+			}
 		} catch (e:Dynamic) {
-			Browser.alert(e);
+			js.Browser.alert(e);
 		}
 	}
 
-	/**
-	 * Slutför gruppansökan genom att
-	 * 1. Lägga till aktuell användare till group.members
-	 * 2. Ta bort ansökan från state.applications
-	 * @param application
-	 */
-	public function addUsernameToGroupFromLeaderInvitation(application:GroupApplication) {
-		try {
-			var group:Group = this.getGroup(application.groupname);
-			if (group == null)
-				throw "Can not resolve application to group " + application.groupname;
-			if (group.members.filter(member -> member == application.username).length > 0)
-				throw 'User ${application.username} is already a member of ${application.groupname}';
-			var groupIndex = this.state.groups.indexOf(group);
-			var members = group.members.push(application.username);
-			this.update(state.groups[groupIndex].members = members,
-				state.invitations = cast state.invitations.filter(app -> app.groupname != application.groupname
-					&& app.username != application.username));
-			this.save();
-		} catch (e:Dynamic) {
-			Browser.alert(e);
-		}
-	}
-
-	/**
-	 * Slutför gruppansökan genom att
-	 * 1. Lägga till aktuell användare till group.members
-	 * 2. Ta bort ansökan från state.applications
-	 * @param application
-	 */
-	public function addUsernameToGroupFromUserApplication(application:GroupApplication) {
-		try {
-			var group:Group = this.getGroup(application.groupname);
-			if (group == null)
-				throw "Can not resolve application to group " + application.groupname;
-			if (group.members.filter(member -> member == application.username).length > 0)
-				throw 'User ${application.username} is already a member of ${application.groupname}';
-			var groupIndex = this.state.groups.indexOf(group);
-			var members = group.members.push(application.username);
-			this.update(state.groups[groupIndex].members = members,
-				state.applications = cast state.applications.filter(app -> app.groupname != application.groupname
-					&& app.username != application.username));
-			this.save();
-		} catch (e:Dynamic) {
-			Browser.alert(e);
-		}
-	}
-
-	/**
-	 * Ta bort ansökan
-	 * @param item
-	 */
-	public function removeApplication(item:GroupApplication) {
-		try {
-			this.update(this.state.applications = this.state.applications.remove(item));
-			this.save();
-		} catch (e:Dynamic) {
-			Browser.alert(e);
-		}
-	}
-
-	/**
-	 * Lägg till inbjudan till state.invitations
-	 * @param item
-	 */
-	public function addInvitation(item:GroupApplication) {
-		try {
-			item.username.asEmail();
-
-			if (this.isMemberOfGroup(item.username, item.groupname))
-				throw '${item.username} är redan medlem i ${item.groupname}';
-
-			if (this.state.invitations.filter(a -> a.groupname == item.groupname && a.username == item.username).length > 0)
-				throw 'Ansökan till ${item.groupname} från ${item.username} finns redan!';
-			this.update(this.state.invitations = this.state.invitations.push(item));
-			this.save();
-		} catch (e:Dynamic) {
-			Browser.alert(e);
-		}
-	}
-
-	/**
-	 * Ta bort inbjudan
-	 * @param item
-	 */
-	public function removeInvitation(item:GroupApplication) {
-		try {
-			this.update(this.state.invitations = this.state.invitations.remove(item));
-			this.save();
-		} catch (e:Dynamic) {
-			Browser.alert(e);
-		}
-	}
-
-	/**
-	 * Ändra ansökans status
-	 * @param item
-	 * @param newStatus
-	 */
-	public function changeApplicationStatus(item:GroupApplication, newStatus:GroupApplicationStatus) {
-		try {
-			var index = this.state.applications.indexOf(item);
-			trace(index);
-			if (index < 0)
-				throw 'Denna ansökan verkar inte finnas i ansökningstabellen';
-
-			var newItem:GroupApplication = {
-				groupname: item.groupname,
-				username: item.username,
-				status: newStatus
-			};
-
-			this.update(this.state.applications[index] = newItem);
-			trace(this.state.applications);
-			this.save();
-		} catch (e:Dynamic) {
-			Browser.alert(e);
-		}
-	}
-
-	/**
-	 * Ändra inbjudans status
-	 * @param item
-	 * @param newStatus
-	 */
-	public function changeInvitationStatus(item:GroupApplication, newStatus:GroupApplicationStatus) {
-		try {
-			var invitationIndex = this.state.invitations.indexOf(item);
-			trace(invitationIndex);
-			if (invitationIndex < 0)
-				throw 'Denna ansökan verkar inte finnas i inbjudningstabellen';
-
-			var newItem:GroupApplication = {
-				groupname: item.groupname,
-				username: item.username,
-				status: newStatus
-			};
-
-			this.update(this.state.invitations[invitationIndex] = newItem);
-			trace(this.state.invitations);
-			this.save();
-		} catch (e:Dynamic) {
-			Browser.alert(e);
-		}
+	public function sendEmailMessage(mess:EmailMessage) {
+		trace(this.state.messages.length);
+		this.update(this.state.messages = this.state.messages.push(mess));
+		trace(this.state.messages.length);
+		this.save();
 	}
 
 	/**
@@ -373,6 +407,10 @@ class AppStore extends DeepStateContainer<AppState> {
 		return this.state.users.filter(user -> user.username == username).length == 1;
 	}
 
+	public function gotoPage(page:Page) {
+		this.update(this.state.page = page);
+	}
+
 	/**
 	 * Nollställ local-storage-databasen till default-värden
 	 */
@@ -383,9 +421,10 @@ class AppStore extends DeepStateContainer<AppState> {
 			userId: null,
 			users: cast Default.users(),
 			groups: cast Default.groups(),
-			applications: cast Default.applications(),
-			invitations: cast Default.invitations(),
+			// applications: cast Default.applications(),
+			// invitations: cast Default.invitations(),
 			songs: cast Default.songs(),
+			messages: cast Default.messages(),
 		}, 'do reset');
 		this.save();
 	}
