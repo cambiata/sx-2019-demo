@@ -6,8 +6,6 @@ import data.AppStore;
 import view.*;
 
 class MenuView extends AppBaseView {
-	static var showOverlay:Bool;
-
 	public function view()
 		[
 			m('span.button', {
@@ -24,23 +22,22 @@ class MenuView extends AppBaseView {
 				onclick: e -> {
 					this.store.gotoPage(Page.Email);
 				}
-			}, 'Email'),
+			}, 'E-post'),
 			m('span.button', {
 				onclick: e -> {
-					this.store.gotoPage(Page.Other);
+					this.store.update(this.store.state.showOverlay = !this.store.state.showOverlay);
 				}
-			}, 'Other'),
+			}, 'Spelare'),
 			m('span.button', {
 				onclick: e -> {
 					this.store.resetToDefaultData();
 					this.store.gotoPage(Page.Home);
 				}
-			}, 'Reset'),
-			m('span.button', {
-				onclick: e -> {
-					showOverlay = !showOverlay;
-					this.store.update(this.store.state.overlay = showOverlay ? [SongList(null)] : null);
-				}
-			}, 'Ovl'),
+			}, 'Nollstäl demo'),
+			// m('span.button', {
+			// 	onclick: e -> {
+			// 		this.store.gotoPage(Page.Other);
+			// 	}
+			// }, 'Other'),
 		];
 }

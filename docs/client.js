@@ -11,15 +11,15 @@ var Client = function() { };
 $hxClasses["Client"] = Client;
 Client.__name__ = true;
 Client.main = function() {
-	var store = new data_AppStore(new DeepState_$data_$AppState({ userId : null, users : null, groups : null, songs : null, messages : null, page : data_Page.Home, overlay : null}));
+	var store = new data_AppStore(new DeepState_$data_$AppState({ userId : null, users : null, groups : null, messages : null, page : data_Page.Home, showOverlay : false}));
 	store.load();
 	store.subscribeObserver(ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([""]),function(state) {
 		m.redraw();
 		return;
 	}),store.get_state());
-	store.subscribeObserver(ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["overlay"]),function(overlay) {
+	store.subscribeObserver(ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["showOverlay"]),function(showOverlay) {
 		var body = window.document.querySelector("body");
-		if(overlay == null || ds__$ImmutableArray_ImmutableArray_$Impl_$.array(overlay) == []) {
+		if(showOverlay == null || showOverlay == false) {
 			body.classList.add("hide-overlay");
 			body.classList.add("webkit-scrolling");
 		} else {
@@ -264,96 +264,6 @@ ds_gen_DeepState.prototype = {
 		return dispatch(action);
 	}
 	,__class__: ds_gen_DeepState
-};
-var haxe_IMap = function() { };
-$hxClasses["haxe.IMap"] = haxe_IMap;
-haxe_IMap.__name__ = true;
-haxe_IMap.prototype = {
-	__class__: haxe_IMap
-};
-var haxe_ds_StringMap = function() {
-	this.h = { };
-};
-$hxClasses["haxe.ds.StringMap"] = haxe_ds_StringMap;
-haxe_ds_StringMap.__name__ = true;
-haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
-haxe_ds_StringMap.prototype = {
-	set: function(key,value) {
-		if(__map_reserved[key] != null) {
-			this.setReserved(key,value);
-		} else {
-			this.h[key] = value;
-		}
-	}
-	,get: function(key) {
-		if(__map_reserved[key] != null) {
-			return this.getReserved(key);
-		}
-		return this.h[key];
-	}
-	,setReserved: function(key,value) {
-		if(this.rh == null) {
-			this.rh = { };
-		}
-		this.rh["$" + key] = value;
-	}
-	,getReserved: function(key) {
-		if(this.rh == null) {
-			return null;
-		} else {
-			return this.rh["$" + key];
-		}
-	}
-	,remove: function(key) {
-		if(__map_reserved[key] != null) {
-			key = "$" + key;
-			if(this.rh == null || !this.rh.hasOwnProperty(key)) {
-				return false;
-			}
-			delete(this.rh[key]);
-			return true;
-		} else {
-			if(!this.h.hasOwnProperty(key)) {
-				return false;
-			}
-			delete(this.h[key]);
-			return true;
-		}
-	}
-	,keys: function() {
-		return HxOverrides.iter(this.arrayKeys());
-	}
-	,arrayKeys: function() {
-		var out = [];
-		for( var key in this.h ) {
-		if(this.h.hasOwnProperty(key)) {
-			out.push(key);
-		}
-		}
-		if(this.rh != null) {
-			for( var key in this.rh ) {
-			if(key.charCodeAt(0) == 36) {
-				out.push(key.substr(1));
-			}
-			}
-		}
-		return out;
-	}
-	,copy: function() {
-		var copied = new haxe_ds_StringMap();
-		var key = this.keys();
-		while(key.hasNext()) {
-			var key1 = key.next();
-			var value = __map_reserved[key1] != null ? this.getReserved(key1) : this.h[key1];
-			if(__map_reserved[key1] != null) {
-				copied.setReserved(key1,value);
-			} else {
-				copied.h[key1] = value;
-			}
-		}
-		return copied;
-	}
-	,__class__: haxe_ds_StringMap
 };
 var ds_StateObjectType = $hxEnums["ds.StateObjectType"] = { __ename__ : true, __constructs__ : ["Bool","String","Int","Int32","Int64","Float","Date","Enumm","ImmutableList","ImmutableJson","Recursive","Anonymous","Instance","Array","Map"]
 	,Bool: {_hx_index:0,__enum__:"ds.StateObjectType",toString:$estr}
@@ -1111,8 +1021,8 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 	,tryLogin: function(tryUsername,tryPassword) {
 		var _gthis = this;
 		try {
-			console.log("src/data/AppStore.hx:115:",tryUsername);
-			console.log("src/data/AppStore.hx:116:",this.get_state().users.length);
+			console.log("src/data/AppStore.hx:111:",tryUsername);
+			console.log("src/data/AppStore.hx:112:",this.get_state().users.length);
 			var foundUser;
 			var _g = ds__$ImmutableArray_ImmutableArray_$Impl_$.first(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().users,function(u) {
 				return u.username == tryUsername;
@@ -1140,9 +1050,6 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 		this.save();
 		this.gotoPage(data_Page.Home);
 	}
-	,addSong: function(title) {
-		this.updateState({ type : "AppStore.addSong", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("songs")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.push(this.get_state().songs,{ title : title, category : data_SongCategory.Free, producer : data_SongProducer.Korakademin})}])});
-	}
 	,getUser: function(findUsername) {
 		if(findUsername == null) {
 			findUsername = this.get_state().userId;
@@ -1166,16 +1073,6 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 			return null;
 		}
 	}
-	,getSong: function(findSongtitle) {
-		var _g = ds__$ImmutableArray_ImmutableArray_$Impl_$.first(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().songs,function(song) {
-			return song.title.toLowerCase() == findSongtitle.toLowerCase();
-		}));
-		if(_g._hx_index == 0) {
-			return _g.v;
-		} else {
-			return null;
-		}
-	}
 	,handleMessageClicks: function(mess) {
 		var _gthis = this;
 		try {
@@ -1183,6 +1080,9 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 			switch(_g._hx_index) {
 			case 0:
 				var email = _g.email;
+				if(this.userExists(email)) {
+					throw new js__$Boot_HaxeError("Användaren " + email + " finns redan!");
+				}
 				this.addUser({ username : email, password : _g.pass, firstname : _g.firstname, lastname : _g.lastname, sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])});
 				js_Browser.alert("Kontot har skapats och ett bekräftelsemejl skickas till användaren.");
 				this.sendEmailMessage({ to : email, from : "admin@scorx.org", type : data_EmailType.AfterUserActivationSuccess});
@@ -1198,7 +1098,9 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 				if(group == null) {
 					throw new js__$Boot_HaxeError("Gruppen " + groupname + " finns inte");
 				}
-				this.addUser({ username : email1, password : _g.pass, firstname : _g.firstname, lastname : _g.lastname, sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])});
+				var newUser = { username : email1, password : _g.pass, firstname : _g.firstname, lastname : _g.lastname, sensus : false, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])};
+				js_Browser.alert("Nytt konto skapas och kopplas till aktuella gruppen");
+				this.addUser(newUser);
 				this.addGroupMember(email1,groupname);
 				js_Browser.alert("Bekräftelsemejl om att konto skapats skickas till användaren");
 				this.sendEmailMessage({ to : email1, from : "admin@scorx.org", type : data_EmailType.AfterUserActivationSuccess});
@@ -1211,8 +1113,6 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 				});
 				break;
 			case 4:
-				this.gotoPage(data_Page.Home);
-				js_Browser.alert("Användaren har klickat på sitt Välkommen-meddelande.");
 				break;
 			case 5:
 				break;
@@ -1222,9 +1122,9 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 		}
 	}
 	,sendEmailMessage: function(mess) {
-		console.log("src/data/AppStore.hx:426:",this.get_state().messages.length);
+		console.log("src/data/AppStore.hx:427:",this.get_state().messages.length);
 		this.updateState({ type : "AppStore.sendEmailMessage", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("messages")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.push(this.get_state().messages,mess)}])});
-		console.log("src/data/AppStore.hx:428:",this.get_state().messages.length);
+		console.log("src/data/AppStore.hx:429:",this.get_state().messages.length);
 		this.save();
 	}
 	,isGroupMember: function(username,groupname) {
@@ -1250,9 +1150,9 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 			}
 			var groupIndex = ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(this.get_state().groups,group);
 			var members = this.get_state().groups[groupIndex].members;
-			console.log("src/data/AppStore.hx:459:",members);
+			console.log("src/data/AppStore.hx:460:",members);
 			members = ds__$ImmutableArray_ImmutableArray_$Impl_$.push(members,user.username);
-			console.log("src/data/AppStore.hx:461:",members);
+			console.log("src/data/AppStore.hx:462:",members);
 			this.updateState({ type : "AppStore.addGroupMember", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("groups"),ds_PathAccess.Array(groupIndex),ds_PathAccess.Field("members")]), value : members}])});
 			this.save();
 		} catch( e ) {
@@ -1273,8 +1173,8 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 		this.updateState({ type : "AppStore.gotoPage", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("page")]), value : page}])});
 	}
 	,resetToDefaultData: function() {
-		console.log("src/data/AppStore.hx:489:","Reset data");
-		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { userId : null, users : data_Default.users(), groups : data_Default.groups(), songs : data_Default.songs(), messages : data_Default.messages(), page : data_Page.Home, overlay : null}}])});
+		console.log("src/data/AppStore.hx:490:","Reset data");
+		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { userId : null, users : data_Default.users(), groups : data_Default.groups(), messages : data_Default.messages(), page : data_Page.Home, showOverlay : false}}])});
 		this.save();
 	}
 	,__class__: data_AppStore
@@ -1289,22 +1189,6 @@ var data_GroupApplicationStatus = $hxEnums["data.GroupApplicationStatus"] = { __
 	,Start: {_hx_index:0,__enum__:"data.GroupApplicationStatus",toString:$estr}
 	,Pending: {_hx_index:1,__enum__:"data.GroupApplicationStatus",toString:$estr}
 	,Rejected: {_hx_index:2,__enum__:"data.GroupApplicationStatus",toString:$estr}
-};
-var data_SongCategory = $hxEnums["data.SongCategory"] = { __ename__ : true, __constructs__ : ["Free","Protected","Commercial"]
-	,Free: {_hx_index:0,__enum__:"data.SongCategory",toString:$estr}
-	,Protected: {_hx_index:1,__enum__:"data.SongCategory",toString:$estr}
-	,Commercial: {_hx_index:2,__enum__:"data.SongCategory",toString:$estr}
-};
-var data_SongProducer = $hxEnums["data.SongProducer"] = { __ename__ : true, __constructs__ : ["Korakademin","Other"]
-	,Korakademin: {_hx_index:0,__enum__:"data.SongProducer",toString:$estr}
-	,Other: {_hx_index:1,__enum__:"data.SongProducer",toString:$estr}
-};
-var data_SongFilter = $hxEnums["data.SongFilter"] = { __ename__ : true, __constructs__ : ["Search","Category","Producer","Group","LimitNumber"]
-	,Search: ($_=function(str) { return {_hx_index:0,str:str,__enum__:"data.SongFilter",toString:$estr}; },$_.__params__ = ["str"],$_)
-	,Category: ($_=function(cat) { return {_hx_index:1,cat:cat,__enum__:"data.SongFilter",toString:$estr}; },$_.__params__ = ["cat"],$_)
-	,Producer: ($_=function(prod) { return {_hx_index:2,prod:prod,__enum__:"data.SongFilter",toString:$estr}; },$_.__params__ = ["prod"],$_)
-	,Group: ($_=function(groupname) { return {_hx_index:3,groupname:groupname,__enum__:"data.SongFilter",toString:$estr}; },$_.__params__ = ["groupname"],$_)
-	,LimitNumber: ($_=function(max) { return {_hx_index:4,max:max,__enum__:"data.SongFilter",toString:$estr}; },$_.__params__ = ["max"],$_)
 };
 var data_ScorxFilter = $hxEnums["data.ScorxFilter"] = { __ename__ : true, __constructs__ : ["SelectProductIds","LicenseHolder","LimitNumber"]
 	,SelectProductIds: ($_=function(ids) { return {_hx_index:0,ids:ids,__enum__:"data.ScorxFilter",toString:$estr}; },$_.__params__ = ["ids"],$_)
@@ -1337,9 +1221,6 @@ var data_EmailType = $hxEnums["data.EmailType"] = { __ename__ : true, __construc
 	,AfterUserActivationSuccess: {_hx_index:4,__enum__:"data.EmailType",toString:$estr}
 	,SimpleMessage: ($_=function(title,text) { return {_hx_index:5,title:title,text:text,__enum__:"data.EmailType",toString:$estr}; },$_.__params__ = ["title","text"],$_)
 };
-var data_OverlayPage = $hxEnums["data.OverlayPage"] = { __ename__ : true, __constructs__ : ["SongList"]
-	,SongList: ($_=function(filter) { return {_hx_index:0,filter:filter,__enum__:"data.OverlayPage",toString:$estr}; },$_.__params__ = ["filter"],$_)
-};
 var data_Default = function() { };
 $hxClasses["data.Default"] = data_Default;
 data_Default.__name__ = true;
@@ -1355,11 +1236,8 @@ data_Default.invitations = function() {
 data_Default.groups = function() {
 	return [{ name : "Örkelhåla kyrkokör", info : "Soli deo gloria. Plus vår körledare.", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["orkel1@orkel.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["adam@adam.se","orkel1@orkel.se","orkel2@orkel.se","orkel3@orkel.se"]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([56,397,58,59,1357,975,2405])},{ name : "Bromölla Bandidos", info : "Vi sjunger - ni pröjsar!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([1993,1377,639])},{ name : "Lingonbergens sångfåglar", info : "Vi trallar så glatt! Vill du va me?", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([2096,250,63,2315])},{ name : "Avunda Kyrkokör", info : "Ju mer förr, desto bättre!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["avledare@kor.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([1784,1778,1780,2467,64,1288,598])},{ name : "Nya kören, Hässleholm", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Nya kören, Hallandsåsen", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), sensus : true, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
 };
-data_Default.songs = function() {
-	return [{ title : "Ave veum corpus", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Köptitel titel", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Gratis01", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis02", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis03", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis04", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis05", category : data_SongCategory.Free, producer : data_SongProducer.Korakademin},{ title : "Gratis06", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis07", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis08", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis09", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis10", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Gratis11", category : data_SongCategory.Free, producer : data_SongProducer.Other},{ title : "Köptitel01", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel02", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel03", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel04", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel05", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel06", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel07", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Köptitel08", category : data_SongCategory.Commercial, producer : data_SongProducer.Other},{ title : "Sensus01", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus02", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus03", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus04", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin},{ title : "Sensus05", category : data_SongCategory.Commercial, producer : data_SongProducer.Korakademin}];
-};
 data_Default.messages = function() {
-	return [{ to : "new@new.se", from : "orkel1@orkel.se", type : data_EmailType.UserAccountActivation("new@new.se","pass12345","Nyamko","Neebie")},{ to : "adam@adam.se", from : "orkel1@orkel.se", type : data_EmailType.UserGroupjoinInfo("Örkelhåla")},{ to : "new@new.se", from : "orkel1@orkel.se", type : data_EmailType.UserAccountActivationAndGroupjoin("new@new.se","pass1234","Nyamko","Neebie","Nisselunda")},{ to : "adam@adam.se", from : "orkel1@orkel.se", type : data_EmailType.AdminGroupjoinInfo("adam@adam.se","Nisselunda")},{ to : "adam@adam.se", from : "beda@beda.se", type : data_EmailType.SimpleMessage("Hej snygging!","Ska vi ta en fika? :-) / Beda")}];
+	return [];
 };
 var ds_PathAccess = $hxEnums["ds.PathAccess"] = { __ename__ : true, __constructs__ : ["Field","Array","Map"]
 	,Field: ($_=function(name) { return {_hx_index:0,name:name,__enum__:"ds.PathAccess",toString:$estr}; },$_.__params__ = ["name"],$_)
@@ -1637,6 +1515,12 @@ ds_Subscription.prototype = {
 	}
 	,__class__: ds_Subscription
 };
+var haxe_IMap = function() { };
+$hxClasses["haxe.IMap"] = haxe_IMap;
+haxe_IMap.__name__ = true;
+haxe_IMap.prototype = {
+	__class__: haxe_IMap
+};
 var haxe_Timer = function(time_ms) {
 	var me = this;
 	this.id = setInterval(function() {
@@ -1695,6 +1579,90 @@ haxe_ds__$List_ListNode.prototype = {
 var haxe_ds_Option = $hxEnums["haxe.ds.Option"] = { __ename__ : true, __constructs__ : ["Some","None"]
 	,Some: ($_=function(v) { return {_hx_index:0,v:v,__enum__:"haxe.ds.Option",toString:$estr}; },$_.__params__ = ["v"],$_)
 	,None: {_hx_index:1,__enum__:"haxe.ds.Option",toString:$estr}
+};
+var haxe_ds_StringMap = function() {
+	this.h = { };
+};
+$hxClasses["haxe.ds.StringMap"] = haxe_ds_StringMap;
+haxe_ds_StringMap.__name__ = true;
+haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
+haxe_ds_StringMap.prototype = {
+	set: function(key,value) {
+		if(__map_reserved[key] != null) {
+			this.setReserved(key,value);
+		} else {
+			this.h[key] = value;
+		}
+	}
+	,get: function(key) {
+		if(__map_reserved[key] != null) {
+			return this.getReserved(key);
+		}
+		return this.h[key];
+	}
+	,setReserved: function(key,value) {
+		if(this.rh == null) {
+			this.rh = { };
+		}
+		this.rh["$" + key] = value;
+	}
+	,getReserved: function(key) {
+		if(this.rh == null) {
+			return null;
+		} else {
+			return this.rh["$" + key];
+		}
+	}
+	,remove: function(key) {
+		if(__map_reserved[key] != null) {
+			key = "$" + key;
+			if(this.rh == null || !this.rh.hasOwnProperty(key)) {
+				return false;
+			}
+			delete(this.rh[key]);
+			return true;
+		} else {
+			if(!this.h.hasOwnProperty(key)) {
+				return false;
+			}
+			delete(this.h[key]);
+			return true;
+		}
+	}
+	,keys: function() {
+		return HxOverrides.iter(this.arrayKeys());
+	}
+	,arrayKeys: function() {
+		var out = [];
+		for( var key in this.h ) {
+		if(this.h.hasOwnProperty(key)) {
+			out.push(key);
+		}
+		}
+		if(this.rh != null) {
+			for( var key in this.rh ) {
+			if(key.charCodeAt(0) == 36) {
+				out.push(key.substr(1));
+			}
+			}
+		}
+		return out;
+	}
+	,copy: function() {
+		var copied = new haxe_ds_StringMap();
+		var key = this.keys();
+		while(key.hasNext()) {
+			var key1 = key.next();
+			var value = __map_reserved[key1] != null ? this.getReserved(key1) : this.h[key1];
+			if(__map_reserved[key1] != null) {
+				copied.setReserved(key1,value);
+			} else {
+				copied.h[key1] = value;
+			}
+		}
+		return copied;
+	}
+	,__class__: haxe_ds_StringMap
 };
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
@@ -1974,7 +1942,7 @@ view_CreateUserView.prototype = $extend(view_AppBaseView.prototype,{
 				js_Browser.alert(((e5) instanceof js__$Boot_HaxeError) ? e5.val : e5);
 			}
 			return;
-		}},"Skapa användare")]),m.m("h2","Vill du ta del av Sensus förmånserbjudanden?"),m.m("div.createuserform",[m.m("p","(Detta är ett försök att hantera de fria Sensus-valen..!)"),m.m("p","Som sångare i Sensus-kör så får du ta del av förmånserbjudanden som exempelvis gratis tillgång av låtar som du själv väljer."),m.m("p","Du behöver ange ditt personnummer för att vi ska kunna säkerställa att du verkligen är en Sensus-sångare."),m.m("input[placeholder=Personnummer]"),m.m("div",[m.m("input[type=checkbox]"),m.m("span","Ja, jag sjunger i en Sensus-kör och vill ta del av förmånserbjudanden")])]),m.m("h2","Sök din kör"),m.m("div.createuserform",[m.m("p","Här kan du söka och hitta den kör eller grupp som du är medlem i. "),m.m("p","(Du kan också ange om du är ledare för gruppen i fråga. ???)")])]);
+		}},"Skapa användare")])]);
 	}
 	,__class__: view_CreateUserView
 });
@@ -1992,7 +1960,7 @@ view_EmailView.prototype = $extend(view_AppBaseView.prototype,{
 		if(this.store.get_state().userId == null) {
 			anonymousEmailView = [m.m("input",{ oninput : function(e) {
 				return view_EmailView.anonymousEmail = e.target.value;
-			}}),m.m("p","AE:" + view_EmailView.anonymousEmail)];
+			}})];
 		}
 		var currentEmail = this.store.getUser() != null ? this.store.getUser().username : view_EmailView.anonymousEmail;
 		var messages = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(this.store.get_state().messages);
@@ -2003,7 +1971,11 @@ view_EmailView.prototype = $extend(view_AppBaseView.prototype,{
 			return m.m("p",{ onclick : function(e1) {
 				return view_EmailView.anonymousEmail = mess1.to;
 			}, style : { cursor : "pointer"}},"to:" + mess1.to);
-		})]),m.m("div.emailRight",[m.m("h3","Inkorgen:" + currentEmail),userMessages.map(function(mess2) {
+		}),m.m("button",{ onclick : function(e2) {
+			_gthis.store.updateState({ type : "EmailView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("messages")]), value : []}])});
+			_gthis.store.save();
+			return;
+		}},"Rensa")]),m.m("div.emailRight",[m.m("h3","Inkorgen:" + currentEmail),userMessages.map(function(mess2) {
 			return _gthis.message(mess2);
 		})])]);
 	}
@@ -2052,11 +2024,11 @@ view_EmailView.prototype = $extend(view_AppBaseView.prototype,{
 				message = "Hej " + this.store.getUser(mess.to).firstname + "! En ny deltagare har nu anslutit sig till gruppen " + _g1.groupname + ", nämligen " + joinedUser.firstname + " " + joinedUser.lastname;
 				break;
 			case 3:
-				message = "Hej " + _g1.firstname + "! Du har bjudits in som medlem i ScorX-gruppen " + _g1.groupname + ". Eftersom du inte har någt ScorX-konto så kan skapas det ett sådant när du klickar på denna länk. Du loggar in med din e-postadress och lösenordet " + _g1.pass;
+				message = "Hej " + _g1.firstname + "! Du har bjudits in som medlem i ScorX-gruppen " + _g1.groupname + ". Eftersom du inte har någt ScorX-konto så skapas ett sådant när du klickar på denna länk. Du loggar in med din e-postadress och lösenordet " + _g1.pass;
 				break;
 			case 4:
 				var user = this.store.getUser(mess.to);
-				message = "Hej " + user.firstname + "! Ditt konto har nu skapats och du kan logga in med din e-postadress och lösenordet " + user.password;
+				message = "Hej " + user.firstname + "! Ditt konto har nu skapats och du kan logga in med din e-postadress " + user.username + " och lösenordet " + user.password;
 				break;
 			case 5:
 				message = _g1.text;
@@ -2102,8 +2074,6 @@ view_FooterView.prototype = $extend(view_AppBaseView.prototype,{
 					return;
 				}},username1);
 			}))]);
-		}))]),m.m("div",[m.m("p","Songs"),m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(this.store.get_state().songs,function(s) {
-			return m.m("li","" + s.title + " " + Std.string(s.category) + " " + Std.string(s.producer));
 		}))])];
 	}
 	,__class__: view_FooterView
@@ -2127,15 +2097,22 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 		return [this.buildCells([data_HomeCell.Image("assets/img/old-town.jpg"),data_HomeCell.Title("Sjung och spela var du vill"),data_HomeCell.Info("ScorX spelare funkar både för mobil och surfplatta!")]),this.buildCells([data_HomeCell.Image("assets/img/happy.jpg"),data_HomeCell.Title("Pröva ScorX gratis!"),data_HomeCell.Info("Klicka på valfri titel i listan nedan, lyssna och sjung med!"),data_HomeCell.Songlist("Gratislåtar",data_KorakademinScorxItems.items(),[data_ScorxFilter.LicenseHolder("Upphovsrättsfri"),data_ScorxFilter.LimitNumber(5)])])];
 	}
 	,userView: function() {
-		return [this.choirMemberView(),this.choirAdminView(),this.mySongsView()];
+		return [this.choirAdminView(),this.choirMemberView(),this.mySongsView()];
 	}
 	,choirMemberView: function() {
 		var _gthis = this;
 		var user = this.store.getUser();
-		var groupLists = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().groups,function(group) {
+		var groups = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.store.get_state().groups,function(group) {
 			return ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(group.members,user.username) > -1;
-		})).map(function(group1) {
-			var groupLists1 = data_HomeCell.Songlist(group1.name,data_KorakademinScorxItems.items(),[data_ScorxFilter.SelectProductIds(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(group1.songs)),data_ScorxFilter.LimitNumber(5)]);
+		}));
+		groups = groups.filter(function(group1) {
+			console.log("src/view/HomeView.hx:56:","kolla gruppen " + group1.name);
+			console.log("src/view/HomeView.hx:57:","user " + user.username);
+			console.log("src/view/HomeView.hx:58:","admins " + Std.string(group1.admins));
+			return ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(group1.admins,user.username) <= -1;
+		});
+		var groupLists = groups.map(function(group2) {
+			var groupLists1 = data_HomeCell.Songlist(group2.name,data_KorakademinScorxItems.items(),[data_ScorxFilter.SelectProductIds(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(group2.songs)),data_ScorxFilter.LimitNumber(5)]);
 			return _gthis.buildCells([groupLists1]);
 		});
 		return m.m("div.center",[this.buildCells([data_HomeCell.Title("Körernas låtar"),data_HomeCell.Info(groupLists.length > 0 ? "Här visas de låtar som delats ut till dig av dina körer." : "Du verkar inte vara deltagare i någon kör eller grupp i ScorX.")]),groupLists,groupLists.length == 0 ? this.buildCells([data_HomeCell.SearchChoir]) : null]);
@@ -2170,7 +2147,7 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 			case 2:
 				return m.m("p.limit-width.center",cell.info);
 			case 4:
-				return new view_SongListView(_gthis.store,cell.title,cell.songs,cell.filter).view();
+				return m.m("div.center",new view_SongListView(_gthis.store,cell.title,cell.songs,cell.filter).view());
 			case 5:
 				return new view_SearchGroupView(_gthis.store,"Skriv körens namn i listan för att hitta din kör. Klicka därefter på körens namn för att ansluta dig till gruppen.",function(group) {
 					_gthis.store.addGroupMember(_gthis.store.get_state().userId,group.name);
@@ -2191,7 +2168,7 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 				return _gthis.detailsSummary("Bjud in medlemmar",tmp1);
 			case 8:
 				return m.m("div.center",[m.m("button.center",{ onclick : function(e) {
-					console.log("src/view/HomeView.hx:131:","Click");
+					console.log("src/view/HomeView.hx:141:","Click");
 					return;
 				}},"Gå till butiken")]);
 			default:
@@ -2277,23 +2254,24 @@ view_LeaderInviteUsers.prototype = $extend(view_AppBaseView.prototype,{
 				})(email1)},"Ta bort")]));
 			}
 			tmp2 = [_g,m.m("button",{ onclick : function(e6) {
-				var i1 = 0;
-				var _g1 = [];
-				var x2 = $getIterator(view_LeaderInviteUsers.iviteUsernames);
-				while(x2.hasNext()) {
-					var x3 = x2.next();
-					var index3 = i1++;
-					try {
-						if(!finns(x3)) {
-							cx_Validation.validateAsFirstname(view_LeaderInviteUsers.inviteFirstnames[index3]);
-							cx_Validation.validateAsLastname(view_LeaderInviteUsers.inviteLastnames[index3]);
-						}
-					} catch( e7 ) {
-						js_Browser.alert("Fel gällande " + x3 + ": " + Std.string(((e7) instanceof js__$Boot_HaxeError) ? e7.val : e7));
-					}
-					_g1.push(null);
-				}
 				try {
+					var i1 = 0;
+					var _g1 = [];
+					var x2 = $getIterator(view_LeaderInviteUsers.iviteUsernames);
+					while(x2.hasNext()) {
+						var x3 = x2.next();
+						var index3 = i1++;
+						try {
+							if(!finns(x3)) {
+								cx_Validation.validateAsFirstname(view_LeaderInviteUsers.inviteFirstnames[index3]);
+								cx_Validation.validateAsLastname(view_LeaderInviteUsers.inviteLastnames[index3]);
+							}
+						} catch( e7 ) {
+							js_Browser.alert("Fel gällande " + x3 + ": " + Std.string(((e7) instanceof js__$Boot_HaxeError) ? e7.val : e7));
+							throw new js__$Boot_HaxeError("Korrigera!");
+						}
+						_g1.push(null);
+					}
 					var i2 = 0;
 					var _g2 = [];
 					var x4 = $getIterator(view_LeaderInviteUsers.iviteUsernames);
@@ -2301,11 +2279,9 @@ view_LeaderInviteUsers.prototype = $extend(view_AppBaseView.prototype,{
 						var x5 = x4.next();
 						var index4 = i2++;
 						if(finns(x5)) {
-							js_Browser.alert("Finns " + x5);
 							_gthis.store.addGroupMember(x5,_gthis.group.name);
 							_gthis.store.sendEmailMessage({ to : x5, from : _gthis.store.get_state().userId, type : data_EmailType.UserGroupjoinInfo(_gthis.group.name)});
 						} else {
-							js_Browser.alert("Finns inte " + x5);
 							var firstname = view_LeaderInviteUsers.inviteFirstnames[index4];
 							var lastname = view_LeaderInviteUsers.inviteLastnames[index4];
 							var randomPassword = "slump" + (100 + Math.floor(900 * Math.random()));
@@ -2344,18 +2320,14 @@ view_MenuView.prototype = $extend(view_AppBaseView.prototype,{
 		}},"Skapa konto"),m.m("span.button",{ onclick : function(e2) {
 			_gthis.store.gotoPage(data_Page.Email);
 			return;
-		}},"Email"),m.m("span.button",{ onclick : function(e3) {
-			_gthis.store.gotoPage(data_Page.Other);
+		}},"E-post"),m.m("span.button",{ onclick : function(e3) {
+			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("showOverlay")]), value : !_gthis.store.get_state().showOverlay}])});
 			return;
-		}},"Other"),m.m("span.button",{ onclick : function(e4) {
+		}},"Spelare"),m.m("span.button",{ onclick : function(e4) {
 			_gthis.store.resetToDefaultData();
 			_gthis.store.gotoPage(data_Page.Home);
 			return;
-		}},"Reset"),m.m("span.button",{ onclick : function(e5) {
-			view_MenuView.showOverlay = !view_MenuView.showOverlay;
-			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("overlay")]), value : view_MenuView.showOverlay ? [data_OverlayPage.SongList(null)] : null}])});
-			return;
-		}},"Ovl")];
+		}},"Nollstäl demo")];
 	}
 	,__class__: view_MenuView
 });
@@ -2586,7 +2558,6 @@ view_Userview.prototype = $extend(view_AppBaseView.prototype,{
 function $getIterator(o) { if( o instanceof Array ) return HxOverrides.iter(o); else return o.iterator(); }
 var $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = m.bind(o); o.hx__closures__[m.__id__] = f; } return f; }
-var __map_reserved = {};
 $hxClasses["Math"] = Math;
 String.prototype.__class__ = $hxClasses["String"] = String;
 String.__name__ = true;
@@ -2598,6 +2569,7 @@ var Float = Number;
 var Bool = Boolean;
 var Class = { };
 var Enum = { };
+var __map_reserved = {};
 Object.defineProperty(js__$Boot_HaxeError.prototype,"message",{ get : function() {
 	return String(this.val);
 }});
@@ -2635,7 +2607,7 @@ var __varName1 = global.m;
 } catch(_) {}
 DeepState_$data_$AppState._stateTypes = (function($this) {
 	var $r;
-	var _g9 = new haxe_ds_StringMap();
+	var _g7 = new haxe_ds_StringMap();
 	{
 		var _g = new haxe_ds_StringMap();
 		var value = ds_StateObjectType.String;
@@ -2676,274 +2648,222 @@ DeepState_$data_$AppState._stateTypes = (function($this) {
 		}
 		var value6 = ds_StateObjectType.Anonymous(_g);
 		if(__map_reserved["data.User"] != null) {
-			_g9.setReserved("data.User",value6);
+			_g7.setReserved("data.User",value6);
 		} else {
-			_g9.h["data.User"] = value6;
+			_g7.h["data.User"] = value6;
 		}
 	}
 	{
 		var _g1 = new haxe_ds_StringMap();
-		var value7 = ds_StateObjectType.String;
-		if(__map_reserved["title"] != null) {
-			_g1.setReserved("title",value7);
+		var value7 = ds_StateObjectType.Array(ds_StateObjectType.Int);
+		if(__map_reserved["songs"] != null) {
+			_g1.setReserved("songs",value7);
 		} else {
-			_g1.h["title"] = value7;
+			_g1.h["songs"] = value7;
 		}
-		var value8 = ds_StateObjectType.Recursive("data.SongProducer");
-		if(__map_reserved["producer"] != null) {
-			_g1.setReserved("producer",value8);
+		var value8 = ds_StateObjectType.Bool;
+		if(__map_reserved["sensus"] != null) {
+			_g1.setReserved("sensus",value8);
 		} else {
-			_g1.h["producer"] = value8;
+			_g1.h["sensus"] = value8;
 		}
-		var value9 = ds_StateObjectType.Recursive("data.SongCategory");
-		if(__map_reserved["category"] != null) {
-			_g1.setReserved("category",value9);
+		var value9 = ds_StateObjectType.String;
+		if(__map_reserved["name"] != null) {
+			_g1.setReserved("name",value9);
 		} else {
-			_g1.h["category"] = value9;
+			_g1.h["name"] = value9;
 		}
-		var value10 = ds_StateObjectType.Anonymous(_g1);
-		if(__map_reserved["data.Song"] != null) {
-			_g9.setReserved("data.Song",value10);
+		var value10 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		if(__map_reserved["members"] != null) {
+			_g1.setReserved("members",value10);
 		} else {
-			_g9.h["data.Song"] = value10;
+			_g1.h["members"] = value10;
+		}
+		var value11 = ds_StateObjectType.String;
+		if(__map_reserved["info"] != null) {
+			_g1.setReserved("info",value11);
+		} else {
+			_g1.h["info"] = value11;
+		}
+		var value12 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		if(__map_reserved["admins"] != null) {
+			_g1.setReserved("admins",value12);
+		} else {
+			_g1.h["admins"] = value12;
+		}
+		var value13 = ds_StateObjectType.Anonymous(_g1);
+		if(__map_reserved["data.Group"] != null) {
+			_g7.setReserved("data.Group",value13);
+		} else {
+			_g7.h["data.Group"] = value13;
 		}
 	}
 	{
 		var _g2 = new haxe_ds_StringMap();
-		var value11 = ds_StateObjectType.Array(ds_StateObjectType.Int);
-		if(__map_reserved["songs"] != null) {
-			_g2.setReserved("songs",value11);
+		var value14 = ds_StateObjectType.Enumm;
+		if(__map_reserved["type"] != null) {
+			_g2.setReserved("type",value14);
 		} else {
-			_g2.h["songs"] = value11;
-		}
-		var value12 = ds_StateObjectType.Bool;
-		if(__map_reserved["sensus"] != null) {
-			_g2.setReserved("sensus",value12);
-		} else {
-			_g2.h["sensus"] = value12;
-		}
-		var value13 = ds_StateObjectType.String;
-		if(__map_reserved["name"] != null) {
-			_g2.setReserved("name",value13);
-		} else {
-			_g2.h["name"] = value13;
-		}
-		var value14 = ds_StateObjectType.Array(ds_StateObjectType.String);
-		if(__map_reserved["members"] != null) {
-			_g2.setReserved("members",value14);
-		} else {
-			_g2.h["members"] = value14;
+			_g2.h["type"] = value14;
 		}
 		var value15 = ds_StateObjectType.String;
-		if(__map_reserved["info"] != null) {
-			_g2.setReserved("info",value15);
+		if(__map_reserved["to"] != null) {
+			_g2.setReserved("to",value15);
 		} else {
-			_g2.h["info"] = value15;
+			_g2.h["to"] = value15;
 		}
-		var value16 = ds_StateObjectType.Array(ds_StateObjectType.String);
-		if(__map_reserved["admins"] != null) {
-			_g2.setReserved("admins",value16);
+		var value16 = ds_StateObjectType.String;
+		if(__map_reserved["from"] != null) {
+			_g2.setReserved("from",value16);
 		} else {
-			_g2.h["admins"] = value16;
+			_g2.h["from"] = value16;
 		}
 		var value17 = ds_StateObjectType.Anonymous(_g2);
-		if(__map_reserved["data.Group"] != null) {
-			_g9.setReserved("data.Group",value17);
-		} else {
-			_g9.h["data.Group"] = value17;
-		}
-	}
-	{
-		var _g3 = new haxe_ds_StringMap();
-		var value18 = ds_StateObjectType.Enumm;
-		if(__map_reserved["type"] != null) {
-			_g3.setReserved("type",value18);
-		} else {
-			_g3.h["type"] = value18;
-		}
-		var value19 = ds_StateObjectType.String;
-		if(__map_reserved["to"] != null) {
-			_g3.setReserved("to",value19);
-		} else {
-			_g3.h["to"] = value19;
-		}
-		var value20 = ds_StateObjectType.String;
-		if(__map_reserved["from"] != null) {
-			_g3.setReserved("from",value20);
-		} else {
-			_g3.h["from"] = value20;
-		}
-		var value21 = ds_StateObjectType.Anonymous(_g3);
 		if(__map_reserved["data.EmailMessage"] != null) {
-			_g9.setReserved("data.EmailMessage",value21);
+			_g7.setReserved("data.EmailMessage",value17);
 		} else {
-			_g9.h["data.EmailMessage"] = value21;
+			_g7.h["data.EmailMessage"] = value17;
 		}
 	}
 	{
-		var _g8 = new haxe_ds_StringMap();
-		var _g4 = new haxe_ds_StringMap();
-		var value22 = ds_StateObjectType.String;
+		var _g6 = new haxe_ds_StringMap();
+		var _g3 = new haxe_ds_StringMap();
+		var value18 = ds_StateObjectType.String;
 		if(__map_reserved["username"] != null) {
-			_g4.setReserved("username",value22);
+			_g3.setReserved("username",value18);
 		} else {
-			_g4.h["username"] = value22;
+			_g3.h["username"] = value18;
 		}
-		var value23 = ds_StateObjectType.Array(ds_StateObjectType.Int);
+		var value19 = ds_StateObjectType.Array(ds_StateObjectType.Int);
 		if(__map_reserved["songs"] != null) {
-			_g4.setReserved("songs",value23);
+			_g3.setReserved("songs",value19);
 		} else {
-			_g4.h["songs"] = value23;
+			_g3.h["songs"] = value19;
 		}
-		var value24 = ds_StateObjectType.Bool;
+		var value20 = ds_StateObjectType.Bool;
 		if(__map_reserved["sensus"] != null) {
-			_g4.setReserved("sensus",value24);
+			_g3.setReserved("sensus",value20);
 		} else {
-			_g4.h["sensus"] = value24;
+			_g3.h["sensus"] = value20;
+		}
+		var value21 = ds_StateObjectType.String;
+		if(__map_reserved["password"] != null) {
+			_g3.setReserved("password",value21);
+		} else {
+			_g3.h["password"] = value21;
+		}
+		var value22 = ds_StateObjectType.String;
+		if(__map_reserved["lastname"] != null) {
+			_g3.setReserved("lastname",value22);
+		} else {
+			_g3.h["lastname"] = value22;
+		}
+		var value23 = ds_StateObjectType.String;
+		if(__map_reserved["firstname"] != null) {
+			_g3.setReserved("firstname",value23);
+		} else {
+			_g3.h["firstname"] = value23;
+		}
+		var value24 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g3));
+		if(__map_reserved["users"] != null) {
+			_g6.setReserved("users",value24);
+		} else {
+			_g6.h["users"] = value24;
 		}
 		var value25 = ds_StateObjectType.String;
-		if(__map_reserved["password"] != null) {
-			_g4.setReserved("password",value25);
+		if(__map_reserved["userId"] != null) {
+			_g6.setReserved("userId",value25);
 		} else {
-			_g4.h["password"] = value25;
+			_g6.h["userId"] = value25;
 		}
-		var value26 = ds_StateObjectType.String;
-		if(__map_reserved["lastname"] != null) {
-			_g4.setReserved("lastname",value26);
+		var value26 = ds_StateObjectType.Bool;
+		if(__map_reserved["showOverlay"] != null) {
+			_g6.setReserved("showOverlay",value26);
 		} else {
-			_g4.h["lastname"] = value26;
+			_g6.h["showOverlay"] = value26;
 		}
-		var value27 = ds_StateObjectType.String;
-		if(__map_reserved["firstname"] != null) {
-			_g4.setReserved("firstname",value27);
+		var value27 = ds_StateObjectType.Enumm;
+		if(__map_reserved["page"] != null) {
+			_g6.setReserved("page",value27);
 		} else {
-			_g4.h["firstname"] = value27;
+			_g6.h["page"] = value27;
 		}
-		var value28 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g4));
-		if(__map_reserved["users"] != null) {
-			_g8.setReserved("users",value28);
+		var _g4 = new haxe_ds_StringMap();
+		var value28 = ds_StateObjectType.Enumm;
+		if(__map_reserved["type"] != null) {
+			_g4.setReserved("type",value28);
 		} else {
-			_g8.h["users"] = value28;
+			_g4.h["type"] = value28;
 		}
 		var value29 = ds_StateObjectType.String;
-		if(__map_reserved["userId"] != null) {
-			_g8.setReserved("userId",value29);
+		if(__map_reserved["to"] != null) {
+			_g4.setReserved("to",value29);
 		} else {
-			_g8.h["userId"] = value29;
+			_g4.h["to"] = value29;
+		}
+		var value30 = ds_StateObjectType.String;
+		if(__map_reserved["from"] != null) {
+			_g4.setReserved("from",value30);
+		} else {
+			_g4.h["from"] = value30;
+		}
+		var value31 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g4));
+		if(__map_reserved["messages"] != null) {
+			_g6.setReserved("messages",value31);
+		} else {
+			_g6.h["messages"] = value31;
 		}
 		var _g5 = new haxe_ds_StringMap();
-		var value30 = ds_StateObjectType.String;
-		if(__map_reserved["title"] != null) {
-			_g5.setReserved("title",value30);
-		} else {
-			_g5.h["title"] = value30;
-		}
-		var value31 = ds_StateObjectType.Recursive("data.SongProducer");
-		if(__map_reserved["producer"] != null) {
-			_g5.setReserved("producer",value31);
-		} else {
-			_g5.h["producer"] = value31;
-		}
-		var value32 = ds_StateObjectType.Recursive("data.SongCategory");
-		if(__map_reserved["category"] != null) {
-			_g5.setReserved("category",value32);
-		} else {
-			_g5.h["category"] = value32;
-		}
-		var value33 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g5));
+		var value32 = ds_StateObjectType.Array(ds_StateObjectType.Int);
 		if(__map_reserved["songs"] != null) {
-			_g8.setReserved("songs",value33);
+			_g5.setReserved("songs",value32);
 		} else {
-			_g8.h["songs"] = value33;
+			_g5.h["songs"] = value32;
 		}
-		var value34 = ds_StateObjectType.Enumm;
-		if(__map_reserved["page"] != null) {
-			_g8.setReserved("page",value34);
-		} else {
-			_g8.h["page"] = value34;
-		}
-		var value35 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
-		if(__map_reserved["overlay"] != null) {
-			_g8.setReserved("overlay",value35);
-		} else {
-			_g8.h["overlay"] = value35;
-		}
-		var _g6 = new haxe_ds_StringMap();
-		var value36 = ds_StateObjectType.Enumm;
-		if(__map_reserved["type"] != null) {
-			_g6.setReserved("type",value36);
-		} else {
-			_g6.h["type"] = value36;
-		}
-		var value37 = ds_StateObjectType.String;
-		if(__map_reserved["to"] != null) {
-			_g6.setReserved("to",value37);
-		} else {
-			_g6.h["to"] = value37;
-		}
-		var value38 = ds_StateObjectType.String;
-		if(__map_reserved["from"] != null) {
-			_g6.setReserved("from",value38);
-		} else {
-			_g6.h["from"] = value38;
-		}
-		var value39 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g6));
-		if(__map_reserved["messages"] != null) {
-			_g8.setReserved("messages",value39);
-		} else {
-			_g8.h["messages"] = value39;
-		}
-		var _g7 = new haxe_ds_StringMap();
-		var value40 = ds_StateObjectType.Array(ds_StateObjectType.Int);
-		if(__map_reserved["songs"] != null) {
-			_g7.setReserved("songs",value40);
-		} else {
-			_g7.h["songs"] = value40;
-		}
-		var value41 = ds_StateObjectType.Bool;
+		var value33 = ds_StateObjectType.Bool;
 		if(__map_reserved["sensus"] != null) {
-			_g7.setReserved("sensus",value41);
+			_g5.setReserved("sensus",value33);
 		} else {
-			_g7.h["sensus"] = value41;
+			_g5.h["sensus"] = value33;
 		}
-		var value42 = ds_StateObjectType.String;
+		var value34 = ds_StateObjectType.String;
 		if(__map_reserved["name"] != null) {
-			_g7.setReserved("name",value42);
+			_g5.setReserved("name",value34);
 		} else {
-			_g7.h["name"] = value42;
+			_g5.h["name"] = value34;
 		}
-		var value43 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		var value35 = ds_StateObjectType.Array(ds_StateObjectType.String);
 		if(__map_reserved["members"] != null) {
-			_g7.setReserved("members",value43);
+			_g5.setReserved("members",value35);
 		} else {
-			_g7.h["members"] = value43;
+			_g5.h["members"] = value35;
 		}
-		var value44 = ds_StateObjectType.String;
+		var value36 = ds_StateObjectType.String;
 		if(__map_reserved["info"] != null) {
-			_g7.setReserved("info",value44);
+			_g5.setReserved("info",value36);
 		} else {
-			_g7.h["info"] = value44;
+			_g5.h["info"] = value36;
 		}
-		var value45 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		var value37 = ds_StateObjectType.Array(ds_StateObjectType.String);
 		if(__map_reserved["admins"] != null) {
-			_g7.setReserved("admins",value45);
+			_g5.setReserved("admins",value37);
 		} else {
-			_g7.h["admins"] = value45;
+			_g5.h["admins"] = value37;
 		}
-		var value46 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g7));
+		var value38 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g5));
 		if(__map_reserved["groups"] != null) {
-			_g8.setReserved("groups",value46);
+			_g6.setReserved("groups",value38);
 		} else {
-			_g8.h["groups"] = value46;
+			_g6.h["groups"] = value38;
 		}
-		var value47 = ds_StateObjectType.Anonymous(_g8);
+		var value39 = ds_StateObjectType.Anonymous(_g6);
 		if(__map_reserved["data.AppState"] != null) {
-			_g9.setReserved("data.AppState",value47);
+			_g7.setReserved("data.AppState",value39);
 		} else {
-			_g9.h["data.AppState"] = value47;
+			_g7.h["data.AppState"] = value39;
 		}
 	}
-	$r = _g9;
+	$r = _g7;
 	return $r;
 }(this));
 cx_Validation.emailReg = new EReg("^[\\w-\\.]{2,}@[\\w-\\.]{2,}\\.[a-z]{2,6}$","i");

@@ -43,13 +43,23 @@ class HomeView extends AppBaseView {
 	 * Returnera vyer för inloggad användare
 	 */
 	function userView() {
-		return [choirMemberView(), choirAdminView(), mySongsView()];
+		return [choirAdminView(), choirMemberView(), mySongsView()];
 	}
 
 	function choirMemberView() {
 		var user:User = this.store.getUser();
 
 		var groups:Array<Group> = this.store.state.groups.filter(group -> group.members.indexOf(user.username) > -1);
+
+		// filtrera bort så att inte ledarna ser denna vy
+		groups = groups.filter(group -> {
+			trace('kolla gruppen ' + group.name);
+			trace('user ' + user.username);
+			trace('admins ' + group.admins);
+
+			!(group.admins.indexOf(user.username) > -1);
+		});
+
 		var groupLists = groups.map(group -> buildCells([
 			Songlist(group.name, KorakademinScorxItems.items(), [SelectProductIds(group.songs), LimitNumber(5)]),
 		]));
@@ -64,7 +74,6 @@ class HomeView extends AppBaseView {
 			groupLists.length == 0 ? buildCells([SearchChoir]) : null,
 
 			// new UserInvitationsView(this.store).view(),
-
 		]);
 	}
 
@@ -109,7 +118,8 @@ class HomeView extends AppBaseView {
 				case Image(url): m('img', {src: url});
 				case Title(title): m('h1.limit-width.center', title);
 				case Info(info): m('p.limit-width.center', info);
-				case Songlist(title, songs, filter): new SongListView(this.store, title, songs, filter).view();
+				case Songlist(title, songs, filter):
+					m('div.center', new SongListView(this.store, title, songs, filter).view());
 				case SearchChoir:
 					// skapa lista för eventuella gruppansökningar för inloggad användare
 					// cast [new UserApplicationsView(this.store).view(),];

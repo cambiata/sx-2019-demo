@@ -50,43 +50,40 @@ enum GroupApplicationStatus {
 	Rejected; // Ansökan är nekad av mottagaren
 }
 
-/**
- * ScorX-låt
- */
-typedef Song = {
-	final title:String;
-	final category:SongCategory;
-	final producer:SongProducer;
-}
-
-/**
- * Kategori för aktuell ScorX-låt
- */
-enum SongCategory {
-	Free;
-	Protected;
-	Commercial;
-}
-
-/**
- * Producent av aktuell ScorX-låt
- */
-enum SongProducer {
-	Korakademin;
-	Other;
-}
-
-/**
- * Filteralternativ för listning av ScorX-låtar
- * Kombineras på lämpligt stätt i Array<SongFilter>
- */
-enum SongFilter {
-	Search(str:String);
-	Category(cat:SongCategory);
-	Producer(prod:SongProducer);
-	Group(groupname:String);
-	LimitNumber(max:Int);
-}
+// /**
+//  * ScorX-låt
+//  */
+// typedef Song = {
+// 	final title:String;
+// 	final category:SongCategory;
+// 	final producer:SongProducer;
+// }
+// /**
+//  * Kategori för aktuell ScorX-låt
+//  */
+// enum SongCategory {
+// 	Free;
+// 	Protected;
+// 	Commercial;
+// }
+// /**
+//  * Producent av aktuell ScorX-låt
+//  */
+// enum SongProducer {
+// 	Korakademin;
+// 	Other;
+// }
+// /**
+//  * Filteralternativ för listning av ScorX-låtar
+//  * Kombineras på lämpligt stätt i Array<SongFilter>
+//  */
+// enum SongFilter {
+// 	Search(str:String);
+// 	Category(cat:SongCategory);
+// 	Producer(prod:SongProducer);
+// 	Group(groupname:String);
+// 	LimitNumber(max:Int);
+// }
 
 enum ScorxFilter {
 	SelectProductIds(ids:Array<Int>);
@@ -137,9 +134,9 @@ enum EmailType {
 	SimpleMessage(title:String, text:String);
 }
 
-enum OverlayPage {
-	SongList(filter:SongFilter);
-}
+// enum OverlayPage {
+// 	SongList(filter:ScorxFilter);
+// }
 
 /**
  * Defaultvärden så att vi har något att utgå ifrån
@@ -311,37 +308,16 @@ class Default {
 		];
 	}
 
-	static public function songs():Array<Song> {
-		return [
-			{title: 'Ave veum corpus', category: Free, producer: Korakademin}, {title: 'Köptitel titel', category: Commercial, producer: Other},
-
-			{title: 'Gratis01', category: Free, producer: Korakademin}, {title: 'Gratis02', category: Free, producer: Korakademin},
-			{title: 'Gratis03', category: Free, producer: Korakademin}, {title: 'Gratis04', category: Free, producer: Korakademin},
-			{title: 'Gratis05', category: Free, producer: Korakademin}, {title: 'Gratis06', category: Free, producer: Other},
-			{title: 'Gratis07', category: Free, producer: Other}, {title: 'Gratis08', category: Free, producer: Other},
-			{title: 'Gratis09', category: Free, producer: Other}, {title: 'Gratis10', category: Free, producer: Other},
-			{title: 'Gratis11', category: Free, producer: Other}, {title: 'Köptitel01', category: Commercial, producer: Other},
-
-			{title: 'Köptitel02', category: Commercial, producer: Other}, {title: 'Köptitel03', category: Commercial, producer: Other},
-			{title: 'Köptitel04', category: Commercial, producer: Other}, {title: 'Köptitel05', category: Commercial, producer: Other},
-			{title: 'Köptitel06', category: Commercial, producer: Other}, {title: 'Köptitel07', category: Commercial, producer: Other},
-			{title: 'Köptitel08', category: Commercial, producer: Other}, {title: 'Sensus01', category: Commercial, producer: Korakademin},
-			{title: 'Sensus02', category: Commercial, producer: Korakademin}, {title: 'Sensus03', category: Commercial, producer: Korakademin},
-			{title: 'Sensus04', category: Commercial, producer: Korakademin}, {title: 'Sensus05', category: Commercial, producer: Korakademin},
-		];
-	}
-
 	static public function messages() {
-		return [
-			{to: 'new@new.se', from: 'orkel1@orkel.se', type: EmailType.UserAccountActivation('new@new.se', 'pass12345', 'Nyamko', 'Neebie'),},
-			{to: 'adam@adam.se', from: 'orkel1@orkel.se', type: EmailType.UserGroupjoinInfo('Örkelhåla'),},
-			{
-				to: 'new@new.se',
-				from: 'orkel1@orkel.se',
-				type: EmailType.UserAccountActivationAndGroupjoin('new@new.se', 'pass1234', 'Nyamko', 'Neebie', 'Nisselunda'),
-			},
-			{to: 'adam@adam.se', from: 'orkel1@orkel.se', type: EmailType.AdminGroupjoinInfo('adam@adam.se', 'Nisselunda'),},
-			{to: 'adam@adam.se', from: 'beda@beda.se', type: EmailType.SimpleMessage('Hej snygging!', 'Ska vi ta en fika? :-) / Beda')},
+		return [ // {to: 'new@new.se', from: 'orkel1@orkel.se', type: EmailType.UserAccountActivation('new@new.se', 'pass12345', 'Nyamko', 'Neebie'),},
+			// {to: 'adam@adam.se', from: 'orkel1@orkel.se', type: EmailType.UserGroupjoinInfo('Örkelhåla'),},
+			// {
+			// 	to: 'new@new.se',
+			// 	from: 'orkel1@orkel.se',
+			// 	type: EmailType.UserAccountActivationAndGroupjoin('new@new.se', 'pass1234', 'Nyamko', 'Neebie', 'Nisselunda'),
+			// },
+			// {to: 'adam@adam.se', from: 'orkel1@orkel.se', type: EmailType.AdminGroupjoinInfo('adam@adam.se', 'Nisselunda'),},
+			// {to: 'adam@adam.se', from: 'beda@beda.se', type: EmailType.SimpleMessage('Hej snygging!', 'Ska vi ta en fika? :-) / Beda')},
 		];
 	}
 }

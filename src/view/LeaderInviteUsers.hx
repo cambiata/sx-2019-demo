@@ -98,22 +98,23 @@ class LeaderInviteUsers extends AppBaseView {
 				])),
 				m('button', {
 					onclick: e -> {
-						iviteUsernames.mapi((index, email) -> {
-							try {
-								if (!finns(email)) {
-									inviteFirstnames[index].validateAsFirstname();
-									inviteLastnames[index].validateAsLastname();
-								}
-							} catch (e:Dynamic) {
-								Browser.alert('Fel gällande $email: ' + e);
-							}
-							null;
-						});
-
 						try {
 							iviteUsernames.mapi((index, email) -> {
+								try {
+									if (!finns(email)) {
+										inviteFirstnames[index].validateAsFirstname();
+										inviteLastnames[index].validateAsLastname();
+									}
+								} catch (e:Dynamic) {
+									Browser.alert('Fel gällande $email: ' + e);
+									throw 'Korrigera!';
+								}
+								null;
+							});
+
+							iviteUsernames.mapi((index, email) -> {
 								if (finns(email)) {
-									Browser.alert('Finns $email');
+									// Browser.alert('Finns $email');
 									this.store.addGroupMember(email, this.group.name);
 									this.store.sendEmailMessage({
 										to: email,
@@ -121,7 +122,7 @@ class LeaderInviteUsers extends AppBaseView {
 										type: EmailType.UserGroupjoinInfo(this.group.name),
 									});
 								} else {
-									Browser.alert('Finns inte $email');
+									// Browser.alert('Finns inte $email');
 									var firstname = inviteFirstnames[index];
 									var lastname = inviteLastnames[index];
 									var randomPassword = 'slump' + Random.int(100, 999);

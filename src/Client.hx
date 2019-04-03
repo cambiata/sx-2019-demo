@@ -15,10 +15,10 @@ class Client {
 			userId: null,
 			users: null,
 			groups: null,
-			songs: null,
 			messages: null,
 			page: Home,
-			overlay: null,
+			showOverlay: false,
+			// overlay: null,
 		}));
 
 		/**
@@ -34,9 +34,9 @@ class Client {
 			M.redraw();
 		}, store.state);
 
-		store.subscribe(store.state.overlay, overlay -> {
+		store.subscribe(store.state.showOverlay, showOverlay -> {
 			var body = js.Browser.document.querySelector("body");
-			if (overlay == null || overlay == []) {
+			if (showOverlay == null || showOverlay == false) {
 				body.classList.add('hide-overlay');
 				body.classList.add('webkit-scrolling');
 			} else {

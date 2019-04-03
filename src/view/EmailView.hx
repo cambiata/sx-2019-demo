@@ -11,13 +11,11 @@ class EmailView extends AppBaseView {
 		var anonymousEmailView = null;
 
 		if (this.store.state.userId == null) {
-			anonymousEmailView = [
-				m('input', {
-					oninput: e -> {
-						anonymousEmail = e.target.value;
-					}
-				}),
-				m('p', 'AE:' + anonymousEmail),
+			anonymousEmailView = [m('input', {
+				oninput: e -> {
+					anonymousEmail = e.target.value;
+				}
+			}), // m('p', 'AE:' + anonymousEmail),
 
 			];
 		}
@@ -38,6 +36,13 @@ class EmailView extends AppBaseView {
 					},
 					style: {cursor: 'pointer'},
 				}, 'to:${mess.to}')),
+
+				m('button', {
+					onclick: e -> {
+						this.store.update(this.store.state.messages = []);
+						this.store.save();
+					}
+				}, 'Rensa'),
 			]),
 			//
 			//
@@ -81,7 +86,7 @@ class EmailView extends AppBaseView {
 					var user = this.store.getUser(mess.to);
 					'Hej ${user.firstname}! Du är nu  medlem i ScorX-gruppen ' + groupname;
 				case UserAccountActivationAndGroupjoin(email, pass, firstname, lastname, groupname):
-					'Hej ${firstname}! Du har bjudits in som medlem i ScorX-gruppen $groupname. Eftersom du inte har någt ScorX-konto så kan skapas det ett sådant när du klickar på denna länk. Du loggar in med din e-postadress och lösenordet $pass';
+					'Hej ${firstname}! Du har bjudits in som medlem i ScorX-gruppen $groupname. Eftersom du inte har någt ScorX-konto så skapas ett sådant när du klickar på denna länk. Du loggar in med din e-postadress och lösenordet $pass';
 
 				case AdminGroupjoinInfo(joinedUsername, groupname): {
 						var joinedUser:User = this.store.getUser(joinedUsername);
@@ -90,7 +95,7 @@ class EmailView extends AppBaseView {
 					}
 				case AfterUserActivationSuccess:
 					var user:User = this.store.getUser(mess.to);
-					'Hej ${user.firstname}! Ditt konto har nu skapats och du kan logga in med din e-postadress och lösenordet ${user.password}';
+					'Hej ${user.firstname}! Ditt konto har nu skapats och du kan logga in med din e-postadress ${user.username} och lösenordet ${user.password}';
 				case SimpleMessage(title, text): text;
 			}
 		} catch (e:Dynamic) {

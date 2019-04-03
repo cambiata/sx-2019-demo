@@ -38,12 +38,6 @@ class FooterView extends AppBaseView {
 				]))),
 			]),
 
-			cast m('div', [
-				m('p', 'Songs'),
-				m('ul',
-					this.store.state.songs.map(s -> m('li', '${s.title} ${s.category} ${s.producer}'))),
-			]),
-
 		];
 	}
 }

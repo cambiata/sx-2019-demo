@@ -31,15 +31,12 @@ typedef AppState = {
 	 * Lista med gruppansökningar, skapade av användare som vill bli medlem i grupp
 	 */
 	// final applications:ImmutableArray<GroupApplication>;
+
 	/**
 	 * Lista med gruppinbjudningar, skapade av ledare som vill bjuda in användare till sin grupp
 	 */
 	// final invitations:ImmutableArray<GroupApplication>;
-
-	/**
-	 * Lista med låtar
-	 */
-	final songs:ImmutableArray<Song>;
+	final showOverlay:Bool;
 
 	/**
 	 * Lista med "e-postmeddelanden"
@@ -50,7 +47,6 @@ typedef AppState = {
 	 * Info om aktuell "sida", i brist på riktig url-router i denna demo
 	 */
 	final page:Page;
-	final overlay:ImmutableArray<OverlayPage>;
 }
 
 /**
@@ -147,18 +143,18 @@ class AppStore extends DeepStateContainer<AppState> {
 		this.gotoPage(Page.Home);
 	}
 
-	/**
-	 * Lägg till scorx-låt i state.songs
-	 * @param title
-	 */
-	public function addSong(title:String) {
-		var newSong:Song = {
-			title: title,
-			category: SongCategory.Free,
-			producer: SongProducer.Korakademin
-		};
-		this.update(state.songs = state.songs.push(newSong));
-	}
+	// /**
+	//  * Lägg till scorx-låt i state.songs
+	//  * @param title
+	//  */
+	// public function addSong(title:String) {
+	// 	var newSong:Song = {
+	// 		title: title,
+	// 		category: SongCategory.Free,
+	// 		producer: SongProducer.Korakademin
+	// 	};
+	// 	this.update(state.songs = state.songs.push(newSong));
+	// }
 
 	/**
 	 * Hämta User-object för aktuellt användarnamn
@@ -186,18 +182,17 @@ class AppStore extends DeepStateContainer<AppState> {
 		}
 	}
 
-	/**
-	 * Hämta Song-objekt för aktuell sång-titel
-	 * @param findSongtitle
-	 * @return Song
-	 */
-	public function getSong(findSongtitle:String):Song {
-		return switch this.state.songs.filter(song -> song.title.toLowerCase() == findSongtitle.toLowerCase()).first() {
-			case Some(v): v;
-			case _: null;
-		}
-	}
-
+	// /**
+	//  * Hämta Song-objekt för aktuell sång-titel
+	//  * @param findSongtitle
+	//  * @return Song
+	//  */
+	// public function getSong(findSongtitle:String):Song {
+	// 	return switch this.state.songs.filter(song -> song.title.toLowerCase() == findSongtitle.toLowerCase()).first() {
+	// 		case Some(v): v;
+	// 		case _: null;
+	// 	}
+	// }
 	// /**
 	//  * Lägg gruppansökan till state.applications
 	//  * @param item
@@ -352,6 +347,9 @@ class AppStore extends DeepStateContainer<AppState> {
 		try {
 			switch mess.type {
 				case UserAccountActivation(email, password, firstname, lastname):
+					if (this.userExists(email))
+						throw 'Användaren $email finns redan!';
+
 					var newUser:User = {
 						username: email,
 						password: password,
@@ -360,6 +358,7 @@ class AppStore extends DeepStateContainer<AppState> {
 						sensus: false,
 						songs: []
 					};
+
 					this.addUser(newUser);
 					js.Browser.alert('Kontot har skapats och ett bekräftelsemejl skickas till användaren.');
 					this.sendEmailMessage({
@@ -383,8 +382,10 @@ class AppStore extends DeepStateContainer<AppState> {
 						sensus: false,
 						songs: []
 					};
-					this.addUser(newUser);
 
+					Browser.alert('Nytt konto skapas och kopplas till aktuella gruppen');
+
+					this.addUser(newUser);
 					this.addGroupMember(email, groupname);
 
 					Browser.alert('Bekräftelsemejl om att konto skapats skickas till användaren');
@@ -413,8 +414,8 @@ class AppStore extends DeepStateContainer<AppState> {
 					});
 
 				case AfterUserActivationSuccess:
-					this.gotoPage(Page.Home);
-					js.Browser.alert('Användaren har klickat på sitt Välkommen-meddelande.');
+				// this.gotoPage(Page.Home);
+				// js.Browser.alert('Användaren har klickat på sitt Välkommen-meddelande.');
 				case SimpleMessage(title, text):
 			}
 		} catch (e:Dynamic) {
@@ -493,10 +494,11 @@ class AppStore extends DeepStateContainer<AppState> {
 			groups: cast Default.groups(),
 			// applications: cast Default.applications(),
 			// invitations: cast Default.invitations(),
-			songs: cast Default.songs(),
+			// songs: cast Default.songs(),
 			messages: cast Default.messages(),
 			page: Home,
-			overlay: null, // cast [SongList(null)],
+			// overlay: null, // cast [SongList(null)],
+			showOverlay: false,
 		}, 'do reset');
 		this.save();
 	}

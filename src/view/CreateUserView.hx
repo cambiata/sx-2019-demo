@@ -79,23 +79,23 @@ class CreateUserView extends AppBaseView {
 					}
 				}, 'Skapa användare'),
 			]),
-			m('h2', 'Vill du ta del av Sensus förmånserbjudanden?'),
-			m('div.createuserform', [
-				m('p', '(Detta är ett försök att hantera de fria Sensus-valen..!)'),
-				m('p',
-					'Som sångare i Sensus-kör så får du ta del av förmånserbjudanden som exempelvis gratis tillgång av låtar som du själv väljer.'),
-				m('p',
-					'Du behöver ange ditt personnummer för att vi ska kunna säkerställa att du verkligen är en Sensus-sångare.'),
-				m('input[placeholder=Personnummer]'),
-				m('div', [
-					m('input[type=checkbox]'),
-					m('span', 'Ja, jag sjunger i en Sensus-kör och vill ta del av förmånserbjudanden'),
-				]),
-			]),
-			m('h2', 'Sök din kör'),
-			m('div.createuserform', [
-				m('p', 'Här kan du söka och hitta den kör eller grupp som du är medlem i. '),
-				m('p', '(Du kan också ange om du är ledare för gruppen i fråga. ???)'),
-			]),
+			// m('h2', 'Vill du ta del av Sensus förmånserbjudanden?'),
+			// m('div.createuserform', [
+			// 	m('p', '(Detta är ett försök att hantera de fria Sensus-valen..!)'),
+			// 	m('p',
+			// 		'Som sångare i Sensus-kör så får du ta del av förmånserbjudanden som exempelvis gratis tillgång av låtar som du själv väljer.'),
+			// 	m('p',
+			// 		'Du behöver ange ditt personnummer för att vi ska kunna säkerställa att du verkligen är en Sensus-sångare.'),
+			// 	m('input[placeholder=Personnummer]'),
+			// 	m('div', [
+			// 		m('input[type=checkbox]'),
+			// 		m('span', 'Ja, jag sjunger i en Sensus-kör och vill ta del av förmånserbjudanden'),
+			// 	]),
+			// ]),
+			// m('h2', 'Sök din kör'),
+			// m('div.createuserform', [
+			// 	m('p', 'Här kan du söka och hitta den kör eller grupp som du är medlem i. '),
+			// 	m('p', '(Du kan också ange om du är ledare för gruppen i fråga. ???)'),
+			// ]),
 		]);
 }
