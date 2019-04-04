@@ -7,6 +7,7 @@ import view.*;
 
 class PageView extends AppBaseView {
 	var home:HomeView;
+	var selectSongs:SelectSongsView;
 
 	// var create:CreateUserView;
 	// var email:EmailView;
@@ -15,7 +16,7 @@ class PageView extends AppBaseView {
 	public function new(store:AppStore) {
 		super(store);
 		this.home = new HomeView(store);
-		// this.create = new CreateUserView(store);
+		this.selectSongs = new SelectSongsView(store, KorakademinScorxItems.items(), []); // this.create = new CreateUserView(store);
 		// this.email = new EmailView(store);
 		// this.other = new SearchChoirView(store);
 	}
@@ -25,8 +26,9 @@ class PageView extends AppBaseView {
 			case Page.Home: this.home.view();
 			case Page.CreateUser: new CreateUserView(this.store).view(); // this.create.view();
 			case Page.Email: new EmailView(this.store).view();
-			case Page.Other: new SongListView(this.store, 'Körakademins låtar', KorakademinScorxItems.items(), [ScorxFilter
-					.SelectProductIds([3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]),]).view();
+			case Page.Other: this.selectSongs.view();
+			/*new SongListView(this.store, 'Körakademins låtar', KorakademinScorxItems.items(), [ScorxFilter
+				.SelectProductIds([3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]),]).view(); */
 			case Page.UserSettings: new UserSettingsView(this.store).view();
 			case _: null;
 		}

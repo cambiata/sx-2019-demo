@@ -1,6 +1,6 @@
 package data;
 
-typedef ScorXItem = {
+typedef ScorxItem = {
 	final title:String;
 	final composer:String;
 	final lyricist:String;

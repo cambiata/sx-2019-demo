@@ -1021,8 +1021,8 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 	,tryLogin: function(tryUsername,tryPassword) {
 		var _gthis = this;
 		try {
-			console.log("src/data/AppStore.hx:111:",tryUsername);
-			console.log("src/data/AppStore.hx:112:",this.get_state().users.length);
+			console.log("src/data/AppStore.hx:112:",tryUsername);
+			console.log("src/data/AppStore.hx:113:",this.get_state().users.length);
 			var foundUser;
 			var _g = ds__$ImmutableArray_ImmutableArray_$Impl_$.first(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().users,function(u) {
 				return u.username == tryUsername;
@@ -1073,6 +1073,16 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 			return null;
 		}
 	}
+	,getUserGroups: function(username) {
+		return ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().groups,function(group) {
+			return ds__$ImmutableArray_ImmutableArray_$Impl_$.array(group.members).indexOf(username) != -1;
+		}));
+	}
+	,getLeaderGroups: function(username) {
+		return ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().groups,function(group) {
+			return ds__$ImmutableArray_ImmutableArray_$Impl_$.array(group.admins).indexOf(username) != -1;
+		}));
+	}
 	,handleMessageClicks: function(mess) {
 		var _gthis = this;
 		try {
@@ -1122,9 +1132,9 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 		}
 	}
 	,sendEmailMessage: function(mess) {
-		console.log("src/data/AppStore.hx:429:",this.get_state().messages.length);
+		console.log("src/data/AppStore.hx:438:",this.get_state().messages.length);
 		this.updateState({ type : "AppStore.sendEmailMessage", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("messages")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.push(this.get_state().messages,mess)}])});
-		console.log("src/data/AppStore.hx:431:",this.get_state().messages.length);
+		console.log("src/data/AppStore.hx:440:",this.get_state().messages.length);
 		this.save();
 	}
 	,isGroupMember: function(username,groupname) {
@@ -1150,9 +1160,9 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 			}
 			var groupIndex = ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(this.get_state().groups,group);
 			var members = this.get_state().groups[groupIndex].members;
-			console.log("src/data/AppStore.hx:462:",members);
+			console.log("src/data/AppStore.hx:471:",members);
 			members = ds__$ImmutableArray_ImmutableArray_$Impl_$.push(members,user.username);
-			console.log("src/data/AppStore.hx:464:",members);
+			console.log("src/data/AppStore.hx:473:",members);
 			this.updateState({ type : "AppStore.addGroupMember", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("groups"),ds_PathAccess.Array(groupIndex),ds_PathAccess.Field("members")]), value : members}])});
 			this.save();
 		} catch( e ) {
@@ -1177,16 +1187,17 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 	}
 	,groupIsSensusGroup: function(group) {
 		var _gthis = this;
-		ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(group.admins,function(admin) {
-			var adminsAreSensusUsers = _gthis.getUser(admin);
-			return _gthis.userIsSensusMember(adminsAreSensusUsers);
-		});
+		var admins = group.admins;
+		return admins.length == ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(admins,function(admin) {
+			var allAdminsAreSensusUsers = _gthis.getUser(admin);
+			return _gthis.userIsSensusMember(allAdminsAreSensusUsers);
+		}).length;
 	}
 	,gotoPage: function(page) {
 		this.updateState({ type : "AppStore.gotoPage", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("page")]), value : page}])});
 	}
 	,resetToDefaultData: function() {
-		console.log("src/data/AppStore.hx:506:","Reset data");
+		console.log("src/data/AppStore.hx:516:","Reset data");
 		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { userId : null, users : data_Default.users(), groups : data_Default.groups(), messages : data_Default.messages(), page : data_Page.Home, showOverlay : false}}])});
 		this.save();
 	}
@@ -1210,25 +1221,29 @@ var data_UserSongAccess = $hxEnums["data.UserSongAccess"] = { __ename__ : true, 
 	,UserPurchase: ($_=function(songtitle,expires) { return {_hx_index:0,songtitle:songtitle,expires:expires,__enum__:"data.UserSongAccess",toString:$estr}; },$_.__params__ = ["songtitle","expires"],$_)
 	,UserPrivilege: ($_=function(songtitle,privilege) { return {_hx_index:1,songtitle:songtitle,privilege:privilege,__enum__:"data.UserSongAccess",toString:$estr}; },$_.__params__ = ["songtitle","privilege"],$_)
 };
-var data_GroupSongAccess = $hxEnums["data.GroupSongAccess"] = { __ename__ : true, __constructs__ : ["GroupPurchase","KorakademinGroupAccess"]
+var data_GroupSongAccess = $hxEnums["data.GroupSongAccess"] = { __ename__ : true, __constructs__ : ["GroupPurchase","GroupPrivilege"]
 	,GroupPurchase: ($_=function(songtitle,expires,validOnlyForTheseMembers) { return {_hx_index:0,songtitle:songtitle,expires:expires,validOnlyForTheseMembers:validOnlyForTheseMembers,__enum__:"data.GroupSongAccess",toString:$estr}; },$_.__params__ = ["songtitle","expires","validOnlyForTheseMembers"],$_)
-	,KorakademinGroupAccess: ($_=function(songtitle,expires) { return {_hx_index:1,songtitle:songtitle,expires:expires,__enum__:"data.GroupSongAccess",toString:$estr}; },$_.__params__ = ["songtitle","expires"],$_)
+	,GroupPrivilege: ($_=function(songtitle,privilege) { return {_hx_index:1,songtitle:songtitle,privilege:privilege,__enum__:"data.GroupSongAccess",toString:$estr}; },$_.__params__ = ["songtitle","privilege"],$_)
+};
+var data_GroupPrivilege = $hxEnums["data.GroupPrivilege"] = { __ename__ : true, __constructs__ : ["KorakademinGroupAccess"]
+	,KorakademinGroupAccess: ($_=function(expires) { return {_hx_index:0,expires:expires,__enum__:"data.GroupPrivilege",toString:$estr}; },$_.__params__ = ["expires"],$_)
 };
 var data_ScorxFilter = $hxEnums["data.ScorxFilter"] = { __ename__ : true, __constructs__ : ["SelectProductIds","LicenseHolder"]
 	,SelectProductIds: ($_=function(ids) { return {_hx_index:0,ids:ids,__enum__:"data.ScorxFilter",toString:$estr}; },$_.__params__ = ["ids"],$_)
 	,LicenseHolder: ($_=function(lic) { return {_hx_index:1,lic:lic,__enum__:"data.ScorxFilter",toString:$estr}; },$_.__params__ = ["lic"],$_)
 };
-var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs__ : ["Image","Title","Info","Button","Songlist","Infoblobs","SearchChoir","ListGroupMembers","InviteGroupMembers","BuySongs"]
+var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs__ : ["Image","Title","Info","SonglistHeader","Songlist","Infoblobs","SearchChoir","ListGroupMembers","InviteGroupMembers","AutogeneratedKorakademinLeaderSonglist","BuySongs"]
 	,Image: ($_=function(url) { return {_hx_index:0,url:url,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["url"],$_)
 	,Title: ($_=function(title) { return {_hx_index:1,title:title,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["title"],$_)
 	,Info: ($_=function(info) { return {_hx_index:2,info:info,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["info"],$_)
-	,Button: ($_=function(label,onclick) { return {_hx_index:3,label:label,onclick:onclick,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["label","onclick"],$_)
+	,SonglistHeader: ($_=function(title,info) { return {_hx_index:3,title:title,info:info,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["title","info"],$_)
 	,Songlist: ($_=function(title,songs,filter) { return {_hx_index:4,title:title,songs:songs,filter:filter,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["title","songs","filter"],$_)
 	,Infoblobs: ($_=function(blobs) { return {_hx_index:5,blobs:blobs,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["blobs"],$_)
 	,SearchChoir: {_hx_index:6,__enum__:"data.HomeCell",toString:$estr}
 	,ListGroupMembers: ($_=function(groupname) { return {_hx_index:7,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
 	,InviteGroupMembers: ($_=function(groupname) { return {_hx_index:8,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
-	,BuySongs: {_hx_index:9,__enum__:"data.HomeCell",toString:$estr}
+	,AutogeneratedKorakademinLeaderSonglist: {_hx_index:9,__enum__:"data.HomeCell",toString:$estr}
+	,BuySongs: {_hx_index:10,__enum__:"data.HomeCell",toString:$estr}
 };
 var data_Infoblob = $hxEnums["data.Infoblob"] = { __ename__ : true, __constructs__ : ["Standard"]
 	,Standard: ($_=function(title,info) { return {_hx_index:0,title:title,info:info,__enum__:"data.Infoblob",toString:$estr}; },$_.__params__ = ["title","info"],$_)
@@ -2184,7 +2199,7 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 		}
 	}
 	,guestView: function() {
-		return [this.buildCells([data_HomeCell.Image("assets/img/old-town.jpg"),data_HomeCell.Title("Sjung och spela var du vill"),data_HomeCell.Info("ScorX spelare funkar både för mobil och surfplatta!")]),this.buildCells([data_HomeCell.Infoblobs([data_Infoblob.Standard("Har du prövat?","Klicka här för att..."),data_Infoblob.Standard("Titta här!","Skulle inte du också vilja åka till..."),data_Infoblob.Standard("Vill du veta mer?","Undrar du över något? klicka här!")]),data_HomeCell.Image("assets/img/happy.jpg"),data_HomeCell.Title("Pröva ScorX gratis!"),data_HomeCell.Info("Klicka på valfri titel i listan nedan, lyssna och sjung med!"),data_HomeCell.Songlist("Gratislåtar",data_KorakademinScorxItems.items(),[data_ScorxFilter.LicenseHolder("Upphovsrättsfri")])])];
+		return [this.buildCells([data_HomeCell.Image("assets/img/old-town.jpg"),data_HomeCell.Title("Sjung och spela var du vill"),data_HomeCell.Info("ScorX spelare funkar både för mobil och surfplatta!")]),this.buildCells([data_HomeCell.Infoblobs([data_Infoblob.Standard("Har du prövat?","Klicka här för att..."),data_Infoblob.Standard("Titta här!","Skulle inte du också vilja åka till..."),data_Infoblob.Standard("Vill du veta mer?","Undrar du över något? klicka här!")]),data_HomeCell.Image("assets/img/happy.jpg"),data_HomeCell.Title("Pröva ScorX gratis!"),data_HomeCell.Info("Klicka på valfri titel i listan nedan, lyssna och sjung med!"),data_HomeCell.SonglistHeader("Gratis låtar",null),data_HomeCell.Songlist("Gratislåtar",data_KorakademinScorxItems.items(),[data_ScorxFilter.LicenseHolder("Upphovsrättsfri")])])];
 	}
 	,userView: function() {
 		return [this.choirAdminView(),this.choirMemberView(),this.mySongsView()];
@@ -2199,8 +2214,9 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 			return ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(group1.admins,user.username) <= -1;
 		});
 		var groupLists = groups.map(function(group2) {
-			var groupLists1 = data_HomeCell.Songlist(group2.name,data_KorakademinScorxItems.items(),[data_ScorxFilter.SelectProductIds(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(group2.songs))]);
-			return _gthis.buildCells([groupLists1]);
+			var groupLists1 = data_HomeCell.SonglistHeader(group2.name,null);
+			var groupLists2 = data_HomeCell.Songlist(group2.name,data_KorakademinScorxItems.items(),[data_ScorxFilter.SelectProductIds(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(group2.songs))]);
+			return _gthis.buildCells([groupLists1,groupLists2]);
 		});
 		var choirsInfo = groupLists.length > 0 ? "Här visas de låtar som delats ut till dig av dina körer." : "Du verkar inte vara deltagare i någon kör eller grupp i ScorX.";
 		return [this.buildCells([data_HomeCell.Infoblobs([data_Infoblob.Standard("Hej Körsångare","Klicka här för att..."),data_Infoblob.Standard("1000 låtar gratis!","Körakademin Plus är stället för dej!"),data_Infoblob.Standard("Vad betyder \"con tenerezza\"?","Undrar du över något? klicka här!")])]),this.buildCells([data_HomeCell.Title("Körernas låtar"),data_HomeCell.Info(choirsInfo)]),groupLists,groupLists.length == 0 ? this.buildCells([data_HomeCell.SearchChoir]) : null];
@@ -2215,17 +2231,21 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 			return null;
 		}
 		var groupLists = groups.map(function(group1) {
-			var groupLists1 = data_HomeCell.Songlist(group1.name,data_KorakademinScorxItems.items(),[data_ScorxFilter.SelectProductIds(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(group1.songs))]);
-			return _gthis.buildCells([groupLists1,data_HomeCell.ListGroupMembers(group1.name),data_HomeCell.InviteGroupMembers(group1.name)]);
+			var groupLists1 = data_HomeCell.SonglistHeader(group1.name,"Info...");
+			var groupLists2 = data_HomeCell.Songlist(group1.name,data_KorakademinScorxItems.items(),[data_ScorxFilter.SelectProductIds(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(group1.songs))]);
+			return _gthis.buildCells([groupLists1,groupLists2,data_HomeCell.ListGroupMembers(group1.name),data_HomeCell.InviteGroupMembers(group1.name)]);
 		});
-		return [this.buildCells([data_HomeCell.Title("Du leder följande körer")]),groupLists];
+		return [this.buildCells([data_HomeCell.Title("Du leder följande körer")]),groupLists,this.buildCells([data_HomeCell.AutogeneratedKorakademinLeaderSonglist])];
 	}
 	,mySongsView: function() {
 		var user = this.store.getUser();
-		return [this.buildCells([data_HomeCell.Title("Mina låtar"),data_HomeCell.Info("Här visas de låtar som du har köpt eller valt genom förmånserbjudanden."),data_HomeCell.Songlist("Mina låtar",data_KorakademinScorxItems.items(),[data_ScorxFilter.SelectProductIds(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(user.songs))]),data_HomeCell.BuySongs])];
+		return [this.buildCells([data_HomeCell.Title("Mina låtar"),data_HomeCell.Info("Här visas de låtar som du har köpt eller valt genom förmånserbjudanden."),data_HomeCell.SonglistHeader("Mina låtar",null),data_HomeCell.Songlist("Mina låtar",data_KorakademinScorxItems.items(),[data_ScorxFilter.SelectProductIds(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(user.songs))]),data_HomeCell.BuySongs])];
 	}
 	,buildCells: function(cells) {
 		var _gthis = this;
+		var onSongClick = function(song) {
+			js_Browser.alert(song);
+		};
 		return m.m("section",cells.map(function(cell) {
 			switch(cell._hx_index) {
 			case 0:
@@ -2234,8 +2254,11 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 				return m.m("h1.center-narrow.vspace",cell.title);
 			case 2:
 				return m.m("h3.center-narrow.vspace",cell.info);
+			case 3:
+				var info = cell.info;
+				return m.m("div.centerpad",[m.m("h2",cell.title),info != null ? m.m("p",info) : null]);
 			case 4:
-				return m.m("div.centerpad",new view_SongListView(_gthis.store,cell.title,cell.songs,cell.filter).view());
+				return m.m("div.centerpad",new view_SongListView(_gthis.store,cell.title,cell.songs,cell.filter,onSongClick).view());
 			case 5:
 				return m.m("div.infoblobs-wide",m.m("div.infoblobs.centerdiv",cell.blobs.map(function(blob) {
 					return m.m("div.infoblob",m.m("div.infoblob-content",[m.m("div.infoblob-title",blob.title),m.m("div.infoblob-info",blob.info)]));
@@ -2253,18 +2276,27 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 				var tmp = m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(_gthis.store.getGroup(cell.groupname).members,function(member) {
 					return m.m("li",member);
 				}));
-				return _gthis.detailsSummary("Gruppens medlemmar",[tmp]);
+				return m.m("div.centerpad",[_gthis.detailsSummary("Gruppens medlemmar",[tmp])]);
 			case 8:
 				var group1 = _gthis.store.getGroup(cell.groupname);
 				var tmp1 = new view_LeaderInviteUsers(_gthis.store,group1).view();
-				return _gthis.detailsSummary("Bjud in medlemmar",tmp1);
+				return m.m("div.centerpad",[_gthis.detailsSummary("Bjud in medlemmar",tmp1)]);
 			case 9:
+				var user = _gthis.store.getUser();
+				var sensusGroups = _gthis.store.getLeaderGroups(user.username).filter(function(group2) {
+					return _gthis.store.groupIsSensusGroup(group2);
+				});
+				if(sensusGroups.length <= 0) {
+					return m.m("p.centerpad","(Denna körledare ser INTE Sensus Körledarlista - beroende på att hen leder inte någon grupp där samtliga admins har sensus:SensusUser satt.)");
+				}
+				return m.m("div.centerpad",[m.m("h2","Körakademins kompletta låtlista"),m.m("p","Du kan se denna lista därför du leder någon kör som är kopplad till Sensus körverksamhet (dvs samtliga ledare i någon av grupperna har sensus:SensusUser satt.)"),m.m("p","Du kan se och spela samtliga låtar i listan."),sensusGroups.map(function(group3) {
+					return m.m("p",group3.name);
+				})]);
+			case 10:
 				return m.m("div.center",[m.m("button.center",{ onclick : function(e) {
-					console.log("src/view/HomeView.hx:154:","Click");
+					console.log("src/view/HomeView.hx:171:","Click");
 					return;
 				}},"Gå till butiken")]);
-			default:
-				return null;
 			}
 		}));
 	}
@@ -2442,6 +2474,7 @@ view_OverlayView.prototype = $extend(view_AppBaseView.prototype,{
 var view_PageView = function(store) {
 	view_AppBaseView.call(this,store);
 	this.home = new view_HomeView(store);
+	this.selectSongs = new view_SelectSongsView(store,data_KorakademinScorxItems.items(),[]);
 };
 $hxClasses["view.PageView"] = view_PageView;
 view_PageView.__name__ = true;
@@ -2455,7 +2488,7 @@ view_PageView.prototype = $extend(view_AppBaseView.prototype,{
 		case 1:
 			return new view_EmailView(this.store).view();
 		case 2:
-			return new view_SongListView(this.store,"Körakademins låtar",data_KorakademinScorxItems.items(),[data_ScorxFilter.SelectProductIds([3,4,5,6,7,8,9,10,11,12,13,14])]).view();
+			return this.selectSongs.view();
 		case 3:
 			return new view_CreateUserView(this.store).view();
 		case 4:
@@ -2498,13 +2531,32 @@ view_SearchGroupView.prototype = $extend(view_AppBaseView.prototype,{
 	}
 	,__class__: view_SearchGroupView
 });
-var view_SongListView = function(store,title,songs,filters) {
-	this.numAfterLimit = 0;
-	this.numBeforeLimit = 0;
+var view_SelectSongsView = function(store,leftSongs,rightSongs) {
+	view_AppBaseView.call(this,store);
+	this.leftSongs = leftSongs;
+	this.rightSongs = rightSongs;
+};
+$hxClasses["view.SelectSongsView"] = view_SelectSongsView;
+view_SelectSongsView.__name__ = true;
+view_SelectSongsView.__super__ = view_AppBaseView;
+view_SelectSongsView.prototype = $extend(view_AppBaseView.prototype,{
+	leftSongClick: function(song) {
+		this.rightSongs = this.leftSongs.splice(this.leftSongs.indexOf(song),1).concat(this.rightSongs);
+	}
+	,rightSongClick: function(song) {
+		this.leftSongs = this.rightSongs.splice(this.rightSongs.indexOf(song),1).concat(this.leftSongs);
+	}
+	,view: function() {
+		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
+		return m.m("div.selectSongsView",[m.m("h1","SelectSongs"),m.m("div.twoColumns",[new view_SongListView(this.store,"Left",this.leftSongs,null,$bind(this,this.leftSongClick)).view(),new view_SongListView(this.store,"Right",this.rightSongs,null,$bind(this,this.rightSongClick)).view()])]);
+	}
+	,__class__: view_SelectSongsView
+});
+var view_SongListView = function(store,title,songs,filters,onSongClick) {
 	view_AppBaseView.call(this,store);
 	this.title = title;
 	this.songs = this.applyScorxFilters(songs,filters);
-	this.numBeforeLimit = this.numAfterLimit = this.songs.length;
+	this.onSongClick = onSongClick;
 };
 $hxClasses["view.SongListView"] = view_SongListView;
 view_SongListView.__name__ = true;
@@ -2512,34 +2564,33 @@ view_SongListView.__super__ = view_AppBaseView;
 view_SongListView.prototype = $extend(view_AppBaseView.prototype,{
 	applyScorxFilters: function(songs,filters) {
 		var songs1 = songs.slice();
-		var _g = 0;
-		while(_g < filters.length) {
-			var filter = filters[_g];
-			++_g;
-			switch(filter._hx_index) {
-			case 0:
-				songs1 = songs1.filter((function(ids) {
-					return function(song) {
-						return ids[0].indexOf(song.scorxProductId) > -1;
-					};
-				})([filter.ids]));
-				this.numBeforeLimit = songs1.length;
-				this.numAfterLimit = songs1.length;
-				break;
-			case 1:
-				songs1 = songs1.filter((function(lic) {
-					return function(song1) {
-						return song1.licenseholder == lic[0];
-					};
-				})([filter.lic]));
-				this.numBeforeLimit = songs1.length;
-				this.numAfterLimit = songs1.length;
-				break;
+		if(filters != null) {
+			var _g = 0;
+			while(_g < filters.length) {
+				var filter = filters[_g];
+				++_g;
+				switch(filter._hx_index) {
+				case 0:
+					songs1 = songs1.filter((function(ids) {
+						return function(song) {
+							return ids[0].indexOf(song.scorxProductId) > -1;
+						};
+					})([filter.ids]));
+					break;
+				case 1:
+					songs1 = songs1.filter((function(lic) {
+						return function(song1) {
+							return song1.licenseholder == lic[0];
+						};
+					})([filter.lic]));
+					break;
+				}
 			}
 		}
 		return songs1;
 	}
 	,view: function() {
+		var _gthis = this;
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
 		var searchStrings = view_SongListView.searchString.split(" ");
 		var _g = 0;
@@ -2561,10 +2612,10 @@ view_SongListView.prototype = $extend(view_AppBaseView.prototype,{
 			return m.m("option",{ value : alt},alt);
 		});
 		var sort11 = m.m("select",{ onchange : function(e) {
-			console.log("src/view/SongListView.hx:59:",e.target.selectedIndex);
+			console.log("src/view/SongListView.hx:55:",e.target.selectedIndex);
 			return view_SongListView.sortindex = e.target.selectedIndex;
 		}, onblur : function(e1) {
-			console.log("src/view/SongListView.hx:63:",e1.target.selectedIndex);
+			console.log("src/view/SongListView.hx:59:",e1.target.selectedIndex);
 			return view_SongListView.sortindex = e1.target.selectedIndex;
 		}},sort1);
 		this.songs.sort(function(a,b) {
@@ -2583,10 +2634,15 @@ view_SongListView.prototype = $extend(view_AppBaseView.prototype,{
 				return 0;
 			}
 		});
-		return m.m("div.songListView",[m.m("h2",this.title),m.m("div.searchinput",[m.m("input[placeholder=Sök titel, upphovspersoner, besättning]",{ oninput : function(e2) {
+		return m.m("div.songListView",[m.m("div.searchinput",[m.m("input[placeholder=Sök titel, upphovspersoner, besättning]",{ oninput : function(e2) {
 			return view_SongListView.searchString = e2.target.value;
-		}, value : view_SongListView.searchString}),m.m("span","Sortering:"),sort11]),m.m("div.scorxlist",this.songs.map(function(song) {
-			return m.m("div.scorxitem",[[m.m("span.title",song.title),m.m("span.ensemble." + song.ensemble,song.ensemble),m.m("span.idnr",song.scorxProductId)],song.composer != "" ? m.m("div.orig",[m.m("span","musik:"),m.m("span",song.composer)]) : null,song.lyricist != "" ? m.m("div.orig",[m.m("span","text:"),m.m("span",song.lyricist)]) : null,song.arranger != "" ? m.m("div.orig",[m.m("span","arr:"),m.m("span",song.arranger)]) : null]);
+		}, value : view_SongListView.searchString}),sort11]),m.m("div.scorxlist",this.songs.map(function(song) {
+			return m.m("div.scorxitem",[m.m("div.columnOne",[[m.m("span.title",song.title),m.m("span.ensemble." + song.ensemble,song.ensemble),m.m("span.idnr",song.scorxProductId)],song.composer != "" ? m.m("div.orig",[m.m("span","musik:"),m.m("span",song.composer)]) : null,song.lyricist != "" ? m.m("div.orig",[m.m("span","text:"),m.m("span",song.lyricist)]) : null,song.arranger != "" ? m.m("div.orig",[m.m("span","arr:"),m.m("span",song.arranger)]) : null]),m.m("div.columnTwo",[m.m("button.round",{ onclick : function(e3) {
+				if(_gthis.onSongClick != null) {
+					_gthis.onSongClick(song);
+				}
+				return;
+			}},"Select")])]);
 		})),m.m("div.underlist",[m.m("p",this.songs.length + " låtar")])]);
 	}
 	,__class__: view_SongListView

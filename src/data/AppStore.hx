@@ -6,6 +6,7 @@ import ds.ImmutableArray;
 import data.Model;
 
 using cx.ArrayItems;
+using cx.ArrayTools;
 using cx.Validation;
 
 /**
@@ -180,6 +181,14 @@ class AppStore extends DeepStateContainer<AppState> {
 			case Some(v): v;
 			case _: null;
 		}
+	}
+
+	public function getUserGroups(username:String):Array<Group> {
+		return this.state.groups.filter(group -> group.members.array().has(username));
+	}
+
+	public function getLeaderGroups(username:String):Array<Group> {
+		return this.state.groups.filter(group -> group.admins.array().has(username));
 	}
 
 	// /**
@@ -492,7 +501,8 @@ class AppStore extends DeepStateContainer<AppState> {
 
 	public function groupIsSensusGroup(group:Group) {
 		var admins = group.admins;
-		var adminsAreSensusUsers = admins.length == admins.filter(admin -> this.userIsSensusMember(this.getUser(admin))).length;
+		var allAdminsAreSensusUsers = admins.length == admins.filter(admin -> this.userIsSensusMember(this.getUser(admin))).length;
+		return allAdminsAreSensusUsers;
 	}
 
 	public function gotoPage(page:Page) {

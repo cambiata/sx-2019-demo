@@ -5,36 +5,32 @@ import data.KorakademinScorxItems;
 
 class SongListView extends AppBaseView {
 	var title:String;
-	var songs:Array<ScorXItem>;
-	var numBeforeLimit:Int = 0;
-	var numAfterLimit:Int = 0;
+	var songs:Array<ScorxItem>;
+	var onSongClick:ScorxItem->Void;
 
-	public function new(store, title:String, songs:Array<ScorXItem> = null, filters:Array<ScorxFilter> = null) {
+	public function new(store, title:String, songs:Array<ScorxItem> = null, filters:Array<ScorxFilter> = null, onSongClick:ScorxItem->Void = null) {
 		super(store);
 		this.title = title;
 		this.songs = applyScorxFilters(songs, filters);
-		this.numBeforeLimit = this.numAfterLimit = this.songs.length;
+		this.onSongClick = onSongClick;
 	}
 
-	function applyScorxFilters(songs:Array<ScorXItem>, filters:Array<ScorxFilter>):Array<ScorXItem> {
+	function applyScorxFilters(songs:Array<ScorxItem>, filters:Array<ScorxFilter>):Array<ScorxItem> {
 		var songs = songs.copy();
-		for (filter in filters) {
-			switch filter {
-				case ScorxFilter.SelectProductIds(ids):
-					songs = songs.filter(song -> ids.indexOf(song.scorxProductId) > -1);
-					this.numBeforeLimit = songs.length;
-					this.numAfterLimit = songs.length;
-				case ScorxFilter.LicenseHolder(lic):
-					songs = songs.filter(song -> song.licenseholder == lic);
-					this.numBeforeLimit = songs.length;
-					this.numAfterLimit = songs.length;
+		if (filters != null)
+			for (filter in filters) {
+				switch filter {
+					case ScorxFilter.SelectProductIds(ids):
+						songs = songs.filter(song -> ids.indexOf(song.scorxProductId) > -1);
+					case ScorxFilter.LicenseHolder(lic):
+						songs = songs.filter(song -> song.licenseholder == lic);
 
-					// case ScorxFilter.LimitNumber(num):
-					// 	this.numBeforeLimit = songs.length;
-					// 	songs = songs.slice(0, num);
-					// 	this.numAfterLimit = songs.length;
+						// case ScorxFilter.LimitNumber(num):
+						// 	this.numBeforeLimit = songs.length;
+						// 	songs = songs.slice(0, num);
+						// 	this.numAfterLimit = songs.length;
+				}
 			}
-		}
 		return songs;
 	}
 
@@ -77,7 +73,6 @@ class SongListView extends AppBaseView {
 		});
 
 		return m('div.songListView', [
-			m('h2', this.title),
 			m('div.searchinput', [
 				m('input[placeholder=Sök titel, upphovspersoner, besättning]', {
 					oninput: e -> {
@@ -85,20 +80,32 @@ class SongListView extends AppBaseView {
 					},
 					value: searchString
 				}),
-				m('span', 'Sortering:'),
+				// m('span', 'Sortering: '),
 				sort1,
 
 			]),
 
 			m('div.scorxlist', songs.map(song -> m('div.scorxitem', [
-				[
-					m('span.title', song.title),
-					m('span.ensemble.' + song.ensemble, song.ensemble),
-					m('span.idnr', song.scorxProductId)
-				],
-				song.composer != '' ? m('div.orig', [m('span', 'musik:'), m('span', song.composer)]) : null,
-				song.lyricist != '' ? m('div.orig', [m('span', 'text:'), m('span', song.lyricist)]) : null,
-				song.arranger != '' ? m('div.orig', [m('span', 'arr:'), m('span', song.arranger)]) : null,
+				m('div.columnOne', [
+					[
+						m('span.title', song.title),
+						m('span.ensemble.' + song.ensemble, song.ensemble),
+						m('span.idnr', song.scorxProductId)
+					],
+					song.composer != '' ? m('div.orig', [m('span', 'musik:'), m('span', song.composer)]) : null,
+					song.lyricist != '' ? m('div.orig', [m('span', 'text:'), m('span', song.lyricist)]) : null,
+					song.arranger != '' ? m('div.orig', [m('span', 'arr:'), m('span', song.arranger)]) : null,
+				]),
+
+				m('div.columnTwo', [
+					m('button.round', {
+						onclick: e -> {
+							if (this.onSongClick != null)
+								this.onSongClick(song);
+						}
+					}, 'Select'),
+				]),
+
 			]))),
 			m('div.underlist', [m('p', songs.length + ' låtar')]),
 		]);

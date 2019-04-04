@@ -38,7 +38,7 @@ body {
     padding-left: 2vmax;
     padding-right: 2vmax;
     /* text-align: center; */
-    border: 1px solid green;
+    /* border: 1px solid green; */
     margin: 0 auto;
 }
 
@@ -172,22 +172,22 @@ h3 {
     font-size: 2.2vmax;
 }
 
-section p {
-    /* font-size: 3vmax; */
+/* section p {
+
     text-align: center;
     margin: 0 auto;  
     padding: .5em 5em .2em 5em;  
     line-height: 150%;
          
-}
+} */
 
-section button {
+/* section button {
     display: block;
-    /* font-size: 2.4vmax; */
+ 
     text-align: center;
     margin: 1em auto;  
-    /* padding: .5em 5em .2em 5em;         */
-}
+ 
+} */
 
 section footer button {
     /* font-size: 1.6vmax; */
@@ -556,7 +556,7 @@ div.invitationform button {
 /************************************************/
 
 .songListView {
-    border:1px solid red;
+    /* border:1px solid red; */
 }
 
 #scorxlist {
@@ -571,11 +571,13 @@ h3.scorxlisttitle {
 }
 
 .scorxlist {
-    border: 1px solid gray;
+    margin-top: .6vmax;
+    border: .2vmax solid #ccc;
+    border-radius: 1vmax;
     max-height: 30vmax;
     overflow-y: scroll;
     padding: 1vmax;
-    border-radius: .4vmax;
+    /* border-radius: .4vmax; */
 }
 
 .scorxitem {
@@ -586,7 +588,12 @@ h3.scorxlisttitle {
     color: #444;
     /* padding: 1.6vmax; */
     cursor:pointer;
+    display: flex;
+    flex-direction: row; 
+    justify-content:space-between;
 }
+
+
 .scorxitem:first-child {
     padding: 0 0 1vmax 0;
 }
@@ -718,4 +725,15 @@ h3.scorxlisttitle {
     color: white;
 }
 
+.twoColumns {
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+}
 
+
+button.round {
+    /* font-size: 130%; */
+    width: 6vmax;
+    height: 6vmax;
+    border-radius:50%;
+}
