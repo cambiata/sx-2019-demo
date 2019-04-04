@@ -29,10 +29,10 @@ class SongListView extends AppBaseView {
 					this.numBeforeLimit = songs.length;
 					this.numAfterLimit = songs.length;
 
-				case ScorxFilter.LimitNumber(num):
-					this.numBeforeLimit = songs.length;
-					songs = songs.slice(0, num);
-					this.numAfterLimit = songs.length;
+					// case ScorxFilter.LimitNumber(num):
+					// 	this.numBeforeLimit = songs.length;
+					// 	songs = songs.slice(0, num);
+					// 	this.numAfterLimit = songs.length;
 			}
 		}
 		return songs;
@@ -76,8 +76,8 @@ class SongListView extends AppBaseView {
 			}
 		});
 
-		return [
-			m('h3.scorxlisttitle', this.title),
+		return m('div.songListView', [
+			m('h2', this.title),
 			m('div.searchinput', [
 				m('input[placeholder=Sök titel, upphovspersoner, besättning]', {
 					oninput: e -> {
@@ -90,7 +90,7 @@ class SongListView extends AppBaseView {
 
 			]),
 
-			m('div', songs.map(song -> m('div.scorxitem', [
+			m('div.scorxlist', songs.map(song -> m('div.scorxitem', [
 				[
 					m('span.title', song.title),
 					m('span.ensemble.' + song.ensemble, song.ensemble),
@@ -100,7 +100,7 @@ class SongListView extends AppBaseView {
 				song.lyricist != '' ? m('div.orig', [m('span', 'text:'), m('span', song.lyricist)]) : null,
 				song.arranger != '' ? m('div.orig', [m('span', 'arr:'), m('span', song.arranger)]) : null,
 			]))),
-			m('div.underlist', m('button.showall', 'Visa alla ' + this.numBeforeLimit + ' titlarna')),
-		];
+			m('div.underlist', [m('p', songs.length + ' låtar')]),
+		]);
 	}
 }

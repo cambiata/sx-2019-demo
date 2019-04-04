@@ -33,11 +33,11 @@ class MenuView extends AppBaseView {
 					this.store.resetToDefaultData();
 					this.store.gotoPage(Page.Home);
 				}
-			}, 'Nollstäl demo'),
-			// m('span.button', {
-			// 	onclick: e -> {
-			// 		this.store.gotoPage(Page.Other);
-			// 	}
-			// }, 'Other'),
+			}, 'Nollställ demo'),
+			m('span.button', {
+				onclick: e -> {
+					this.store.gotoPage(Page.Other);
+				}
+			}, 'Other'),
 		];
 }

@@ -15,7 +15,7 @@ html, body {
 
 body {
     font-family: 'Open Sans', sans-serif;
-    font-size: 2vmax;
+    font-size: 1.6vmax;
 }
 
 #body{
@@ -23,14 +23,31 @@ body {
     overflow: auto;
     /* -webkit-overflow-scrolling: touch; */
 }
+.vspace {
+    padding-top: 2vmax;
+    padding-bottom: 2vmax;
+}
 
-.center {
+.centerdiv {
+    max-width: 1000px;
+
+}
+
+.centerpad {
     max-width: 1000px;
     padding-left: 2vmax;
     padding-right: 2vmax;
-    margin: 0 auto;
     /* text-align: center; */
-    /* border: 1px solid #ccc; */
+    border: 1px solid green;
+    margin: 0 auto;
+}
+
+.center-narrow {
+    max-width: 700px;
+    margin: 0 auto;
+    /* border: 1px solid blue; */
+    text-align: center;
+
 }
     
 .limit-width {
@@ -82,6 +99,10 @@ body {
     padding: 0.4vmax 1vmax;
 }
 
+.sensus {
+    color:lightgreen;
+}
+
 button {
     /* min-width: 30vmax; */
     background: white;
@@ -89,13 +110,13 @@ button {
     /* padding-left: 2vmax;
     padding-right: 2vmax; */
     padding: 0.2vmax 1vmax;
-    font-size: 1.2vmax;
+    /* font-size: 1.2vmax; */
     border-radius: 2.4vmax;    
     cursor: pointer;
 }
 
 input {
-    font-size: 1.2vmax;
+    /* font-size: 1.2vmax; */
     padding: 0.2vmax 1vmax;
     border: none; 
     border:solid 0.2vmax #ccc;
@@ -105,8 +126,9 @@ input {
 
 select {
     text-align: center;
-    font-size: 2.4vmax;    
-    padding: 0.8vmax 1vmax;
+    /* font-size: 2.4vmax;     */
+    /* font-size: 1.8vmax; */
+    padding: 0.2vmax 1vmax;
     
     box-sizing: border-box;
     margin: 0;
@@ -118,8 +140,10 @@ select {
 }
 
 select * {
-    font-size: 2vmax;
+    /* font-size: 2vmax; */
 }
+
+
 
 section img {
     max-height: 40vmax;
@@ -131,17 +155,25 @@ section {
     padding-bottom: 3vmax;
 }
 
-section h1 {
+h1 {
     font-weight: bold;
     font-size: 6vmax;
-    text-align: center;
-   
+    text-align: center;   
     margin: 0 auto;
-    padding: .4em 3em .2em 3em;
+}
+
+h2 {
+    font-weight: normal;
+    font-size: 3vmax;
+}
+
+h3 {
+    font-weight: normal;
+    font-size: 2.2vmax;
 }
 
 section p {
-    font-size: 3vmax;
+    /* font-size: 3vmax; */
     text-align: center;
     margin: 0 auto;  
     padding: .5em 5em .2em 5em;  
@@ -151,20 +183,20 @@ section p {
 
 section button {
     display: block;
-    font-size: 2.4vmax;
+    /* font-size: 2.4vmax; */
     text-align: center;
     margin: 1em auto;  
     /* padding: .5em 5em .2em 5em;         */
 }
 
 section footer button {
-    font-size: 1.6vmax;
+    /* font-size: 1.6vmax; */
 }
 
 
 
 section p button {   
-    font-size: 2.6vmax;
+    /* font-size: 2.6vmax; */
 }
 
 
@@ -175,7 +207,7 @@ article {
 }
 
 article header {
-    font-size: 2.6vmax;
+    /* font-size: 2.6vmax; */
     padding-bottom: 1vmax;
     /* border: 1px solid red; */
     display: flex;
@@ -188,7 +220,7 @@ article header input {
 }
 
 article footer {
-    font-size: 1.6vmax;
+    /* font-size: 1.6vmax; */
     padding-top: 1vmax;
     text-align: right;
 }
@@ -203,7 +235,7 @@ article ul li {
     margin: 0;
     /* height: 3em; */
     border-top: 2px solid #ccc;
-    font-size: 1.4vmax;
+    /* font-size: 1.4vmax; */
     padding: .8vmax 0;
     cursor: pointer;
     
@@ -234,11 +266,11 @@ article ul li .title {
 
 article li .title h3 {
     font-style: bold;
-    font-size: 1.8vmax;
+    /* font-size: 1.8vmax; */
 }
 
 article li .title p {
-    font-size: 1.6vmax;
+    /* font-size: 1.6vmax; */
     padding:0;
     text-align: inherit;
 }
@@ -272,7 +304,7 @@ article li.no-music {
 }    
 
 article li.no-music h3 {
-    font-size: 2vmax;
+    /* font-size: 2vmax; */
 }
 
 article li.search-choir {
@@ -307,7 +339,7 @@ article li.shop {
 }
 
 .application button {
-    font-size: 100%;
+    /* font-size: 100%; */
 }
 
 .application.start {
@@ -329,7 +361,7 @@ article li.shop {
 .groupsearch {
     margin: 0 10%;
     text-align:center;
-    font-size: 2.2vmax;
+    /* font-size: 2.2vmax; */
     width: 80%;
 }
 
@@ -340,7 +372,7 @@ h3.groupsearch {
 .groupinvitation input {
     margin: 0 25%;
     text-align:center;
-    font-size: 2.2vmax;
+    /* font-size: 2.2vmax; */
     width: 50%;
 }
 
@@ -374,11 +406,11 @@ span.button:hover {
 }
 
 .createuserform input {
-    font-size: 2vmax;
+    /* font-size: 2vmax; */
 }
 
 .createuserform button {
-    font-size: 2vmax;
+    /* font-size: 2vmax; */
 }
 
 /**********************************************************/
@@ -389,7 +421,7 @@ span.button:hover {
     grid-template-columns: 1fr 3fr;
     background: #eee;
     min-height: 30vmax;
-    font-size: 1.6vmax;
+    /* font-size: 1.6vmax; */
 }
 
 .emailLeft {
@@ -445,7 +477,7 @@ details > div {
 }
 
 details input {
-    font-size: 2vmax;
+    /* font-size: 2vmax; */
 }
 
 details ul {
@@ -473,10 +505,10 @@ div.invitationform {
     padding: 2vmax;
 }
 div.invitationform input {
-    font-size: 1.8vmax;
+    /* font-size: 1.8vmax; */
 }
 div.invitationform button {
-    font-size: 1.8vmax;
+    /* font-size: 1.8vmax; */
 }
 
 /***************************************************************************/
@@ -521,36 +553,50 @@ div.invitationform button {
     border: 0;
 }
 
+/************************************************/
+
+.songListView {
+    border:1px solid red;
+}
+
 #scorxlist {
     overflow-y:auto;
     -webkit-overflow-scrolling: touch;
 }
 
-/************************************************/
 
 h3.scorxlisttitle {
     font-weight: normal;
-    font-size: 3vmax;
+    /* font-size: 3vmax; */
+}
+
+.scorxlist {
+    border: 1px solid gray;
+    max-height: 30vmax;
+    overflow-y: scroll;
+    padding: 1vmax;
+    border-radius: .4vmax;
 }
 
 .scorxitem {
     background: white;
     border-bottom: 1px solid #ccc; 
-    /* padding: 1vmax 1vmax; */
-    font-size: 1.6vmax;
+    padding: 1vmax 0;
+    /* font-size: 1.6vmax; */
     color: #444;
-    padding: 1.6vmax;
+    /* padding: 1.6vmax; */
     cursor:pointer;
 }
-
 .scorxitem:first-child {
-    border-top: 1px solid #ccc; 
+    padding: 0 0 1vmax 0;
 }
 
+
+
 .scorxitem .title {
-    font-weight: normal;
+    font-weight: bold;
     color: #000;
-    font-size: 2.3vmax;
+    /* font-size: 2.3vmax; */
   
 }
 
@@ -569,7 +615,7 @@ h3.scorxlisttitle {
     padding: .2vmax .6vmax 0vmax;
     border-radius: 1vmax;
     font-weight: bold;
-    font-size: 1.2vmax;
+    /* font-size: 1.2vmax; */
 }
 
 .ensemble.SATB {
@@ -604,18 +650,7 @@ h3.scorxlisttitle {
 
 
 
-.searchinput {
-    padding: 1vmax;
-}
 
-.searchinput * {
-    padding: .4vmax;
-    font-size: 1.8vmax;
-}
-.searchinput input {
-    width: 40vmax;
-    padding-left: 2vmax;
-}
 
 .searchinput select {
     
@@ -623,10 +658,64 @@ h3.scorxlisttitle {
 
 .showall {
     margin: 0;
-    font-size: 2vmax;
+    /* font-size: 2vmax; */
 }
+
 .underlist {
     padding: 2vmax;
     display:flex;
     justify-content: end;
 }
+
+/*****************************************************************************/
+
+.infoblobs-wide {
+    background: #666;
+
+}
+
+.infoblobs {
+    background: #eee;
+    display: grid;    
+    grid-template-columns: 1fr 1fr 1fr;
+    /* min-height: 8vmax; */
+    margin: 0 auto;
+}
+
+.infoblob {
+    text-align: center;
+    padding: 1vmax;
+    
+    
+}
+
+.infoblob-content {
+    /* margin-top: 1vmax; */
+    transform: rotate(-8deg);
+    padding: 3vmax;
+    cursor: pointer;
+}
+
+.infoblob-title {
+    font-weight: bold;
+    /* font-size: 1.7vmax; */
+}
+
+.infoblob-info {
+    /* font-size: 1.4vmax; */
+}
+
+.infoblob:nth-child(1) {
+    background: lightpink;
+}
+.infoblob:nth-child(2) {
+    background: mediumaquamarine;
+    color: white;
+}
+
+.infoblob:nth-child(3) {
+    background:lightseagreen;
+    color: white;
+}
+
+

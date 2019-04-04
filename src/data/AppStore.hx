@@ -346,7 +346,7 @@ class AppStore extends DeepStateContainer<AppState> {
 
 		try {
 			switch mess.type {
-				case UserAccountActivation(email, password, firstname, lastname):
+				case UserAccountActivation(email, password, firstname, lastname, sensus):
 					if (this.userExists(email))
 						throw 'Användaren $email finns redan!';
 
@@ -355,8 +355,9 @@ class AppStore extends DeepStateContainer<AppState> {
 						password: password,
 						firstname: firstname,
 						lastname: lastname,
-						sensus: false,
-						songs: []
+						sensus: sensus,
+						songs: [],
+						userSongs: [],
 					};
 
 					this.addUser(newUser);
@@ -379,8 +380,9 @@ class AppStore extends DeepStateContainer<AppState> {
 						password: password,
 						firstname: firstname,
 						lastname: lastname,
-						sensus: false,
-						songs: []
+						sensus: null,
+						songs: [],
+						userSongs: [],
 					};
 
 					Browser.alert('Nytt konto skapas och kopplas till aktuella gruppen');
@@ -477,6 +479,20 @@ class AppStore extends DeepStateContainer<AppState> {
 
 	public function groupExists(groupname:String) {
 		return this.state.groups.filter(group -> group.name == groupname).length == 1;
+	}
+
+	public function userIsSensusMember(user:User) {
+		return user.sensus != null;
+	}
+
+	public function usernameIsSensusMember(username:String) {
+		var user = this.getUser(username);
+		return userIsSensusMember(user);
+	}
+
+	public function groupIsSensusGroup(group:Group) {
+		var admins = group.admins;
+		var adminsAreSensusUsers = admins.length == admins.filter(admin -> this.userIsSensusMember(this.getUser(admin))).length;
 	}
 
 	public function gotoPage(page:Page) {

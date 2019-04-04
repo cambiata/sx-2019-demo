@@ -12,17 +12,20 @@ class Userview extends AppBaseView {
 	public function user() {
 		if (this.store.getUser() == null)
 			return null;
-		return m('div', [
+		return m('select.user', [
 
-			m('span', 'Välkommen, ${this.store.getUser().firstname}! '),
-			m('button', {
+			m('option', 'Välkommen, ${this.store.getUser().firstname}! '),
+			m('option', {
 				onclick: e -> {
 					this.store.gotoPage(Page.UserSettings);
+					// e.target.parent.selectedIndex = 0;
+					trace(e.target.parentElement.selectedIndex = 0);
 				}
 			}, 'Inställningar'),
-			m('button', {
+			m('option', {
 				onclick: e -> {
 					this.store.logout();
+					e.target.selectedIndex = 0;
 				}
 			}, 'Logga ut'),
 		]);

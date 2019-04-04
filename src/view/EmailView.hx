@@ -62,7 +62,7 @@ class EmailView extends AppBaseView {
 
 		var title = try {
 			switch mess.type {
-				case UserAccountActivation(email, pass, firstname, lastname): 'Välkommen, ${firstname} ${lastname}, till ditt nya ScorX-konto';
+				case UserAccountActivation(email, pass, firstname, lastname, sensus): 'Välkommen, ${firstname} ${lastname}, till ditt nya ScorX-konto';
 				case UserGroupjoinInfo(groupname):
 					var user = this.store.getUser(mess.to);
 					'Välkommen, ${user.firstname}, med i ScorX-gruppen ' + groupname;
@@ -81,7 +81,7 @@ class EmailView extends AppBaseView {
 		}
 		var message = try {
 			switch mess.type {
-				case UserAccountActivation(email, pass, firstname, lastname): 'Hej ${firstname}! Klicka på denna länk för att aktivera ditt ScorX-konto';
+				case UserAccountActivation(email, pass, firstname, lastname, sensus): 'Hej ${firstname}! Klicka på denna länk för att aktivera ditt ScorX-konto';
 				case UserGroupjoinInfo(groupname):
 					var user = this.store.getUser(mess.to);
 					'Hej ${user.firstname}! Du är nu  medlem i ScorX-gruppen ' + groupname;

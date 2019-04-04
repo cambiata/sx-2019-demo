@@ -1,16 +1,19 @@
 package view;
 
+import js.Browser;
 import data.Model;
 import data.AppStore;
 import view.*;
 
-using cx.Validation;
+using data.Validation;
 
 class CreateUserView extends AppBaseView {
 	static var newUsername:String = 'nisse@nisse.se';
 	static var newPassword:String = 'nisse';
 	static var newFirstname:String = 'Nils';
 	static var newLastname:String = 'Nilsson';
+	static var sensusPnr:String;
+	static var sensusMember:Bool;
 
 	public function reset() {
 		newUsername = '';
@@ -51,6 +54,38 @@ class CreateUserView extends AppBaseView {
 					},
 					value: newLastname,
 				}),
+				// Sensusformulär
+				m('details', [
+					m('summary', 'Sjunger du i en sensus-kör?'),
+					m('div', {style: {padding: '1vmax'}}, [
+						m('p', 'Som deltagare i en Sensus-kör så får du del av förmånserbjudanden I ScorX.'),
+						m('p',
+							'Du har exempelvis möjlighet att kostnadsfritt använda 10 av Körakademins sånger.'),
+						m('p',
+							'För att kunna säkerställa att du är en Sensus-deltagare så behöver du ange ditt personnummer och kryssa i bekräftelserutan.'),
+						m('input[placeholder=Personnummer]', {
+							oninput: e -> {
+								sensusPnr = e.target.value;
+							}
+						}),
+						m('div', [
+							m('input[type=checkbox][id=userSensusCb]', {
+								onchange: e -> {
+									trace(e.target.checked);
+									var checked:Bool = e.target.checked;
+									if (sensusPnr == null || sensusPnr == '') {
+										Browser.alert('Du måste ange ditt personnummer!');
+										sensusMember = false;
+									} else {
+										sensusMember = e.target.checked;
+									}
+								},
+								checked: sensusMember,
+							}),
+							m('label[for=userSensusCb]', 'Ja, jag sjunger i en Sensus-kör'),
+						]),
+					]),
+				]),
 				m('button', {
 					onclick: e -> {
 						// this.store.tryLogin(this.newUsername, this.newPassword);
@@ -62,10 +97,13 @@ class CreateUserView extends AppBaseView {
 							newPassword.validateAsPassword();
 							newFirstname.validateAsFirstname();
 							newLastname.validateAsLastname();
+							if (sensusMember)
+								sensusPnr.validateAsPersonnummer();
+							var sensus = sensusMember ? SensusUser.UserClaimed : null;
 							var mess:EmailMessage = {
 								to: newUsername,
 								from: 'admin@scorx.org',
-								type: EmailType.UserAccountActivation(newUsername, newPassword, newFirstname, newLastname),
+								type: EmailType.UserAccountActivation(newUsername, newPassword, newFirstname, newLastname, sensus),
 							}
 							this.store.sendEmailMessage(mess);
 							js.Browser

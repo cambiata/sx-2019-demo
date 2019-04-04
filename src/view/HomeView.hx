@@ -13,7 +13,7 @@ class HomeView extends AppBaseView {
 	//  * Ifall userId är satt, visa hemsidan för inloggad användare
 	//  */
 	public function view() {
-		return this.store.state.userId == null ? this.guestView() : this.userView();
+		return this.store.state.userId == null ? this.guestView() : cast this.userView();
 	}
 
 	//-------------------------------------------------------------------------------------
@@ -23,16 +23,24 @@ class HomeView extends AppBaseView {
 	 */
 	public function guestView() {
 		return [
+
 			buildCells([
+
 				Image('assets/img/old-town.jpg'),
 				Title('Sjung och spela var du vill'),
 				Info('ScorX spelare funkar både för mobil och surfplatta!'),
 			]),
 			buildCells([
+
+				Infoblobs([
+					Infoblob.Standard('Har du prövat?', 'Klicka här för att...'),
+					Infoblob.Standard('Titta här!', 'Skulle inte du också vilja åka till...'),
+					Infoblob.Standard('Vill du veta mer?', 'Undrar du över något? klicka här!')
+				]),
 				Image('assets/img/happy.jpg'),
 				Title('Pröva ScorX gratis!'),
 				Info('Klicka på valfri titel i listan nedan, lyssna och sjung med!'),
-				Songlist('Gratislåtar', KorakademinScorxItems.items(), [LicenseHolder('Upphovsrättsfri'), LimitNumber(5)]),
+				Songlist('Gratislåtar', KorakademinScorxItems.items(), [LicenseHolder('Upphovsrättsfri')]),
 			]),
 		];
 	}
@@ -51,30 +59,35 @@ class HomeView extends AppBaseView {
 
 		var groups:Array<Group> = this.store.state.groups.filter(group -> group.members.indexOf(user.username) > -1);
 
-		// filtrera bort så att inte ledarna ser denna vy
+		// filtrera bort så att inte ledarna ser denna vy,
+		// de ser ju samma grupp i choirAdminsView()
 		groups = groups.filter(group -> {
-			trace('kolla gruppen ' + group.name);
-			trace('user ' + user.username);
-			trace('admins ' + group.admins);
-
 			!(group.admins.indexOf(user.username) > -1);
 		});
 
 		var groupLists = groups.map(group -> buildCells([
-			Songlist(group.name, KorakademinScorxItems.items(), [SelectProductIds(group.songs), LimitNumber(5)]),
+			Songlist(group.name, KorakademinScorxItems.items(), [SelectProductIds(group.songs)]),
 		]));
 
 		var choirsInfo = groupLists
 			.length > 0 ? 'Här visas de låtar som delats ut till dig av dina körer.' : 'Du verkar inte vara deltagare i någon kör eller grupp i ScorX.';
 
-		return m('div.center', [
+		return [
+			buildCells([
+				Infoblobs([
+					Infoblob.Standard('Hej Körsångare', 'Klicka här för att...'),
+					Infoblob.Standard('1000 låtar gratis!', 'Körakademin Plus är stället för dej!'),
+					Infoblob.Standard('Vad betyder "con tenerezza"?', 'Undrar du över något? klicka här!')
+				]),
+
+			]),
 			buildCells([Title('Körernas låtar'), Info(choirsInfo),]),
 
 			groupLists,
 			groupLists.length == 0 ? buildCells([SearchChoir]) : null,
 
 			// new UserInvitationsView(this.store).view(),
-		]);
+		];
 	}
 
 	function choirAdminView() {
@@ -85,13 +98,13 @@ class HomeView extends AppBaseView {
 			return null;
 
 		var groupLists = groups.map(group -> buildCells([
-			Songlist(group.name, KorakademinScorxItems.items(), [SelectProductIds(group.songs), LimitNumber(5)]),
+			Songlist(group.name, KorakademinScorxItems.items(), [SelectProductIds(group.songs)]),
 			ListGroupMembers(group.name),
 			InviteGroupMembers(group.name),
 
 		]));
 
-		return m('div.center', [buildCells([Title('Du leder följande körer'),]), groupLists,]);
+		return [buildCells([Title('Du leder följande körer'),]), groupLists,];
 	}
 
 	function mySongsView() {
@@ -99,14 +112,14 @@ class HomeView extends AppBaseView {
 		// var mySongs:Array<Song> = user.songs.map(title -> this.store.getSong(title));
 		// var myList = buildCells([Songlist('Mina låtar', KorakademinScorxItems.items(), [LimitNumber(5)])]) : buildCells([BuySongs]);
 
-		return m('div.center', [
+		return [
 			buildCells([
 				Title('Mina låtar'),
 				Info('Här visas de låtar som du har köpt eller valt genom förmånserbjudanden.'),
-				Songlist('Mina låtar', KorakademinScorxItems.items(), [SelectProductIds(user.songs), LimitNumber(5)]),
+				Songlist('Mina låtar', KorakademinScorxItems.items(), [SelectProductIds(user.songs)]),
 				BuySongs,
 			]),
-		]);
+		];
 	}
 
 	//-------------------------------------------------------------------------------------
@@ -116,10 +129,10 @@ class HomeView extends AppBaseView {
 		return m('section', cells.map(cell -> {
 			return switch cell {
 				case Image(url): m('img', {src: url});
-				case Title(title): m('h1.limit-width.center', title);
-				case Info(info): m('p.limit-width.center', info);
+				case Title(title): m('h1.center-narrow.vspace', title);
+				case Info(info): m('h3.center-narrow.vspace', info);
 				case Songlist(title, songs, filter):
-					m('div.center', new SongListView(this.store, title, songs, filter).view());
+					m('div.centerpad', new SongListView(this.store, title, songs, filter).view());
 				case SearchChoir:
 					// skapa lista för eventuella gruppansökningar för inloggad användare
 					// cast [new UserApplicationsView(this.store).view(),];
@@ -154,6 +167,15 @@ class HomeView extends AppBaseView {
 				// case ApplicationsToGroup(groupname):
 				// 	var group:Group = this.store.getGroup(groupname);
 				// 	new LeaderApplicationsView(this.store, group).view();
+				// Array<{title:String, info:String, link:String}>
+				case Infoblobs(blobs):
+					m('div.infoblobs-wide', m('div.infoblobs.centerdiv', blobs.map(blob -> {
+						return switch blob {
+							case Infoblob.Standard(title, info): m('div.infoblob',
+									m('div.infoblob-content', [m('div.infoblob-title', title), m('div.infoblob-info', info)]));
+						}
+					})));
+
 				case _: null;
 			}
 		}));
