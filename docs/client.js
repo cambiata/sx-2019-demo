@@ -2474,10 +2474,14 @@ view_OverlayView.prototype = $extend(view_AppBaseView.prototype,{
 	view: function() {
 		var _gthis = this;
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		return [m.m("h2",this.store.get_state().playerSong.title),m.m("button.round",{ onclick : function(e) {
-			_gthis.store.updateState({ type : "showPlayer", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("playerShow")]), value : !_gthis.store.get_state().playerShow}])});
-			return;
-		}},"Stäng")];
+		if(this.store.get_state().playerSong == null) {
+			return m.m("h2","No song selected");
+		} else {
+			return [m.m("h2",this.store.get_state().playerSong.title),m.m("button.round",{ onclick : function(e) {
+				_gthis.store.updateState({ type : "showPlayer", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("playerShow")]), value : !_gthis.store.get_state().playerShow}])});
+				return;
+			}},"Stäng")];
+		}
 	}
 	,__class__: view_OverlayView
 });
@@ -2652,7 +2656,7 @@ view_SongListView.prototype = $extend(view_AppBaseView.prototype,{
 					_gthis.onSongClick(song);
 				}
 				return;
-			}},"Select")])]);
+			}},"Play")])]);
 		})),m.m("div.underlist",[m.m("p",this.songs.length + " låtar")])]);
 	}
 	,__class__: view_SongListView

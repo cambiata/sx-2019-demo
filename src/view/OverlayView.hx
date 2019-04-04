@@ -5,8 +5,8 @@ import data.AppStore;
 import view.*;
 
 class OverlayView extends AppBaseView {
-	public function view()
-		[
+	public function view() {
+		return (this.store.state.playerSong == null) ? m('h2', 'No song selected') : [
 			m('h2', this.store.state.playerSong.title),
 			m('button.round', {
 				onclick: e -> {
@@ -14,4 +14,5 @@ class OverlayView extends AppBaseView {
 				}
 			}, 'Stäng'),
 		];
+	}
 }

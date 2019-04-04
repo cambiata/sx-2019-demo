@@ -103,7 +103,7 @@ class SongListView extends AppBaseView {
 							if (this.onSongClick != null)
 								this.onSongClick(song);
 						}
-					}, 'Select'),
+					}, 'Play'),
 				]),
 
 			]))),
