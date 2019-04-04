@@ -2454,16 +2454,13 @@ view_MenuView.prototype = $extend(view_AppBaseView.prototype,{
 			_gthis.store.gotoPage(data_Page.Email);
 			return;
 		}},"E-post"),m.m("span.button",{ onclick : function(e3) {
-			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("playerShow")]), value : !_gthis.store.get_state().playerShow}])});
-			return;
-		}},"Spelare"),m.m("span.button",{ onclick : function(e4) {
 			_gthis.store.resetToDefaultData();
 			_gthis.store.gotoPage(data_Page.Home);
 			return;
-		}},"Nollställ demo"),m.m("span.button",{ onclick : function(e5) {
+		}},"Nollställ demo"),m.m("span.button",{ onclick : function(e4) {
 			_gthis.store.gotoPage(data_Page.Other);
 			return;
-		}},"Other")];
+		}},"Test")];
 	}
 	,__class__: view_MenuView
 });
