@@ -11,15 +11,17 @@ var Client = function() { };
 $hxClasses["Client"] = Client;
 Client.__name__ = true;
 Client.main = function() {
-	var store = new data_AppStore(new DeepState_$data_$AppState({ userId : null, users : null, groups : null, messages : null, page : data_Page.Home, showOverlay : false}));
+	var store = new data_AppStore(new DeepState_$data_$AppState({ userId : null, users : null, groups : null, messages : null, page : data_Page.Home, showOverlay : false, playerShow : false, playerSong : null}));
 	store.load();
-	store.subscribeObserver(ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([""]),function(state) {
+	var tmp = ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([""]),function(state) {
 		m.redraw();
 		return;
-	}),store.get_state());
-	store.subscribeObserver(ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["showOverlay"]),function(showOverlay) {
+	});
+	var tmp1 = store.get_state();
+	store.subscribeObserver(tmp,tmp1);
+	var tmp2 = ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["playerShow"]),function(playerShow) {
 		var body = window.document.querySelector("body");
-		if(showOverlay == null || showOverlay == false) {
+		if(playerShow == null || playerShow == false) {
 			body.classList.add("hide-overlay");
 			body.classList.add("webkit-scrolling");
 		} else {
@@ -27,12 +29,19 @@ Client.main = function() {
 			body.classList.remove("webkit-scrolling");
 		}
 		return;
-	}),null);
+	});
+	store.subscribeObserver(tmp2,null);
+	var tmp3 = ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["playerSong"]),function(playerSong) {
+		console.log("src/Client.hx:51:",playerSong);
+		store.updateState({ type : "Client.main", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("playerShow")]), value : true}])});
+		return;
+	});
+	store.subscribeObserver(tmp3,null);
 	m.mount(window.document.querySelector("#header"),new view_Userview(store));
 	m.mount(window.document.querySelector("#nav"),new view_MenuView(store));
 	m.mount(window.document.querySelector("#footer"),new view_FooterView(store));
 	m.mount(window.document.querySelector("main"),new view_PageView(store));
-	m.mount(window.document.querySelector("#scorxlist"),new view_OverlayView(store));
+	m.mount(window.document.querySelector("#playerheader"),new view_OverlayView(store));
 };
 var DeepState = function() { };
 $hxClasses["DeepState"] = DeepState;
@@ -1021,8 +1030,8 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 	,tryLogin: function(tryUsername,tryPassword) {
 		var _gthis = this;
 		try {
-			console.log("src/data/AppStore.hx:112:",tryUsername);
-			console.log("src/data/AppStore.hx:113:",this.get_state().users.length);
+			console.log("src/data/AppStore.hx:115:",tryUsername);
+			console.log("src/data/AppStore.hx:116:",this.get_state().users.length);
 			var foundUser;
 			var _g = ds__$ImmutableArray_ImmutableArray_$Impl_$.first(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().users,function(u) {
 				return u.username == tryUsername;
@@ -1132,9 +1141,9 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 		}
 	}
 	,sendEmailMessage: function(mess) {
-		console.log("src/data/AppStore.hx:438:",this.get_state().messages.length);
+		console.log("src/data/AppStore.hx:441:",this.get_state().messages.length);
 		this.updateState({ type : "AppStore.sendEmailMessage", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("messages")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.push(this.get_state().messages,mess)}])});
-		console.log("src/data/AppStore.hx:440:",this.get_state().messages.length);
+		console.log("src/data/AppStore.hx:443:",this.get_state().messages.length);
 		this.save();
 	}
 	,isGroupMember: function(username,groupname) {
@@ -1160,9 +1169,9 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 			}
 			var groupIndex = ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(this.get_state().groups,group);
 			var members = this.get_state().groups[groupIndex].members;
-			console.log("src/data/AppStore.hx:471:",members);
+			console.log("src/data/AppStore.hx:474:",members);
 			members = ds__$ImmutableArray_ImmutableArray_$Impl_$.push(members,user.username);
-			console.log("src/data/AppStore.hx:473:",members);
+			console.log("src/data/AppStore.hx:476:",members);
 			this.updateState({ type : "AppStore.addGroupMember", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("groups"),ds_PathAccess.Array(groupIndex),ds_PathAccess.Field("members")]), value : members}])});
 			this.save();
 		} catch( e ) {
@@ -1197,8 +1206,8 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 		this.updateState({ type : "AppStore.gotoPage", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("page")]), value : page}])});
 	}
 	,resetToDefaultData: function() {
-		console.log("src/data/AppStore.hx:516:","Reset data");
-		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { userId : null, users : data_Default.users(), groups : data_Default.groups(), messages : data_Default.messages(), page : data_Page.Home, showOverlay : false}}])});
+		console.log("src/data/AppStore.hx:519:","Reset data");
+		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { userId : null, users : data_Default.users(), groups : data_Default.groups(), messages : data_Default.messages(), page : data_Page.Home, showOverlay : false, playerShow : false, playerSong : null}}])});
 		this.save();
 	}
 	,__class__: data_AppStore
@@ -2244,7 +2253,7 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 	,buildCells: function(cells) {
 		var _gthis = this;
 		var onSongClick = function(song) {
-			js_Browser.alert(song);
+			_gthis.store.updateState({ type : "HomeView.buildCells", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("playerSong")]), value : song}])});
 		};
 		return m.m("section",cells.map(function(cell) {
 			switch(cell._hx_index) {
@@ -2294,7 +2303,7 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 				})]);
 			case 10:
 				return m.m("div.center",[m.m("button.center",{ onclick : function(e) {
-					console.log("src/view/HomeView.hx:171:","Click");
+					console.log("src/view/HomeView.hx:172:","Click");
 					return;
 				}},"Gå till butiken")]);
 			}
@@ -2445,7 +2454,7 @@ view_MenuView.prototype = $extend(view_AppBaseView.prototype,{
 			_gthis.store.gotoPage(data_Page.Email);
 			return;
 		}},"E-post"),m.m("span.button",{ onclick : function(e3) {
-			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("showOverlay")]), value : !_gthis.store.get_state().showOverlay}])});
+			_gthis.store.updateState({ type : "MenuView.view", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("playerShow")]), value : !_gthis.store.get_state().playerShow}])});
 			return;
 		}},"Spelare"),m.m("span.button",{ onclick : function(e4) {
 			_gthis.store.resetToDefaultData();
@@ -2466,8 +2475,12 @@ view_OverlayView.__name__ = true;
 view_OverlayView.__super__ = view_AppBaseView;
 view_OverlayView.prototype = $extend(view_AppBaseView.prototype,{
 	view: function() {
+		var _gthis = this;
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		return new view_SongListView(this.store,"Körakademins låtar",data_KorakademinScorxItems.items(),[]).view();
+		return [m.m("h2",this.store.get_state().playerSong.title),m.m("button.round",{ onclick : function(e) {
+			_gthis.store.updateState({ type : "showPlayer", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("playerShow")]), value : !_gthis.store.get_state().playerShow}])});
+			return;
+		}},"Stäng")];
 	}
 	,__class__: view_OverlayView
 });
@@ -2757,7 +2770,7 @@ var __varName1 = global.m;
 } catch(_) {}
 DeepState_$data_$AppState._stateTypes = (function($this) {
 	var $r;
-	var _g7 = new haxe_ds_StringMap();
+	var _g9 = new haxe_ds_StringMap();
 	{
 		var _g = new haxe_ds_StringMap();
 		var value = ds_StateObjectType.String;
@@ -2804,228 +2817,406 @@ DeepState_$data_$AppState._stateTypes = (function($this) {
 		}
 		var value7 = ds_StateObjectType.Anonymous(_g);
 		if(__map_reserved["data.User"] != null) {
-			_g7.setReserved("data.User",value7);
+			_g9.setReserved("data.User",value7);
 		} else {
-			_g7.h["data.User"] = value7;
+			_g9.h["data.User"] = value7;
 		}
 	}
 	{
 		var _g1 = new haxe_ds_StringMap();
-		var value8 = ds_StateObjectType.Array(ds_StateObjectType.Int);
-		if(__map_reserved["songs"] != null) {
-			_g1.setReserved("songs",value8);
+		var value8 = ds_StateObjectType.String;
+		if(__map_reserved["title"] != null) {
+			_g1.setReserved("title",value8);
 		} else {
-			_g1.h["songs"] = value8;
+			_g1.h["title"] = value8;
 		}
 		var value9 = ds_StateObjectType.String;
-		if(__map_reserved["name"] != null) {
-			_g1.setReserved("name",value9);
+		if(__map_reserved["shopLink"] != null) {
+			_g1.setReserved("shopLink",value9);
 		} else {
-			_g1.h["name"] = value9;
+			_g1.h["shopLink"] = value9;
 		}
-		var value10 = ds_StateObjectType.Array(ds_StateObjectType.String);
-		if(__map_reserved["members"] != null) {
-			_g1.setReserved("members",value10);
+		var value10 = ds_StateObjectType.Int;
+		if(__map_reserved["scorxProductId"] != null) {
+			_g1.setReserved("scorxProductId",value10);
 		} else {
-			_g1.h["members"] = value10;
+			_g1.h["scorxProductId"] = value10;
 		}
 		var value11 = ds_StateObjectType.String;
-		if(__map_reserved["info"] != null) {
-			_g1.setReserved("info",value11);
+		if(__map_reserved["playProducer"] != null) {
+			_g1.setReserved("playProducer",value11);
 		} else {
-			_g1.h["info"] = value11;
+			_g1.h["playProducer"] = value11;
 		}
-		var value12 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
-		if(__map_reserved["groupSongs"] != null) {
-			_g1.setReserved("groupSongs",value12);
+		var value12 = ds_StateObjectType.String;
+		if(__map_reserved["paskmusik"] != null) {
+			_g1.setReserved("paskmusik",value12);
 		} else {
-			_g1.h["groupSongs"] = value12;
+			_g1.h["paskmusik"] = value12;
 		}
-		var value13 = ds_StateObjectType.Array(ds_StateObjectType.String);
-		if(__map_reserved["admins"] != null) {
-			_g1.setReserved("admins",value13);
+		var value13 = ds_StateObjectType.String;
+		if(__map_reserved["lyricist"] != null) {
+			_g1.setReserved("lyricist",value13);
 		} else {
-			_g1.h["admins"] = value13;
+			_g1.h["lyricist"] = value13;
 		}
-		var value14 = ds_StateObjectType.Anonymous(_g1);
-		if(__map_reserved["data.Group"] != null) {
-			_g7.setReserved("data.Group",value14);
+		var value14 = ds_StateObjectType.String;
+		if(__map_reserved["licenseholder"] != null) {
+			_g1.setReserved("licenseholder",value14);
 		} else {
-			_g7.h["data.Group"] = value14;
+			_g1.h["licenseholder"] = value14;
+		}
+		var value15 = ds_StateObjectType.String;
+		if(__map_reserved["language"] != null) {
+			_g1.setReserved("language",value15);
+		} else {
+			_g1.h["language"] = value15;
+		}
+		var value16 = ds_StateObjectType.String;
+		if(__map_reserved["julmusik"] != null) {
+			_g1.setReserved("julmusik",value16);
+		} else {
+			_g1.h["julmusik"] = value16;
+		}
+		var value17 = ds_StateObjectType.String;
+		if(__map_reserved["externalLink"] != null) {
+			_g1.setReserved("externalLink",value17);
+		} else {
+			_g1.h["externalLink"] = value17;
+		}
+		var value18 = ds_StateObjectType.String;
+		if(__map_reserved["ensemble"] != null) {
+			_g1.setReserved("ensemble",value18);
+		} else {
+			_g1.h["ensemble"] = value18;
+		}
+		var value19 = ds_StateObjectType.String;
+		if(__map_reserved["composer"] != null) {
+			_g1.setReserved("composer",value19);
+		} else {
+			_g1.h["composer"] = value19;
+		}
+		var value20 = ds_StateObjectType.String;
+		if(__map_reserved["arranger"] != null) {
+			_g1.setReserved("arranger",value20);
+		} else {
+			_g1.h["arranger"] = value20;
+		}
+		var value21 = ds_StateObjectType.Anonymous(_g1);
+		if(__map_reserved["data.ScorxItem"] != null) {
+			_g9.setReserved("data.ScorxItem",value21);
+		} else {
+			_g9.h["data.ScorxItem"] = value21;
 		}
 	}
 	{
 		var _g2 = new haxe_ds_StringMap();
-		var value15 = ds_StateObjectType.Enumm;
-		if(__map_reserved["type"] != null) {
-			_g2.setReserved("type",value15);
+		var value22 = ds_StateObjectType.Array(ds_StateObjectType.Int);
+		if(__map_reserved["songs"] != null) {
+			_g2.setReserved("songs",value22);
 		} else {
-			_g2.h["type"] = value15;
+			_g2.h["songs"] = value22;
 		}
-		var value16 = ds_StateObjectType.String;
-		if(__map_reserved["to"] != null) {
-			_g2.setReserved("to",value16);
+		var value23 = ds_StateObjectType.String;
+		if(__map_reserved["name"] != null) {
+			_g2.setReserved("name",value23);
 		} else {
-			_g2.h["to"] = value16;
+			_g2.h["name"] = value23;
 		}
-		var value17 = ds_StateObjectType.String;
-		if(__map_reserved["from"] != null) {
-			_g2.setReserved("from",value17);
+		var value24 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		if(__map_reserved["members"] != null) {
+			_g2.setReserved("members",value24);
 		} else {
-			_g2.h["from"] = value17;
+			_g2.h["members"] = value24;
 		}
-		var value18 = ds_StateObjectType.Anonymous(_g2);
-		if(__map_reserved["data.EmailMessage"] != null) {
-			_g7.setReserved("data.EmailMessage",value18);
+		var value25 = ds_StateObjectType.String;
+		if(__map_reserved["info"] != null) {
+			_g2.setReserved("info",value25);
 		} else {
-			_g7.h["data.EmailMessage"] = value18;
+			_g2.h["info"] = value25;
+		}
+		var value26 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
+		if(__map_reserved["groupSongs"] != null) {
+			_g2.setReserved("groupSongs",value26);
+		} else {
+			_g2.h["groupSongs"] = value26;
+		}
+		var value27 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		if(__map_reserved["admins"] != null) {
+			_g2.setReserved("admins",value27);
+		} else {
+			_g2.h["admins"] = value27;
+		}
+		var value28 = ds_StateObjectType.Anonymous(_g2);
+		if(__map_reserved["data.Group"] != null) {
+			_g9.setReserved("data.Group",value28);
+		} else {
+			_g9.h["data.Group"] = value28;
 		}
 	}
 	{
-		var _g6 = new haxe_ds_StringMap();
 		var _g3 = new haxe_ds_StringMap();
-		var value19 = ds_StateObjectType.String;
-		if(__map_reserved["username"] != null) {
-			_g3.setReserved("username",value19);
-		} else {
-			_g3.h["username"] = value19;
-		}
-		var value20 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
-		if(__map_reserved["userSongs"] != null) {
-			_g3.setReserved("userSongs",value20);
-		} else {
-			_g3.h["userSongs"] = value20;
-		}
-		var value21 = ds_StateObjectType.Array(ds_StateObjectType.Int);
-		if(__map_reserved["songs"] != null) {
-			_g3.setReserved("songs",value21);
-		} else {
-			_g3.h["songs"] = value21;
-		}
-		var value22 = ds_StateObjectType.Recursive("data.SensusUser");
-		if(__map_reserved["sensus"] != null) {
-			_g3.setReserved("sensus",value22);
-		} else {
-			_g3.h["sensus"] = value22;
-		}
-		var value23 = ds_StateObjectType.String;
-		if(__map_reserved["password"] != null) {
-			_g3.setReserved("password",value23);
-		} else {
-			_g3.h["password"] = value23;
-		}
-		var value24 = ds_StateObjectType.String;
-		if(__map_reserved["lastname"] != null) {
-			_g3.setReserved("lastname",value24);
-		} else {
-			_g3.h["lastname"] = value24;
-		}
-		var value25 = ds_StateObjectType.String;
-		if(__map_reserved["firstname"] != null) {
-			_g3.setReserved("firstname",value25);
-		} else {
-			_g3.h["firstname"] = value25;
-		}
-		var value26 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g3));
-		if(__map_reserved["users"] != null) {
-			_g6.setReserved("users",value26);
-		} else {
-			_g6.h["users"] = value26;
-		}
-		var value27 = ds_StateObjectType.String;
-		if(__map_reserved["userId"] != null) {
-			_g6.setReserved("userId",value27);
-		} else {
-			_g6.h["userId"] = value27;
-		}
-		var value28 = ds_StateObjectType.Bool;
-		if(__map_reserved["showOverlay"] != null) {
-			_g6.setReserved("showOverlay",value28);
-		} else {
-			_g6.h["showOverlay"] = value28;
-		}
 		var value29 = ds_StateObjectType.Enumm;
-		if(__map_reserved["page"] != null) {
-			_g6.setReserved("page",value29);
-		} else {
-			_g6.h["page"] = value29;
-		}
-		var _g4 = new haxe_ds_StringMap();
-		var value30 = ds_StateObjectType.Enumm;
 		if(__map_reserved["type"] != null) {
-			_g4.setReserved("type",value30);
+			_g3.setReserved("type",value29);
 		} else {
-			_g4.h["type"] = value30;
+			_g3.h["type"] = value29;
+		}
+		var value30 = ds_StateObjectType.String;
+		if(__map_reserved["to"] != null) {
+			_g3.setReserved("to",value30);
+		} else {
+			_g3.h["to"] = value30;
 		}
 		var value31 = ds_StateObjectType.String;
-		if(__map_reserved["to"] != null) {
-			_g4.setReserved("to",value31);
-		} else {
-			_g4.h["to"] = value31;
-		}
-		var value32 = ds_StateObjectType.String;
 		if(__map_reserved["from"] != null) {
-			_g4.setReserved("from",value32);
+			_g3.setReserved("from",value31);
 		} else {
-			_g4.h["from"] = value32;
+			_g3.h["from"] = value31;
 		}
-		var value33 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g4));
-		if(__map_reserved["messages"] != null) {
-			_g6.setReserved("messages",value33);
+		var value32 = ds_StateObjectType.Anonymous(_g3);
+		if(__map_reserved["data.EmailMessage"] != null) {
+			_g9.setReserved("data.EmailMessage",value32);
 		} else {
-			_g6.h["messages"] = value33;
-		}
-		var _g5 = new haxe_ds_StringMap();
-		var value34 = ds_StateObjectType.Array(ds_StateObjectType.Int);
-		if(__map_reserved["songs"] != null) {
-			_g5.setReserved("songs",value34);
-		} else {
-			_g5.h["songs"] = value34;
-		}
-		var value35 = ds_StateObjectType.String;
-		if(__map_reserved["name"] != null) {
-			_g5.setReserved("name",value35);
-		} else {
-			_g5.h["name"] = value35;
-		}
-		var value36 = ds_StateObjectType.Array(ds_StateObjectType.String);
-		if(__map_reserved["members"] != null) {
-			_g5.setReserved("members",value36);
-		} else {
-			_g5.h["members"] = value36;
-		}
-		var value37 = ds_StateObjectType.String;
-		if(__map_reserved["info"] != null) {
-			_g5.setReserved("info",value37);
-		} else {
-			_g5.h["info"] = value37;
-		}
-		var value38 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
-		if(__map_reserved["groupSongs"] != null) {
-			_g5.setReserved("groupSongs",value38);
-		} else {
-			_g5.h["groupSongs"] = value38;
-		}
-		var value39 = ds_StateObjectType.Array(ds_StateObjectType.String);
-		if(__map_reserved["admins"] != null) {
-			_g5.setReserved("admins",value39);
-		} else {
-			_g5.h["admins"] = value39;
-		}
-		var value40 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g5));
-		if(__map_reserved["groups"] != null) {
-			_g6.setReserved("groups",value40);
-		} else {
-			_g6.h["groups"] = value40;
-		}
-		var value41 = ds_StateObjectType.Anonymous(_g6);
-		if(__map_reserved["data.AppState"] != null) {
-			_g7.setReserved("data.AppState",value41);
-		} else {
-			_g7.h["data.AppState"] = value41;
+			_g9.h["data.EmailMessage"] = value32;
 		}
 	}
-	$r = _g7;
+	{
+		var _g8 = new haxe_ds_StringMap();
+		var _g4 = new haxe_ds_StringMap();
+		var value33 = ds_StateObjectType.String;
+		if(__map_reserved["username"] != null) {
+			_g4.setReserved("username",value33);
+		} else {
+			_g4.h["username"] = value33;
+		}
+		var value34 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
+		if(__map_reserved["userSongs"] != null) {
+			_g4.setReserved("userSongs",value34);
+		} else {
+			_g4.h["userSongs"] = value34;
+		}
+		var value35 = ds_StateObjectType.Array(ds_StateObjectType.Int);
+		if(__map_reserved["songs"] != null) {
+			_g4.setReserved("songs",value35);
+		} else {
+			_g4.h["songs"] = value35;
+		}
+		var value36 = ds_StateObjectType.Recursive("data.SensusUser");
+		if(__map_reserved["sensus"] != null) {
+			_g4.setReserved("sensus",value36);
+		} else {
+			_g4.h["sensus"] = value36;
+		}
+		var value37 = ds_StateObjectType.String;
+		if(__map_reserved["password"] != null) {
+			_g4.setReserved("password",value37);
+		} else {
+			_g4.h["password"] = value37;
+		}
+		var value38 = ds_StateObjectType.String;
+		if(__map_reserved["lastname"] != null) {
+			_g4.setReserved("lastname",value38);
+		} else {
+			_g4.h["lastname"] = value38;
+		}
+		var value39 = ds_StateObjectType.String;
+		if(__map_reserved["firstname"] != null) {
+			_g4.setReserved("firstname",value39);
+		} else {
+			_g4.h["firstname"] = value39;
+		}
+		var value40 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g4));
+		if(__map_reserved["users"] != null) {
+			_g8.setReserved("users",value40);
+		} else {
+			_g8.h["users"] = value40;
+		}
+		var value41 = ds_StateObjectType.String;
+		if(__map_reserved["userId"] != null) {
+			_g8.setReserved("userId",value41);
+		} else {
+			_g8.h["userId"] = value41;
+		}
+		var value42 = ds_StateObjectType.Bool;
+		if(__map_reserved["showOverlay"] != null) {
+			_g8.setReserved("showOverlay",value42);
+		} else {
+			_g8.h["showOverlay"] = value42;
+		}
+		var _g5 = new haxe_ds_StringMap();
+		var value43 = ds_StateObjectType.String;
+		if(__map_reserved["title"] != null) {
+			_g5.setReserved("title",value43);
+		} else {
+			_g5.h["title"] = value43;
+		}
+		var value44 = ds_StateObjectType.String;
+		if(__map_reserved["shopLink"] != null) {
+			_g5.setReserved("shopLink",value44);
+		} else {
+			_g5.h["shopLink"] = value44;
+		}
+		var value45 = ds_StateObjectType.Int;
+		if(__map_reserved["scorxProductId"] != null) {
+			_g5.setReserved("scorxProductId",value45);
+		} else {
+			_g5.h["scorxProductId"] = value45;
+		}
+		var value46 = ds_StateObjectType.String;
+		if(__map_reserved["playProducer"] != null) {
+			_g5.setReserved("playProducer",value46);
+		} else {
+			_g5.h["playProducer"] = value46;
+		}
+		var value47 = ds_StateObjectType.String;
+		if(__map_reserved["paskmusik"] != null) {
+			_g5.setReserved("paskmusik",value47);
+		} else {
+			_g5.h["paskmusik"] = value47;
+		}
+		var value48 = ds_StateObjectType.String;
+		if(__map_reserved["lyricist"] != null) {
+			_g5.setReserved("lyricist",value48);
+		} else {
+			_g5.h["lyricist"] = value48;
+		}
+		var value49 = ds_StateObjectType.String;
+		if(__map_reserved["licenseholder"] != null) {
+			_g5.setReserved("licenseholder",value49);
+		} else {
+			_g5.h["licenseholder"] = value49;
+		}
+		var value50 = ds_StateObjectType.String;
+		if(__map_reserved["language"] != null) {
+			_g5.setReserved("language",value50);
+		} else {
+			_g5.h["language"] = value50;
+		}
+		var value51 = ds_StateObjectType.String;
+		if(__map_reserved["julmusik"] != null) {
+			_g5.setReserved("julmusik",value51);
+		} else {
+			_g5.h["julmusik"] = value51;
+		}
+		var value52 = ds_StateObjectType.String;
+		if(__map_reserved["externalLink"] != null) {
+			_g5.setReserved("externalLink",value52);
+		} else {
+			_g5.h["externalLink"] = value52;
+		}
+		var value53 = ds_StateObjectType.String;
+		if(__map_reserved["ensemble"] != null) {
+			_g5.setReserved("ensemble",value53);
+		} else {
+			_g5.h["ensemble"] = value53;
+		}
+		var value54 = ds_StateObjectType.String;
+		if(__map_reserved["composer"] != null) {
+			_g5.setReserved("composer",value54);
+		} else {
+			_g5.h["composer"] = value54;
+		}
+		var value55 = ds_StateObjectType.String;
+		if(__map_reserved["arranger"] != null) {
+			_g5.setReserved("arranger",value55);
+		} else {
+			_g5.h["arranger"] = value55;
+		}
+		var value56 = ds_StateObjectType.Anonymous(_g5);
+		if(__map_reserved["playerSong"] != null) {
+			_g8.setReserved("playerSong",value56);
+		} else {
+			_g8.h["playerSong"] = value56;
+		}
+		var value57 = ds_StateObjectType.Bool;
+		if(__map_reserved["playerShow"] != null) {
+			_g8.setReserved("playerShow",value57);
+		} else {
+			_g8.h["playerShow"] = value57;
+		}
+		var value58 = ds_StateObjectType.Enumm;
+		if(__map_reserved["page"] != null) {
+			_g8.setReserved("page",value58);
+		} else {
+			_g8.h["page"] = value58;
+		}
+		var _g6 = new haxe_ds_StringMap();
+		var value59 = ds_StateObjectType.Enumm;
+		if(__map_reserved["type"] != null) {
+			_g6.setReserved("type",value59);
+		} else {
+			_g6.h["type"] = value59;
+		}
+		var value60 = ds_StateObjectType.String;
+		if(__map_reserved["to"] != null) {
+			_g6.setReserved("to",value60);
+		} else {
+			_g6.h["to"] = value60;
+		}
+		var value61 = ds_StateObjectType.String;
+		if(__map_reserved["from"] != null) {
+			_g6.setReserved("from",value61);
+		} else {
+			_g6.h["from"] = value61;
+		}
+		var value62 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g6));
+		if(__map_reserved["messages"] != null) {
+			_g8.setReserved("messages",value62);
+		} else {
+			_g8.h["messages"] = value62;
+		}
+		var _g7 = new haxe_ds_StringMap();
+		var value63 = ds_StateObjectType.Array(ds_StateObjectType.Int);
+		if(__map_reserved["songs"] != null) {
+			_g7.setReserved("songs",value63);
+		} else {
+			_g7.h["songs"] = value63;
+		}
+		var value64 = ds_StateObjectType.String;
+		if(__map_reserved["name"] != null) {
+			_g7.setReserved("name",value64);
+		} else {
+			_g7.h["name"] = value64;
+		}
+		var value65 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		if(__map_reserved["members"] != null) {
+			_g7.setReserved("members",value65);
+		} else {
+			_g7.h["members"] = value65;
+		}
+		var value66 = ds_StateObjectType.String;
+		if(__map_reserved["info"] != null) {
+			_g7.setReserved("info",value66);
+		} else {
+			_g7.h["info"] = value66;
+		}
+		var value67 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
+		if(__map_reserved["groupSongs"] != null) {
+			_g7.setReserved("groupSongs",value67);
+		} else {
+			_g7.h["groupSongs"] = value67;
+		}
+		var value68 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		if(__map_reserved["admins"] != null) {
+			_g7.setReserved("admins",value68);
+		} else {
+			_g7.h["admins"] = value68;
+		}
+		var value69 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g7));
+		if(__map_reserved["groups"] != null) {
+			_g8.setReserved("groups",value69);
+		} else {
+			_g8.h["groups"] = value69;
+		}
+		var value70 = ds_StateObjectType.Anonymous(_g8);
+		if(__map_reserved["data.AppState"] != null) {
+			_g9.setReserved("data.AppState",value70);
+		} else {
+			_g9.h["data.AppState"] = value70;
+		}
+	}
+	$r = _g9;
 	return $r;
 }(this));
 cx_Validation.emailReg = new EReg("^[\\w-\\.]{2,}@[\\w-\\.]{2,}\\.[a-z]{2,6}$","i");

@@ -25,11 +25,6 @@ class MenuView extends AppBaseView {
 			}, 'E-post'),
 			m('span.button', {
 				onclick: e -> {
-					this.store.update(this.store.state.showOverlay = !this.store.state.showOverlay);
-				}
-			}, 'Spelare'),
-			m('span.button', {
-				onclick: e -> {
 					this.store.resetToDefaultData();
 					this.store.gotoPage(Page.Home);
 				}
@@ -38,6 +33,6 @@ class MenuView extends AppBaseView {
 				onclick: e -> {
 					this.store.gotoPage(Page.Other);
 				}
-			}, 'Other'),
+			}, 'Test'),
 		];
 }

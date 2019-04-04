@@ -1,5 +1,6 @@
 package data;
 
+import data.KorakademinScorxItems.ScorxItem;
 import js.Browser;
 import haxe.Json;
 import ds.ImmutableArray;
@@ -48,6 +49,8 @@ typedef AppState = {
 	 * Info om aktuell "sida", i brist på riktig url-router i denna demo
 	 */
 	final page:Page;
+	final playerShow:Bool;
+	final playerSong:ScorxItem;
 }
 
 /**
@@ -518,13 +521,11 @@ class AppStore extends DeepStateContainer<AppState> {
 			userId: null,
 			users: cast Default.users(),
 			groups: cast Default.groups(),
-			// applications: cast Default.applications(),
-			// invitations: cast Default.invitations(),
-			// songs: cast Default.songs(),
 			messages: cast Default.messages(),
 			page: Home,
-			// overlay: null, // cast [SongList(null)],
 			showOverlay: false,
+			playerShow: false,
+			playerSong: null,
 		}, 'do reset');
 		this.save();
 	}

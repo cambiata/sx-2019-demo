@@ -1,9 +1,17 @@
 package view;
 
-import data.KorakademinScorxItems;
+import data.Model;
+import data.AppStore;
+import view.*;
 
 class OverlayView extends AppBaseView {
-	public function view() {
-		return new SongListView(this.store, 'Körakademins låtar', KorakademinScorxItems.items(), []).view();
-	}
+	public function view()
+		[
+			m('h2', this.store.state.playerSong.title),
+			m('button.round', {
+				onclick: e -> {
+					this.store.update(this.store.state.playerShow = !this.store.state.playerShow, 'showPlayer');
+				}
+			}, 'Stäng'),
+		];
 }

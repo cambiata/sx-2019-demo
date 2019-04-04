@@ -132,7 +132,8 @@ class HomeView extends AppBaseView {
 
 	function buildCells(cells:Array<HomeCell>) {
 		function onSongClick(song:ScorxItem) {
-			Browser.alert(song);
+			// Browser.alert(song);
+			this.store.update(this.store.state.playerSong = song);
 		}
 
 		return m('section', cells.map(cell -> {
