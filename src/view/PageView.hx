@@ -16,7 +16,10 @@ class PageView extends AppBaseView {
 	public function new(store:AppStore) {
 		super(store);
 		this.home = new HomeView(store);
-		this.selectSongs = new SelectSongsView(store, KorakademinScorxItems.items(), []); // this.create = new CreateUserView(store);
+		this.selectSongs = new SelectSongsView(store,
+			KorakademinScorxItems.songs()
+				.map(song -> {song: song, access: GroupPrivilege(song.scorxProductId, null)}), []); // this.create = new CreateUserView(store);
+
 		// this.email = new EmailView(store);
 		// this.other = new SearchChoirView(store);
 	}

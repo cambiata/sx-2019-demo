@@ -1,24 +1,29 @@
 package data;
 
-import data.KorakademinScorxItems;
 import js.Browser;
 import haxe.Json;
 import ds.ImmutableArray;
+import data.KorakademinScorxItems;
 
 using cx.ArrayItems;
 using cx.Validation;
 
 /**
+ * ---------------------------------------------------------------------------
+ * Datamodeller i Scorx 2019 Demo
+ * Jonas Nyström
+ * ---------------------------------------------------------------------------
+ */
+/**
  * Användare
  */
 typedef User = {
-	final username:String;
+	final username:String; // e-post - används som primärnyckel för användare i demon
 	final password:String;
 	final firstname:String;
 	final lastname:String;
-	final sensus:SensusUser;
-	final songs:ds.ImmutableArray<Int>;
-	final userSongs:ds.ImmutableArray<UserSongAccess>;
+	final sensus:SensusUser; // status för Sensus-deltagarskap, null = ej Sensus-deltagare
+	final userSongs:ds.ImmutableArray<ScorxAccess>;
 }
 
 /**
@@ -30,82 +35,126 @@ enum SensusUser {
 	SensusVerified; // Anv är bekräftad efter kontroll mot Sensus adm system
 }
 
-enum UserPrivilege {
-	KorakademinUserAccess(expires:Date);
-	ScorxLotteryLifetimeAccess;
-}
-
-enum UserSongAccess {
-	UserPurchase(songtitle:String, expires:Date);
-	UserPrivilege(songtitle:String, privilege:UserPrivilege);
-}
-
 /**
- * Kör/grupp
+ * Grupp
  */
 typedef Group = {
 	final name:String; // 'name' fungerar som primärnyckel i denna demo
 	final info:String;
 	final admins:ds.ImmutableArray<String>;
 	final members:ds.ImmutableArray<String>;
-	final songs:ds.ImmutableArray<Int>;
-	final groupSongs:ds.ImmutableArray<GroupSongAccess>;
-}
-
-enum GroupSongAccess {
-	GroupPurchase(songtitle:String, expires:Date, validOnlyForTheseMembers:ds.ImmutableArray<String>);
-	GroupPrivilege(songtitle:String, privilege:GroupPrivilege);
-}
-
-enum GroupPrivilege {
-	KorakademinGroupAccess(expires:Date);
+	final groupSongs:ds.ImmutableArray<ScorxAccess>;
 }
 
 /**
- * Definition för medlemsansökan till grupp
+ * ScorxAccess definierar hur en låt har gjorts tillgänglig för en användare eller grupp
  */
-// typedef GroupApplication = {
-// 	final username:String;
-// 	final groupname:String;
-// 	final status:GroupApplicationStatus;
-// }
-
-enum ScorxFilter {
-	SelectProductIds(ids:Array<Int>);
-	LicenseHolder(lic:String);
-	// LimitNumber(num:Int);
+enum ScorxAccess {
+	FreeItem(scorxProductId:Int, provider:String);
+	UserPurchase(scorxProductId:Int, expires:Date);
+	UserPrivilege(scorxProductId:Int, privilege:UserPrivilegeType);
+	GroupPurchase(scorxProductId:Int, expires:Date, validOnlyForTheseMembers:ds.ImmutableArray<String>);
+	GroupPrivilege(scorxProductId:Int, privilege:GroupPrivilegeType);
 }
 
 /**
- * Celler som kan visas på hemsidan
- * Kombineras på lämpligt sätt i Array<HomeCell>
+ * Detaljer om UserPrivilege - vilken typ av förmånserbjudande ligger till grund för att
+ * användaren får tillgång till aktuell tillgång
+ */
+enum UserPrivilegeType {
+	KorakademinUserAccess;
+	ScorxLotteryLifetimeAccess;
+}
+
+/**
+ * Detaljer om GroupPrivilege - vilken typ av förmånserbjudande ligger till grund för att
+ * gruppen får tillgång till aktuell låt
+ */
+enum GroupPrivilegeType {
+	KorakademinGroupAccess;
+}
+
+/**
+ * Hjälpfunktioner för ScorxAccess
+ */
+class ScorxAccessUtils {
+	static public function getProductId(access:ScorxAccess):Int {
+		var productId:Int = switch access {
+			case FreeItem(scorxProductId, provider): scorxProductId;
+			case UserPurchase(scorxProductId, expires): scorxProductId;
+			case UserPrivilege(scorxProductId, privilege): scorxProductId;
+			case GroupPurchase(scorxProductId, expires, validOnlyForTheseMembers): scorxProductId;
+			case GroupPrivilege(scorxProductId, privilege): scorxProductId;
+		}
+		return productId;
+	}
+
+	static public function getAccessListItem(access:ScorxAccess):ScorxAccessListItem {
+		var productId:Int = ScorxAccessUtils.getProductId(access);
+		var song:ScorxItem = KorakademinScorxItems.getSong(productId);
+		var listItem:ScorxAccessListItem = {access: access, song: song};
+		return listItem;
+	}
+}
+
+/**
+ * ScorxItem = Scorx-låt
+ * OBS, ej komplett definition - denna bygger på Körakademins excel-låtlista
+ * Men, good enough för demon
+ */
+typedef ScorxItem = {
+	final scorxProductId:Int;
+	final title:String;
+	final composer:String;
+	final lyricist:String;
+	final arranger:String;
+	final ensemble:String;
+	final language:String;
+	final licenseholder:String;
+	final playProducer:String;
+	final paskmusik:String;
+	final julmusik:String;
+	final shopLink:String;
+	final externalLink:String;
+}
+
+/**
+ * Kombination av ScorxItem och ScorxAccess
+ * Används som Array<{song:ScorxItem, access:ScorxAccess} för att populera låtlistorna
+ */
+typedef ScorxAccessListItem = {
+	final song:ScorxItem;
+	final access:ScorxAccess;
+}
+
+/**
+ * Kombinerbara celler Array<HomeCell> som används för att styra uppbyggnaden av Hemsidan för
+ * de olika användarkategorierna (gäst, användare, ledare)
  */
 enum HomeCell {
-	Image(url:String);
-	Title(title:String);
-	Info(info:String);
-	SonglistHeader(title:String, info:String);
-	Songlist(title:String, songs:Array<ScorxItem>, filter:Array<ScorxFilter>);
-	Infoblobs(blobs:Array<Infoblob>);
-	SearchChoir;
+	Image(url:String); // stor sektionsbild på hemsidan
+	Title(title:String); // stor h1-rubrik för sektionerna
+	Info(info:String); // h3-information under rubrik
+	Infoblobs(blobs:Array<Infoblob>); // Länkklickbara annons-utrymmen
+	SonglistHeader(title:String, info:String); // Rubrik för låtlista
+	Songlist2(accesses:Array<ScorxAccessListItem>); // Låtlista
+	SearchChoir; // Sökfält för att hitta kör
+	GroupAddSongs(group:Group); // Knappar för att lägga till låtar till gruppens lista
+	UserAddSongs(user:User); // kNappar för att lägga till låtar till användarens lista
+	ShowFreeSongsIfNothingElse(user:User); // visa gratislåtar om det inte finns annat att visa
 	ListGroupMembers(groupname:String);
-	InviteGroupMembers(groupname:String);
-	AutogeneratedKorakademinLeaderSonglist;
-	BuySongs;
+	InviteGroupMembers(groupname:String); // gränssnit för att bjuda in medlemmar till aktuella gruppen
+	AutogeneratedSensusLeaderSonglist; // Visa lista för Sensusanslutna körledare
+	AutogeneratedNewsList; // idé för att visa nypublicerade låtar
+	AutogeneratedHistoryList; // idé för att snabbt hitta senast spelade låtar - ska möjligen ligga på spelarsidan!!! :-)
 }
-
-// enum AutogeneratedList {
-// 	LeaderPrivilege;
-// 	PlayHistory;
-// 	News;
-// }
 
 enum Infoblob {
 	Standard(title:String, info:String);
 }
 
 /**
- * Demo-applikationens sida (i brist på riktig router)
+ * Definition av sida som visas i demon, som inte har någon url-routing
  */
 enum Page {
 	Home;
@@ -115,12 +164,18 @@ enum Page {
 	UserSettings;
 }
 
+/**
+ * E-postmeddelande
+ */
 typedef EmailMessage = {
 	final to:String;
 	final from:String;
 	final type:EmailType;
 }
 
+/**
+ * Definition av epostmeddelanden som används i systemet
+ */
 enum EmailType {
 	UserAccountActivation(email:String, pass:String, firstname:String, lastname:String, sensus:SensusUser);
 	UserGroupjoinInfo(groupname:String);
@@ -128,11 +183,11 @@ enum EmailType {
 	UserAccountActivationAndGroupjoin(email:String, pass:String, firstname:String, lastname:String, groupname:String);
 	AfterUserActivationSuccess;
 	SimpleMessage(title:String, text:String);
-}
+} // enum OverlayPage {
 
-// enum OverlayPage {
-// 	SongList(filter:ScorxFilter);
-// }
+//---------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------
 
 /**
  * Defaultvärden så att vi har något att utgå ifrån
@@ -146,8 +201,10 @@ class Default {
 				username: 'adam@adam.se',
 				password: 'adam',
 				sensus: SensusUser.UserClaimed,
-				songs: [999, 789],
-				userSongs: [],
+				userSongs: [
+					UserPurchase(999, Date.fromString('2020-01-18')),
+					UserPrivilege(789, UserPrivilegeType.KorakademinUserAccess)
+				],
 			},
 			{
 				firstname: 'Beda',
@@ -155,8 +212,7 @@ class Default {
 				username: 'beda@bensin.se',
 				password: 'beda',
 				sensus: null,
-				songs: [],
-				userSongs: [],
+				userSongs: [UserPurchase(1353, Date.fromString('2020-03-03')),],
 			},
 			{
 				firstname: 'Caesar',
@@ -164,7 +220,6 @@ class Default {
 				username: 'caesar@citrus.se',
 				password: 'caesar',
 				sensus: null,
-				songs: [],
 				userSongs: [],
 			},
 
@@ -174,7 +229,6 @@ class Default {
 				username: 'avledare@kor.se',
 				password: 'avledare',
 				sensus: null,
-				songs: [],
 				userSongs: [],
 			},
 
@@ -184,7 +238,6 @@ class Default {
 				username: 'orkel1@orkel.se',
 				password: 'orkel1',
 				sensus: SensusUser.SensusVerified,
-				songs: [],
 				userSongs: [],
 			},
 			{
@@ -193,7 +246,6 @@ class Default {
 				username: 'orkel2@orkel.se',
 				password: 'orkel2',
 				sensus: null,
-				songs: [],
 				userSongs: [],
 			},
 			{
@@ -202,7 +254,6 @@ class Default {
 				username: 'orkel3@orkel.se',
 				password: 'orkel3',
 				sensus: null,
-				songs: [],
 				userSongs: [],
 			},
 			{
@@ -211,7 +262,6 @@ class Default {
 				username: 'orkel4@orkel.se',
 				password: 'orkel4',
 				sensus: null,
-				songs: [],
 				userSongs: [],
 			},
 			{
@@ -220,7 +270,6 @@ class Default {
 				username: 'bro1@bro.se',
 				password: 'bro1',
 				sensus: null,
-				songs: [],
 				userSongs: [],
 			},
 			{
@@ -229,7 +278,6 @@ class Default {
 				username: 'bro2@bro.se',
 				password: 'bro2',
 				sensus: null,
-				songs: [],
 				userSongs: [],
 			},
 			{
@@ -238,7 +286,6 @@ class Default {
 				username: 'bro3@bro.se',
 				password: 'bro3',
 				sensus: null,
-				songs: [],
 				userSongs: [],
 			},
 			{
@@ -247,19 +294,10 @@ class Default {
 				username: 'bro4@bro.se',
 				password: 'bro4',
 				sensus: null,
-				songs: [],
 				userSongs: [],
 			},
 		];
 	}
-
-	// static public function applications():Array<GroupApplication> {
-	// 	return [];
-	// 	// return [{username: 'beda@bensin.se', groupname: 'Örkelhåla kyrkokör', status: Start}];
-	// }
-	// static public function invitations():Array<GroupApplication> {
-	// 	return [{username: 'beda@bensin.se', groupname: 'Avunda Kyrkokör', status: Pending}];
-	// }
 
 	static public function groups():Array<Group> {
 		return [
@@ -268,15 +306,16 @@ class Default {
 				info: 'Soli deo gloria. Plus vår körledare.',
 				admins: ['orkel1@orkel.se'],
 				members: ['adam@adam.se', 'orkel1@orkel.se', 'orkel2@orkel.se', 'orkel3@orkel.se',],
-				songs: [56, 397, 58, 59, 1357, 975, 2405],
-				groupSongs: [],
+				groupSongs: [
+					ScorxAccess.GroupPurchase(397, Date.fromString('2020-01-18'), ['orkel1@orkel.se', 'orkel2@orkel.se']),
+					ScorxAccess.GroupPrivilege(975, KorakademinGroupAccess),
+				],
 			},
 			{
 				name: 'Bromölla Bandidos',
 				info: 'Vi sjunger - ni pröjsar!',
 				admins: [],
 				members: [],
-				songs: [1993, 1377, 639],
 				groupSongs: [],
 			},
 			{
@@ -284,7 +323,6 @@ class Default {
 				info: 'Vi trallar så glatt! Vill du va me?',
 				admins: [],
 				members: [],
-				songs: [2096, 250, 63, 2315],
 				groupSongs: [],
 			},
 			{
@@ -292,7 +330,6 @@ class Default {
 				info: 'Ju mer förr, desto bättre!',
 				admins: ['avledare@kor.se'],
 				members: [],
-				songs: [1784, 1778, 1780, 2467, 64, 1288, 598],
 				groupSongs: [],
 			},
 			{
@@ -300,7 +337,6 @@ class Default {
 				info: 'Information...',
 				admins: [],
 				members: [],
-				songs: [],
 				groupSongs: [],
 			},
 			{
@@ -308,22 +344,12 @@ class Default {
 				info: 'Information...',
 				admins: [],
 				members: [],
-				songs: [],
 				groupSongs: [],
 			},
 		];
 	}
 
 	static public function messages() {
-		return [ // {to: 'new@new.se', from: 'orkel1@orkel.se', type: EmailType.UserAccountActivation('new@new.se', 'pass12345', 'Nyamko', 'Neebie'),},
-			// {to: 'adam@adam.se', from: 'orkel1@orkel.se', type: EmailType.UserGroupjoinInfo('Örkelhåla'),},
-			// {
-			// 	to: 'new@new.se',
-			// 	from: 'orkel1@orkel.se',
-			// 	type: EmailType.UserAccountActivationAndGroupjoin('new@new.se', 'pass1234', 'Nyamko', 'Neebie', 'Nisselunda'),
-			// },
-			// {to: 'adam@adam.se', from: 'orkel1@orkel.se', type: EmailType.AdminGroupjoinInfo('adam@adam.se', 'Nisselunda'),},
-			// {to: 'adam@adam.se', from: 'beda@beda.se', type: EmailType.SimpleMessage('Hej snygging!', 'Ska vi ta en fika? :-) / Beda')},
-		];
+		return [];
 	}
 }

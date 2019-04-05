@@ -20,7 +20,7 @@ class Client {
 			page: Home,
 			showOverlay: false,
 			playerShow: false,
-			playerSong: null,
+			playerAccessItem: null,
 		}));
 
 		/**
@@ -37,6 +37,7 @@ class Client {
 		}, store.state);
 
 		store.subscribe(store.state.playerShow, playerShow -> {
+			trace('playerShow: ' + playerShow);
 			var body = js.Browser.document.querySelector("body");
 			if (playerShow == null || playerShow == false) {
 				body.classList.add('hide-overlay');
@@ -47,10 +48,10 @@ class Client {
 			}
 		});
 
-		store.subscribe(store.state.playerSong, playerSong -> {
-			trace(playerSong);
-			store.update(store.state.playerShow = true);
-		});
+		// store.subscribe(store.state.playerAccessItem, playerAccessItem -> {
+		// 	trace(playerAccessItem);
+		// 	store.update(store.state.playerShow = true);
+		// });
 
 		/**
 		 * Montera Mithril-vyerna i respektive index.html-element

@@ -11,15 +11,14 @@ var Client = function() { };
 $hxClasses["Client"] = Client;
 Client.__name__ = true;
 Client.main = function() {
-	var store = new data_AppStore(new DeepState_$data_$AppState({ userId : null, users : null, groups : null, messages : null, page : data_Page.Home, showOverlay : false, playerShow : false, playerSong : null}));
+	var store = new data_AppStore(new DeepState_$data_$AppState({ userId : null, users : null, groups : null, messages : null, page : data_Page.Home, showOverlay : false, playerShow : false, playerAccessItem : null}));
 	store.load();
-	var tmp = ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([""]),function(state) {
+	store.subscribeObserver(ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([""]),function(state) {
 		m.redraw();
 		return;
-	});
-	var tmp1 = store.get_state();
-	store.subscribeObserver(tmp,tmp1);
-	var tmp2 = ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["playerShow"]),function(playerShow) {
+	}),store.get_state());
+	store.subscribeObserver(ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["playerShow"]),function(playerShow) {
+		console.log("src/Client.hx:40:","playerShow: " + (playerShow == null ? "null" : "" + playerShow));
 		var body = window.document.querySelector("body");
 		if(playerShow == null || playerShow == false) {
 			body.classList.add("hide-overlay");
@@ -29,14 +28,7 @@ Client.main = function() {
 			body.classList.remove("webkit-scrolling");
 		}
 		return;
-	});
-	store.subscribeObserver(tmp2,null);
-	var tmp3 = ds_Observer.Partial(ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["playerSong"]),function(playerSong) {
-		console.log("src/Client.hx:51:",playerSong);
-		store.updateState({ type : "Client.main", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("playerShow")]), value : true}])});
-		return;
-	});
-	store.subscribeObserver(tmp3,null);
+	}),null);
 	m.mount(window.document.querySelector("#header"),new view_Userview(store));
 	m.mount(window.document.querySelector("#nav"),new view_MenuView(store));
 	m.mount(window.document.querySelector("#footer"),new view_FooterView(store));
@@ -326,6 +318,28 @@ EReg.prototype = {
 var HxOverrides = function() { };
 $hxClasses["HxOverrides"] = HxOverrides;
 HxOverrides.__name__ = true;
+HxOverrides.strDate = function(s) {
+	switch(s.length) {
+	case 8:
+		var k = s.split(":");
+		var d = new Date();
+		d["setTime"](0);
+		d["setUTCHours"](k[0]);
+		d["setUTCMinutes"](k[1]);
+		d["setUTCSeconds"](k[2]);
+		return d;
+	case 10:
+		var k1 = s.split("-");
+		return new Date(k1[0],k1[1] - 1,k1[2],0,0,0);
+	case 19:
+		var k2 = s.split(" ");
+		var y = k2[0].split("-");
+		var t = k2[1].split(":");
+		return new Date(y[0],y[1] - 1,y[2],t[0],t[1],t[2]);
+	default:
+		throw new js__$Boot_HaxeError("Invalid date format : " + s);
+	}
+};
 HxOverrides.cca = function(s,index) {
 	var x = s.charCodeAt(index);
 	if(x != x) {
@@ -559,6 +573,23 @@ $hxClasses["Type"] = Type;
 Type.__name__ = true;
 Type.createInstance = function(cl,args) {
 	return new (Function.prototype.bind.apply(cl,[null].concat(args)));
+};
+Type.enumParameters = function(e) {
+	var enm = $hxEnums[e.__enum__];
+	var ctorName = enm.__constructs__[e._hx_index];
+	var params = enm[ctorName].__params__;
+	if(params != null) {
+		var _g = [];
+		var _g1 = 0;
+		while(_g1 < params.length) {
+			var p = params[_g1];
+			++_g1;
+			_g.push(e[p]);
+		}
+		return _g;
+	} else {
+		return [];
+	}
 };
 var cx_ArrayItems = function() { };
 $hxClasses["cx.ArrayItems"] = cx_ArrayItems;
@@ -1030,8 +1061,8 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 	,tryLogin: function(tryUsername,tryPassword) {
 		var _gthis = this;
 		try {
-			console.log("src/data/AppStore.hx:115:",tryUsername);
-			console.log("src/data/AppStore.hx:116:",this.get_state().users.length);
+			console.log("src/data/AppStore.hx:114:",tryUsername);
+			console.log("src/data/AppStore.hx:115:",this.get_state().users.length);
 			var foundUser;
 			var _g = ds__$ImmutableArray_ImmutableArray_$Impl_$.first(ds__$ImmutableArray_ImmutableArray_$Impl_$.filter(this.get_state().users,function(u) {
 				return u.username == tryUsername;
@@ -1102,7 +1133,7 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 				if(this.userExists(email)) {
 					throw new js__$Boot_HaxeError("Användaren " + email + " finns redan!");
 				}
-				this.addUser({ username : email, password : _g.pass, firstname : _g.firstname, lastname : _g.lastname, sensus : _g.sensus, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])});
+				this.addUser({ username : email, password : _g.pass, firstname : _g.firstname, lastname : _g.lastname, sensus : _g.sensus, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])});
 				js_Browser.alert("Kontot har skapats och ett bekräftelsemejl skickas till användaren.");
 				this.sendEmailMessage({ to : email, from : "admin@scorx.org", type : data_EmailType.AfterUserActivationSuccess});
 				break;
@@ -1117,7 +1148,7 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 				if(group == null) {
 					throw new js__$Boot_HaxeError("Gruppen " + groupname + " finns inte");
 				}
-				var newUser = { username : email1, password : _g.pass, firstname : _g.firstname, lastname : _g.lastname, sensus : null, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])};
+				var newUser = { username : email1, password : _g.pass, firstname : _g.firstname, lastname : _g.lastname, sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])};
 				js_Browser.alert("Nytt konto skapas och kopplas till aktuella gruppen");
 				this.addUser(newUser);
 				this.addGroupMember(email1,groupname);
@@ -1141,9 +1172,9 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 		}
 	}
 	,sendEmailMessage: function(mess) {
-		console.log("src/data/AppStore.hx:441:",this.get_state().messages.length);
+		console.log("src/data/AppStore.hx:438:",this.get_state().messages.length);
 		this.updateState({ type : "AppStore.sendEmailMessage", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("messages")]), value : ds__$ImmutableArray_ImmutableArray_$Impl_$.push(this.get_state().messages,mess)}])});
-		console.log("src/data/AppStore.hx:443:",this.get_state().messages.length);
+		console.log("src/data/AppStore.hx:440:",this.get_state().messages.length);
 		this.save();
 	}
 	,isGroupMember: function(username,groupname) {
@@ -1169,9 +1200,9 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 			}
 			var groupIndex = ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(this.get_state().groups,group);
 			var members = this.get_state().groups[groupIndex].members;
-			console.log("src/data/AppStore.hx:474:",members);
+			console.log("src/data/AppStore.hx:471:",members);
 			members = ds__$ImmutableArray_ImmutableArray_$Impl_$.push(members,user.username);
-			console.log("src/data/AppStore.hx:476:",members);
+			console.log("src/data/AppStore.hx:473:",members);
 			this.updateState({ type : "AppStore.addGroupMember", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("groups"),ds_PathAccess.Array(groupIndex),ds_PathAccess.Field("members")]), value : members}])});
 			this.save();
 		} catch( e ) {
@@ -1206,8 +1237,8 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 		this.updateState({ type : "AppStore.gotoPage", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("page")]), value : page}])});
 	}
 	,resetToDefaultData: function() {
-		console.log("src/data/AppStore.hx:519:","Reset data");
-		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { userId : null, users : data_Default.users(), groups : data_Default.groups(), messages : data_Default.messages(), page : data_Page.Home, showOverlay : false, playerShow : false, playerSong : null}}])});
+		console.log("src/data/AppStore.hx:516:","Reset data");
+		this.updateState({ type : "do reset", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), value : { userId : null, users : data_Default.users(), groups : data_Default.groups(), messages : data_Default.messages(), page : data_Page.Home, showOverlay : false, playerShow : false, playerAccessItem : null}}])});
 		this.save();
 	}
 	,__class__: data_AppStore
@@ -1215,44 +1246,75 @@ data_AppStore.prototype = $extend(DeepStateContainer.prototype,{
 var data_KorakademinScorxItems = function() { };
 $hxClasses["data.KorakademinScorxItems"] = data_KorakademinScorxItems;
 data_KorakademinScorxItems.__name__ = true;
-data_KorakademinScorxItems.items = function() {
+data_KorakademinScorxItems.getSong = function(productId) {
+	return data_KorakademinScorxItems.songs().filter(function(s) {
+		return s.scorxProductId == productId;
+	})[0];
+};
+data_KorakademinScorxItems.songs = function() {
 	return [{ title : "Alleluia", shopLink : "https://scorx.org/Product/Product?Id=5", composer : "Wolfgang Amadeus Mozart", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/alleluia-6798", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 5, language : "Latin", ensemble : "SATB", julmusik : "JA", arranger : "Kjell Bengtsson"},{ title : "Ave verum", shopLink : "https://scorx.org/Product/Product?Id=924", composer : "Gabriel Fauré", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 576, language : "Latin", ensemble : "SA", julmusik : "JA", arranger : ""},{ title : "Ave Verum Corpus", shopLink : "https://scorx.org/Product/Product?Id=5034", composer : "Edward Elgar", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2083, language : "Latin", ensemble : "SAA", julmusik : "", arranger : ""},{ title : "Befall i Herrens händer", shopLink : "https://scorx.org/Product/Product?Id=12", composer : "Sv ps 247 Melodi från Leksand", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/befall-i-herrens-hander", lyricist : "Johan Olof Wallin", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 19, language : "Swedish", ensemble : "SATB or more", julmusik : "", arranger : "Nils Lindberg"},{ title : "Bliv min ro - 2. Gloria in excelsis Deo", shopLink : "https://scorx.org/Product/Product?Id=2822", composer : "Anton Leanderson-Andréas", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1353, language : "Swedish", ensemble : "Two-parts", julmusik : "", arranger : ""},{ title : "Bliv min ro - 4. Agnus Dei – Dona nobis pacem", shopLink : "https://scorx.org/Product/Product?Id=2824", composer : "Anton Leanderson-Andréas", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1355, language : "Swedish", ensemble : "Two-parts", julmusik : "", arranger : ""},{ title : "Crucifixus", shopLink : "https://scorx.org/Product/Product?Id=13", composer : "Johann Sebastian Bach", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/crucifixus-han-blev-korsfast", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 20, language : "Latin", ensemble : "SATB", julmusik : "", arranger : "Kjell Bengtsson"},{ title : "Den dödsdömde", shopLink : "https://scorx.org/Product/Product?Id=15", composer : "Fredrik Sixten", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/den-dodsdomde", lyricist : "Lisbeth Smedegaard-Andersen", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 22, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Du hörde mitt rop", shopLink : "https://scorx.org/Product/Product?Id=3901", composer : "Jonas Nyström", licenseholder : "Gehrmans", externalLink : "", lyricist : "Åsa Hagberg", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1974, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Dvorak messe: 1 Kyrie, Christe, Kyrie", shopLink : "https://scorx.org/Product/Product?Id=3642", composer : "Antonin Dvorak", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1815, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Dvorak messe: 2b Gratias agimus tibi,Qui tollis,Quoniam tu solus", shopLink : "https://scorx.org/Product/Product?Id=3645", composer : "Antonin Dvorak", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1817, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Dvorak messe: 3b Et incarnatus est, Crucifixus", shopLink : "https://scorx.org/Product/Product?Id=3646", composer : "Antonin Dvorak", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1818, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Dvorak messe: 4 Sanctus, Pleni sunt coeli", shopLink : "https://scorx.org/Product/Product?Id=3648", composer : "Antonin Dvorak", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1820, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Dvorak messe: 6 Agnus Dei, Dona nobis pacem", shopLink : "https://scorx.org/Product/Product?Id=3666", composer : "Antonin Dvorak", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1829, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Fader, hör våra böner", shopLink : "https://scorx.org/Product/Product?Id=26", composer : "Wolfgang Amadeus Mozart", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/fader-hor-vara-boner", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 33, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Gud som har mänskan kär", shopLink : "https://scorx.org/Product/Product?Id=35", composer : "sefardisk sång", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-1", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 48, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Guds kärlek är den strand där jag förlåter", shopLink : "https://scorx.org/Product/Product?Id=1129", composer : "Anders Nyberg", licenseholder : "Peace of Music", externalLink : "http://www.peaceofmusic.com/Cms.aspx/Show/136", lyricist : "Anders Nyberg", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 706, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Han har oss allt i kärlek gjort", shopLink : "https://scorx.org/Product/Product?Id=248", composer : "Amerikansk melodi,", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-2", lyricist : "Birgitta Wennerberg-Berggren", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 54, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Himmelske Fader", shopLink : "https://scorx.org/Product/Product?Id=927", composer : "Antonio de Cabezón", licenseholder : "Gehrmans", externalLink : "", lyricist : "Kjell Svensson", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 579, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "I himlar, sjungen", shopLink : "https://scorx.org/Product/Product?Id=2359", composer : "Ludwig van Beethoven", licenseholder : "Gehrmans", externalLink : "", lyricist : "Christian Gellert", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 910, language : "Swedish", ensemble : "SSA", julmusik : "JA", arranger : "John Norrman"},{ title : "I stormens öga", shopLink : "https://scorx.org/Product/Product?Id=2686", composer : "Linda Sandström", licenseholder : "Gehrmans", externalLink : "", lyricist : "Marianne Bokblad", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1217, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Hans Carlén"},{ title : "Jag blåste i min pipa", shopLink : "https://scorx.org/Product/Product?Id=3094", composer : "Dala-Floda Trad.", licenseholder : "Peace of Music", externalLink : "http://peaceofmusic.com/Cms.aspx/Show/7", lyricist : "Trad.", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1511, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Anders Nyberg"},{ title : "Jag är det levande brödet", shopLink : "https://scorx.org/Product/Product?Id=4032", composer : "Torebjörn Widfeldt", licenseholder : "Gehrmans", externalLink : "", lyricist : "Joh 6:35", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2012, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Jesus du som är vår fred", shopLink : "https://scorx.org/Product/Product?Id=439", composer : "Trad, Nya Zeeland", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-2", lyricist : "Per Harling", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 67, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Jesus är min fröjd och glädje", shopLink : "https://scorx.org/Product/Product?Id=3232", composer : "Johann Sebastian Bach", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1615, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Anders Öhrwall"},{ title : "Kristus är vår broder", shopLink : "https://scorx.org/Product/Product?Id=446", composer : "Fredrik Sixten", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/kristus-ar-var-broder", lyricist : "Anita Bohl", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 74, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Kärleken upphör aldrig", shopLink : "https://scorx.org/Product/Product?Id=448", composer : "Sven-David Sandström", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/tre-motetter-for-fastlagssondagen-11680", lyricist : "1 Kor 13:8-10", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 76, language : "Swedish", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Kärlekens Sigill - 1. Som ett sigill", shopLink : "https://scorx.org/Product/Product?Id=4108", composer : "Hans Kennemark", licenseholder : "Gehrmans", externalLink : "", lyricist : "Irma Schultz", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2025, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Kärlekens Sigill - 3. Ett korn av fred", shopLink : "https://scorx.org/Product/Product?Id=4110", composer : "Hans Kennemark", licenseholder : "Gehrmans", externalLink : "", lyricist : "Irma Schultz", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2027, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Kärlekens Sigill - 5. Nätterna spann", shopLink : "https://scorx.org/Product/Product?Id=4112", composer : "Hans Kennemark", licenseholder : "Gehrmans", externalLink : "", lyricist : "Irma Schultz", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2029, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Lukaspassionen 1. Jerusalem", shopLink : "https://scorx.org/Product/Product?Id=453", composer : "Rolf Martinsson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/lukaspassionen-xx10164", lyricist : "Göran Greider", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 81, language : "Swedish", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Lukaspassionen 18. Kör", shopLink : "https://scorx.org/Product/Product?Id=455", composer : "Rolf Martinsson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/lukaspassionen-xx10164", lyricist : "Göran Greider", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 83, language : "Swedish", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Lukaspassionen 23. Recitativ, solo och kör", shopLink : "https://scorx.org/Product/Product?Id=457", composer : "Rolf Martinsson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/lukaspassionen-xx10164", lyricist : "Göran Greider", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 85, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Lukaspassionen 26. Kör och koral", shopLink : "https://scorx.org/Product/Product?Id=459", composer : "Rolf Martinsson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/lukaspassionen-xx10164", lyricist : "Göran Greider", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 87, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Lukaspassionen 31. Avslutning - kör och soli", shopLink : "https://scorx.org/Product/Product?Id=461", composer : "Rolf Martinsson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/lukaspassionen-xx10164", lyricist : "Göran Greider", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 89, language : "Swedish", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Länge leve livet!", shopLink : "https://scorx.org/Product/Product?Id=1195", composer : "Okänd", licenseholder : "Peace of Music", externalLink : "http://peaceofmusic.com/Cms.aspx/Show/108", lyricist : "Jonas Jonsson", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 747, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Anders Nyberg"},{ title : "Messias , urval del 1:2 (Och han skall rena dem)", shopLink : "https://scorx.org/Product/Product?Id=3251", composer : "Georg Friedrich Händel", licenseholder : "Wessmans", externalLink : "", lyricist : "Östen Sjöstrand", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 762, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Georg Friedrich Händel"},{ title : "Messias , urval del 1:4 (Barnet vi sökt)", shopLink : "https://scorx.org/Product/Product?Id=3253", composer : "Georg Friedrich Händel", licenseholder : "Wessmans", externalLink : "", lyricist : "Östen Sjöstrand", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 764, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Georg Friedrich Händel"},{ title : "Messias , urval del 1:6 (Hans ok är ljuvligt)", shopLink : "https://scorx.org/Product/Product?Id=3255", composer : "Georg Friedrich Händel", licenseholder : "Wessmans", externalLink : "", lyricist : "Östen Sjöstrand", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 766, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Georg Friedrich Händel"},{ title : "Messias , urval del 2:2 (Hjärta som bar all vår sorg)", shopLink : "https://scorx.org/Product/Product?Id=3257", composer : "Georg Friedrich Händel", licenseholder : "Wessmans", externalLink : "", lyricist : "Östen Sjöstrand", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 768, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Georg Friedrich Händel"},{ title : "Messias , urval del 2:4 (Halleluja)", shopLink : "https://scorx.org/Product/Product?Id=3259", composer : "Georg Friedrich Händel", licenseholder : "Wessmans", externalLink : "", lyricist : "Östen Sjöstrand", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 770, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Georg Friedrich Händel"},{ title : "Messias, urval del 3:2 (Lammet som blev slaktat)", shopLink : "https://scorx.org/Product/Product?Id=3261", composer : "Georg Friedrich Händel", licenseholder : "Wessmans", externalLink : "", lyricist : "Östen Sjöstrand", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 772, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Georg Friedrich Händel"},{ title : "Mjukt flödar vårens sol", shopLink : "https://scorx.org/Product/Product?Id=467", composer : "Wolfgang Amadeus Mozart", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/mjukt-flodar-varens-sol", lyricist : "Christina Lövestam", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 108, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Mässa till ljus från mörker - 1. Så är inte mörkret mörkt för dig", shopLink : "https://scorx.org/Product/Product?Id=3506", composer : "Tormod Tvete Vik", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/massa-till-ljus-fran-morker-xx10461", lyricist : "Bibeln", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1655, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Mässa till ljus från mörker - 3a. Toner över Skallsjö", shopLink : "https://scorx.org/Product/Product?Id=3508", composer : "Tormod Tvete Vik", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/massa-till-ljus-fran-morker-xx10461", lyricist : "Bibeln", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1658, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Carmina Burana - 1. O Fortuna", shopLink : "", composer : "Carl Orff", licenseholder : "Schott", externalLink : "http://www.sheetmusicplus.com/title/carmina-burana-sheet-music/8276846?aff_id=545281", lyricist : "Johann Andreas Schmeller", paskmusik : "", playProducer : "Choral Tracks", scorxProductId : 1868, language : "Other", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Carmina Burana - 12. Olim lacus colueram", shopLink : "", composer : "Carl Orff", licenseholder : "Schott", externalLink : "http://www.sheetmusicplus.com/title/carmina-burana-sheet-music/8276846?aff_id=545281", lyricist : "Johann Andreas Schmeller", paskmusik : "", playProducer : "Choral Tracks", scorxProductId : 1902, language : "Other", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Carmina Burana - 14. In taberna quando sumus", shopLink : "", composer : "Carl Orff", licenseholder : "Schott", externalLink : "http://www.sheetmusicplus.com/title/carmina-burana-sheet-music/8276846?aff_id=545281", lyricist : "Johann Andreas Schmeller", paskmusik : "", playProducer : "Choral Tracks", scorxProductId : 1904, language : "Other", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Carmina Burana - 19. Si puer cum puellula", shopLink : "", composer : "Carl Orff", licenseholder : "Schott", externalLink : "http://www.sheetmusicplus.com/title/carmina-burana-sheet-music/8276846?aff_id=545281", lyricist : "Johann Andreas Schmeller", paskmusik : "", playProducer : "Choral Tracks", scorxProductId : 1906, language : "Other", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Carmina Burana - 20. Veni, veni, venias", shopLink : "", composer : "Carl Orff", licenseholder : "Schott", externalLink : "http://www.sheetmusicplus.com/title/carmina-burana-sheet-music/8276846?aff_id=545281", lyricist : "Johann Andreas Schmeller", paskmusik : "", playProducer : "Choral Tracks", scorxProductId : 1907, language : "Other", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Carmina Burana - 24. Ave formosissima", shopLink : "", composer : "Carl Orff", licenseholder : "Schott", externalLink : "http://www.sheetmusicplus.com/title/carmina-burana-sheet-music/8276846?aff_id=545281", lyricist : "Johann Andreas Schmeller", paskmusik : "", playProducer : "Choral Tracks", scorxProductId : 1909, language : "Other", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Carmina Burana - 5. Ecce gratum", shopLink : "", composer : "Carl Orff", licenseholder : "Schott", externalLink : "http://www.sheetmusicplus.com/title/carmina-burana-sheet-music/8276846?aff_id=545281", lyricist : "Johann Andreas Schmeller", paskmusik : "", playProducer : "Choral Tracks", scorxProductId : 1896, language : "Other", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Carmina Burana - 8. Chramer, gip die varwe mir", shopLink : "", composer : "Carl Orff", licenseholder : "Schott", externalLink : "http://www.sheetmusicplus.com/title/carmina-burana-sheet-music/8276846?aff_id=545281", lyricist : "Johann Andreas Schmeller", paskmusik : "", playProducer : "Choral Tracks", scorxProductId : 1898, language : "Other", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Carmina Burana - 9c. Chume, chum, geselle min", shopLink : "", composer : "Carl Orff", licenseholder : "Schott", externalLink : "http://www.sheetmusicplus.com/title/carmina-burana-sheet-music/8276846?aff_id=545281", lyricist : "Johann Andreas Schmeller", paskmusik : "", playProducer : "Choral Tracks", scorxProductId : 1900, language : "Other", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Mässa till ljus från mörker - 3d. Res dig, stråla i ljus!", shopLink : "https://scorx.org/Product/Product?Id=3511", composer : "Tormod Tvete Vik", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/massa-till-ljus-fran-morker-xx10461", lyricist : "Bibeln", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1661, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Natt", shopLink : "https://scorx.org/Product/Product?Id=919", composer : "Trad.", licenseholder : "Gehrmans", externalLink : "", lyricist : "Bo Berghult", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 571, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Nu jublar jordens folk", shopLink : "https://scorx.org/Product/Product?Id=483", composer : "Melchior Vulpius", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/nu-jublar-jordens-folk", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 124, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Walther Heinz Bernstein"},{ title : "Psaltarpsalm 31", shopLink : "https://scorx.org/Product/Product?Id=5594", composer : "Sonny Jansson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Psaltaren", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2285, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Requiem - 1. Introit Kyrie", shopLink : "https://scorx.org/Product/Product?Id=5051", composer : "Agneta Sköld", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2088, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Requiem - 3. Hostias", shopLink : "https://scorx.org/Product/Product?Id=5053", composer : "Agneta Sköld", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2090, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Requiem - 5. Agnus Dei", shopLink : "https://scorx.org/Product/Product?Id=5056", composer : "Agneta Sköld", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2092, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Requiem - 7. In Paradisum", shopLink : "https://scorx.org/Product/Product?Id=5138", composer : "Agneta Sköld", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2094, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Se, vi gå upp till Jerusalem", shopLink : "https://scorx.org/Product/Product?Id=4933", composer : "Uno Sandén", licenseholder : "Norbergs Musikförlag", externalLink : "", lyricist : "Matt 20:18-19", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2045, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Stabat Mater - 1. Stabat Mater Dolorosa", shopLink : "https://scorx.org/Product/Product?Id=3574", composer : "Giovanni Battista Pergolesi", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/stabat-mater-12906", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1662, language : "Latin", ensemble : "SAB", julmusik : "", arranger : "Anna Larsson"},{ title : "Stabat Mater - 3. O quam tristis et afflicta", shopLink : "https://scorx.org/Product/Product?Id=3575", composer : "Giovanni Battista Pergolesi", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/stabat-mater-12906", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1663, language : "Latin", ensemble : "SAB", julmusik : "", arranger : "Anna Larsson"},{ title : "Stabat Mater - 8. Fac, ut ardeat cor meum", shopLink : "https://scorx.org/Product/Product?Id=3577", composer : "Giovanni Battista Pergolesi", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/stabat-mater-12906", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 1665, language : "Latin", ensemble : "SAB", julmusik : "", arranger : "Anna Larsson"},{ title : "Trång är porten", shopLink : "https://scorx.org/Product/Product?Id=4026", composer : "Torebjörn Widfeldt", licenseholder : "Gehrmans", externalLink : "", lyricist : "Margareta Melin", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2018, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Vaken upp", shopLink : "https://scorx.org/Product/Product?Id=4127", composer : "Johann Sebastian Bach", licenseholder : "Cantate", externalLink : "", lyricist : "", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2033, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Vi gick alla vilse som får", shopLink : "https://scorx.org/Product/Product?Id=920", composer : "Trad.", licenseholder : "Gehrmans", externalLink : "", lyricist : "Lars Linderot", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 572, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Hör hur hela staden sjunger", shopLink : "https://scorx.org/Product/Product?Id=6297", composer : "Talley, Sally Ann Morris", licenseholder : "Gehrmans", externalLink : "", lyricist : "Mary Louise Bringle", paskmusik : "JA", playProducer : "Körakademin", scorxProductId : 2535, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "A Ceremony of Carols - 1. Procession", shopLink : "https://scorx.org/Product/Product?Id=4989", composer : "Benjamin Britten", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2071, language : "English", ensemble : "SSA", julmusik : "JA", arranger : ""},{ title : "A Ceremony of Carols - 2. There is no rose", shopLink : "https://scorx.org/Product/Product?Id=5031", composer : "Benjamin Britten", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2071, language : "English", ensemble : "SSA", julmusik : "JA", arranger : ""},{ title : "A Ceremony of Carols - 3. Wolkum Yole", shopLink : "https://scorx.org/Product/Product?Id=5032", composer : "Benjamin Britten", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2081, language : "English", ensemble : "SSA", julmusik : "JA", arranger : ""},{ title : "A Ceremony of Carols - 5. As dew in Aprille", shopLink : "https://scorx.org/Product/Product?Id=5536", composer : "Benjamin Britten", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2455, language : "English", ensemble : "SSA", julmusik : "JA", arranger : ""},{ title : "A Ceremony of Carols - 8: In Freezing Winter Night", shopLink : "https://scorx.org/Product/Product?Id=5537", composer : "Benjamin Britten", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2457, language : "English", ensemble : "SSA", julmusik : "JA", arranger : ""},{ title : "A Joyful Noise", shopLink : "https://scorx.org/Product/Product?Id=3411", composer : "Joakim Arenius", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1705, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "A Night-Piece - del 1", shopLink : "", composer : "Judith Bingham", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2122, language : "Engelska", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "A place for you", shopLink : "https://scorx.org/Product/Product?Id=738", composer : "Karin Öberg", licenseholder : "Tribal Music", externalLink : "", lyricist : "Karin Öberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 395, language : "English", ensemble : "SAB", julmusik : "", arranger : "Karin Öberg"},{ title : "ABBA cappella medley - Part 2", shopLink : "https://scorx.org/Product/Product?Id=3771", composer : "Björn Ulvaeus", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/abba-cappella-sw-1110", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1893, language : "English", ensemble : "SATB", julmusik : "", arranger : "Roine Jansson"},{ title : "Abschied vom Walde", shopLink : "https://scorx.org/Product/Product?Id=1", composer : "Felix Mendelssohn Bartholdy", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "Joseph von Eichendorff", paskmusik : "", playProducer : "Copyright free", scorxProductId : 1, language : "German", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Adiemus", shopLink : "https://scorx.org/Product/Product?Id=6205", composer : "Karl Jenkins", licenseholder : "Boosey & Hawkes", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2487, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Advent", shopLink : "https://scorx.org/Product/Product?Id=2338", composer : "Anna Cederberg-Orreteg", licenseholder : "Gehrmans", externalLink : "", lyricist : "Anna Cederberg-Orreteg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 889, language : "Swedish", ensemble : "SA", julmusik : "JA", arranger : ""},{ title : "Advent", shopLink : "https://scorx.org/Product/Product?Id=6206", composer : "Otto Olsson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Paul Nilsson", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2488, language : "Svenska", ensemble : "SSA", julmusik : "JA", arranger : "Lars Hernqvist"},{ title : "Aftonbön", shopLink : "https://scorx.org/Product/Product?Id=5590", composer : "Anna-Karin Klockar", licenseholder : "Gehrmans", externalLink : "", lyricist : "Karin Boye", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2281, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Aftonstjärnan", shopLink : "https://scorx.org/Product/Product?Id=3", composer : "Ivar Hallström", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "Hoffman von Fallersleben", paskmusik : "", playProducer : "Copyright free", scorxProductId : 3, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Agnus Dei", shopLink : "https://scorx.org/Product/Product?Id=2838", composer : "Jens Eriksson", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1369, language : "Latin", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "All den skönhet jorden bär", shopLink : "https://scorx.org/Product/Product?Id=4", composer : "Skotsk melodi", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-2", lyricist : "Birgitta Wennerberg-Berggren", paskmusik : "", playProducer : "Körakademin", scorxProductId : 4, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Allt är så underligt fjärran idag", shopLink : "https://scorx.org/Product/Product?Id=5915", composer : "Stefan Klaverdal", licenseholder : "Stefan Klaverdal", externalLink : "", lyricist : "Pär Lagerkvist", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2342, language : "Svenska", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Alta Trinita Beata", shopLink : "https://scorx.org/Product/Product?Id=986", composer : "Anders Öhrwall", licenseholder : "Gehrmans", externalLink : "", lyricist : "Günther Niemeyer", paskmusik : "", playProducer : "Körakademin", scorxProductId : 636, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Amen - låt Herrens vilja råda", shopLink : "https://scorx.org/Product/Product?Id=7", composer : "Sefardisk melodi", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-1", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 7, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Ande ifrån ovan", shopLink : "https://scorx.org/Product/Product?Id=4033", composer : "Torebjörn Widfeldt", licenseholder : "Gehrmans", externalLink : "", lyricist : "Britt G Hallqvist, J Franck, P Brask", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2011, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Andliga sånger - 2. Agnus Dei", shopLink : "https://scorx.org/Product/Product?Id=3028", composer : "August Söderman", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 10, language : "Latin", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Andliga sånger - 4. Domine", shopLink : "https://scorx.org/Product/Product?Id=3030", composer : "August Söderman", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 12, language : "Latin", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Andliga sånger - 6. Virgo Gloriosa", shopLink : "https://scorx.org/Product/Product?Id=3032", composer : "August Söderman", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 14, language : "Latin", ensemble : "SSAA", julmusik : "", arranger : ""},{ title : "Angelina", shopLink : "https://scorx.org/Product/Product?Id=3564", composer : "Auguste Depradine", licenseholder : "Ejeby Förlag", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1795, language : "Other", ensemble : "SATB", julmusik : "", arranger : "Sten Källman"},{ title : "Anthem", shopLink : "https://scorx.org/Product/Product?Id=3777", composer : "Björn Ulvaeus", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/anthem-ur-musikalen-chess-mm-013", lyricist : "Tim Rice", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1804, language : "English", ensemble : "SATB", julmusik : "", arranger : "Anders Eljas"},{ title : "Ave Maria", shopLink : "https://scorx.org/Product/Product?Id=923", composer : "Camille Saint-Saens", licenseholder : "Gehrmans", externalLink : "", lyricist : "Katolsk bön", paskmusik : "", playProducer : "Körakademin", scorxProductId : 575, language : "Latin", ensemble : "SA", julmusik : "JA", arranger : ""},{ title : "Ave Maria", shopLink : "https://scorx.org/Product/Product?Id=5908", composer : "Gottfrid Berg", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2335, language : "Latin", ensemble : "SATB", julmusik : "JA", arranger : "Gottfrid Berg"},{ title : "Ave Maria (Franck)", shopLink : "https://scorx.org/Product/Product?Id=10", composer : "César Franck", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Copyright free", scorxProductId : 17, language : "Latin", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Baba wethu", shopLink : "https://scorx.org/Product/Product?Id=2988", composer : "Anders Nyberg", licenseholder : "Peace of Music", externalLink : "http://peaceofmusic.com/Cms.aspx/Show/7", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1507, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Bachkoraler: Vi tackar med vår sång", shopLink : "https://scorx.org/Product/Product?Id=3272", composer : "Johann Crüger", licenseholder : "Wessmans", externalLink : "", lyricist : "Tobias Boström", paskmusik : "", playProducer : "Körakademin", scorxProductId : 791, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Johann Sebastian Bach"},{ title : "Bedårande sommarvals", shopLink : "https://scorx.org/Product/Product?Id=6019", composer : "Toots Thielemans", licenseholder : "Gehrmans", externalLink : "", lyricist : "Norman Gimbel", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2399, language : "Svenska", ensemble : "SATB", julmusik : "", arranger : "Robert Sund"},{ title : "Bereden väg för Herran", shopLink : "https://scorx.org/Product/Product?Id=5116", composer : "Trad", licenseholder : "ECHO", externalLink : "", lyricist : "Frans Michael Franzén", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2100, language : "Svenska", ensemble : "SATB", julmusik : "JA", arranger : "Simon Johnson"},{ title : "Bereden väg för Herran", shopLink : "https://scorx.org/Product/Product?Id=6176", composer : "Finn Jon Jonsson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Frans Michael Franzén", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2475, language : "Svenska", ensemble : "SATB", julmusik : "JA", arranger : "Anders Nyberg"},{ title : "Bist du bei mir", shopLink : "https://scorx.org/Product/Product?Id=2570", composer : "G. H. Stölzel", licenseholder : "Notfabriken/NotPoolen", externalLink : "", lyricist : "G. H. Stölzel", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1116, language : "German", ensemble : "SSA", julmusik : "", arranger : "Mårten Jansson"},{ title : "Bourrée", shopLink : "https://scorx.org/Product/Product?Id=2692", composer : "Johann Sebastian Bach", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1223, language : "", ensemble : "SATB", julmusik : "", arranger : "Anders Öhrwall"},{ title : "Brudmarsch från Jämtland", shopLink : "https://scorx.org/Product/Product?Id=3186", composer : "Anders Öhrwall", licenseholder : "Gehrmans", externalLink : "", lyricist : "Anders Öhrwall", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1569, language : "", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Can't Get You Out Of My Mind", shopLink : "https://scorx.org/Product/Product?Id=5553", composer : "Joakim Arenius", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Bubblejam Music Productions", scorxProductId : 2262, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Cantate Domino", shopLink : "https://scorx.org/Product/Product?Id=2837", composer : "Kerstin Evén", licenseholder : "Gehrmans", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1368, language : "Yiddish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Caroling, caroling", shopLink : "https://scorx.org/Product/Product?Id=3360", composer : "Alfred Burt", licenseholder : "Gehrmans", externalLink : "", lyricist : "Wihla Huton", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1464, language : "English", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Come again", shopLink : "https://scorx.org/Product/Product?Id=3374", composer : "John Dowland", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/undervisning/vi-sjunger-i-kor-3", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1668, language : "English", ensemble : "SAB", julmusik : "", arranger : "Carl-Bertil Agnestig"},{ title : "Come On and Raise Your Hands", shopLink : "https://scorx.org/Product/Product?Id=60", composer : "Lina Sidenmark", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/yes-i-m-coming-home", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 212, language : "English", ensemble : "SATB", julmusik : "", arranger : "Staffan Sundås"},{ title : "Dagen är nära", shopLink : "https://scorx.org/Product/Product?Id=961", composer : "Georg Friedrich Händel", licenseholder : "Gehrmans", externalLink : "", lyricist : "Jan Arvid Hellström", paskmusik : "", playProducer : "Körakademin", scorxProductId : 613, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Anders Öhrwall"},{ title : "Dalvisa", shopLink : "https://scorx.org/Product/Product?Id=3175", composer : "Robert Sund", licenseholder : "Gehrmans", externalLink : "", lyricist : "Trad", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1558, language : "Svenska", ensemble : "SSA", julmusik : "", arranger : ""},{ title : "Dansa för livet", shopLink : "https://scorx.org/Product/Product?Id=14", composer : "sefardisk sång", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-2", lyricist : "Birgitta Wennerberg-Berggren", paskmusik : "", playProducer : "Körakademin", scorxProductId : 21, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "De muntra musikanter", shopLink : "https://scorx.org/Product/Product?Id=517", composer : "August Ferdinand Riccius", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 158, language : "Swedish", ensemble : "TTBB", julmusik : "", arranger : ""},{ title : "Den blida vår är inne", shopLink : "https://scorx.org/Product/Product?Id=2994", composer : "Trad.", licenseholder : "Ejeby Förlag", externalLink : "", lyricist : "Johan Olof Wallin", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1453, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Gunnar Eriksson"},{ title : "Den dag du gav oss", shopLink : "https://scorx.org/Product/Product?Id=2839", composer : "C C Scholefield", licenseholder : "Gehrmans", externalLink : "", lyricist : "Johan Alfred Eklund", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1370, language : "Swedish", ensemble : "SSA", julmusik : "", arranger : "Anders Öhrwall"},{ title : "Den innersta viljan - 10. Livets rikedom", shopLink : "https://scorx.org/Product/Product?Id=2818", composer : "Elisabeth Engdahl", licenseholder : "Gehrmans", externalLink : "", lyricist : "Karin Klingenstierna", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1349, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Thomas Darelid"},{ title : "Den innersta viljan - 3. Du är god", shopLink : "https://scorx.org/Product/Product?Id=2811", composer : "Elisabeth Engdahl", licenseholder : "Gehrmans", externalLink : "", lyricist : "Karin Klingenstierna", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1342, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Thomas Darelid"},{ title : "Den innersta viljan - 5. Beskyddad", shopLink : "https://scorx.org/Product/Product?Id=2813", composer : "Elisabeth Engdahl", licenseholder : "Gehrmans", externalLink : "", lyricist : "Karin Klingenstierna", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1344, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Thomas Darelid"},{ title : "Den innersta viljan - 7. Paradiset börjar här", shopLink : "https://scorx.org/Product/Product?Id=2815", composer : "Elisabeth Engdahl", licenseholder : "Gehrmans", externalLink : "", lyricist : "Karin Klingenstierna", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1346, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Thomas Darelid"},{ title : "Den innersta viljan - 9. Den innersta viljan är kärleken", shopLink : "https://scorx.org/Product/Product?Id=2817", composer : "Elisabeth Engdahl", licenseholder : "Gehrmans", externalLink : "", lyricist : "Karin Klingenstierna", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1348, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Thomas Darelid"},{ title : "Den signade dag", shopLink : "https://scorx.org/Product/Product?Id=2496", composer : "Nils Lindberg", licenseholder : "Gehrmans", externalLink : "", lyricist : "Johan Olof Wallin", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1047, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Den sköna sommartid", shopLink : "https://scorx.org/Product/Product?Id=16", composer : "Dansk folkvisa", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/den-skona-sommartid", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 23, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Carl Paulsson"},{ title : "Den som ingen sångröst har", shopLink : "https://scorx.org/Product/Product?Id=2544", composer : "Laci Boldemann", licenseholder : "Gehrmans", externalLink : "", lyricist : "Britt G Hallqvist, James Krüss", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1095, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Anders Öhrwall"},{ title : "Det dukas i himlarnas rike ett bord", shopLink : "https://scorx.org/Product/Product?Id=17", composer : "Melodi från Gagnef", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/det-dukas-i-himlarnas-rike-ett-bord", lyricist : "M B Landstad", paskmusik : "", playProducer : "Körakademin", scorxProductId : 24, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Nils Lindberg"},{ title : "Det är en ros utsprungen", shopLink : "https://scorx.org/Product/Product?Id=1208", composer : "Tysk folkmelodi", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 760, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Michael Praetorius"},{ title : "Die Primel", shopLink : "https://scorx.org/Product/Product?Id=18", composer : "Felix Mendelssohn-Bartholdy", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "Nikolaus Lenau", paskmusik : "", playProducer : "Copyright free", scorxProductId : 25, language : "German", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Din nåd du ger till mig", shopLink : "https://scorx.org/Product/Product?Id=1133", composer : "Anders Nyberg", licenseholder : "Peace of Music", externalLink : "http://www.peaceofmusic.com/Cms.aspx/Show/136", lyricist : "Anders Nyberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 710, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Din är himlen", shopLink : "https://scorx.org/Product/Product?Id=2921", composer : "Kjell Janunger", licenseholder : "ACKJA Music & Production", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1467, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Ding dong", shopLink : "https://scorx.org/Product/Product?Id=933", composer : "Trad.", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 585, language : "English", ensemble : "SAB", julmusik : "JA", arranger : "Karl-Fredrik Jehrlander"},{ title : "Dona nobis pacem", shopLink : "https://scorx.org/Product/Product?Id=3409", composer : "Trad.", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/undervisning/kor-for-alla", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1703, language : "Latin", ensemble : "Unison", julmusik : "", arranger : ""},{ title : "Dotter Sion, fröjda dig", shopLink : "https://scorx.org/Product/Product?Id=978", composer : "Georg Friedrich Händel", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 628, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Down to faith", shopLink : "https://scorx.org/Product/Product?Id=5556", composer : "Joakim Arenius", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "Joakim Arenius", paskmusik : "", playProducer : "Bubblejam Music Productions", scorxProductId : 2263, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Drink to Me Only", shopLink : "https://scorx.org/Product/Product?Id=966", composer : "Trad.", licenseholder : "Gehrmans", externalLink : "", lyricist : "Ben Johnson", paskmusik : "", playProducer : "Körakademin", scorxProductId : 618, language : "English", ensemble : "SATB", julmusik : "", arranger : "Anders Öhrwall"},{ title : "Du gamla, du fria", shopLink : "https://scorx.org/Product/Product?Id=1031", composer : "Richard Dybeck", licenseholder : "Gehrmans", externalLink : "", lyricist : "Richard Dybeck", paskmusik : "", playProducer : "Körakademin", scorxProductId : 683, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Edvin Kallstenius"},{ title : "Du ljus du stjärna -2- Det är en ros utsprungen", shopLink : "https://scorx.org/Product/Product?Id=3139", composer : "Hans Kennemark", licenseholder : "Gehrmans", externalLink : "", lyricist : "Trad.", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1382, language : "Swedish", ensemble : "SAB", julmusik : "JA", arranger : "Hans Kennemark"},{ title : "Du ljus du stjärna -4- Du ljus, du stjärna", shopLink : "https://scorx.org/Product/Product?Id=3141", composer : "Hans Kennemark", licenseholder : "Gehrmans", externalLink : "", lyricist : "Alf Hambe", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1384, language : "Swedish", ensemble : "SAB", julmusik : "JA", arranger : ""},{ title : "Du ljus du stjärna -6- Änglasången", shopLink : "https://scorx.org/Product/Product?Id=3143", composer : "Hans Kennemark", licenseholder : "Gehrmans", externalLink : "", lyricist : "Alf Hambe", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1386, language : "Swedish", ensemble : "SAB", julmusik : "JA", arranger : ""},{ title : "Du ljus du stjärna -8- Världens frälsare kom här", shopLink : "https://scorx.org/Product/Product?Id=3146", composer : "Hans Kennemark", licenseholder : "Gehrmans", externalLink : "", lyricist : "Johan Olof Wallin", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1389, language : "Swedish", ensemble : "SAB", julmusik : "JA", arranger : "Hans Kennemark"},{ title : "Du ljuvaste barn", shopLink : "https://scorx.org/Product/Product?Id=20", composer : "Johann Sebastian Bach", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/du-ljuvaste-barn", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 27, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Lars Hallgren"},{ title : "Du skapar än", shopLink : "https://scorx.org/Product/Product?Id=1047", composer : "Maurice Green", licenseholder : "Gehrmans", externalLink : "", lyricist : "Gunborg Brännström", paskmusik : "", playProducer : "Körakademin", scorxProductId : 699, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Du!", shopLink : "https://scorx.org/Product/Product?Id=2296", composer : "Anna Cederberg-Orreteg", licenseholder : "Gehrmans", externalLink : "", lyricist : "Anna Högberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 847, language : "Swedish", ensemble : "SSA", julmusik : "", arranger : ""},{ title : "Eatnemen Vuelie", shopLink : "https://scorx.org/Product/Product?Id=4984", composer : "Trad. Frode Fjellheim", licenseholder : "Boosey and Hawkes Inc", externalLink : "", lyricist : "Frode Fjellheim, Joseph August Seiss", paskmusik : "", playProducer : "ScorX AB", scorxProductId : 2070, language : "Yoik, English", ensemble : "SATB", julmusik : "JA", arranger : "Emily Crocker"},{ title : "Ein deutsches Requiem 1. Selig sind, die da Leid tragen", shopLink : "https://scorx.org/Product/Product?Id=5956#", composer : "Johannes Brahms", licenseholder : "Körakademin", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2361, language : "German", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Ein deutsches Requiem 2. Denn alles fleisch es ist wie Gras", shopLink : "https://scorx.org/Product/Product?Id=5960", composer : "Johannes Brahms", licenseholder : "Körakademin", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2367, language : "German", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Ein deutsches Requiem 3-2. Ich hoffe auf Dich", shopLink : "https://scorx.org/Product/Product?Id=5963", composer : "Johannes Brahms", licenseholder : "Körakademin", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2370, language : "German", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Ein deutsches Requiem 5. Ihr habt nun Traurigkeit", shopLink : "https://scorx.org/Product/Product?Id=5965", composer : "Johannes Brahms", licenseholder : "Körakademin", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2372, language : "German", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Ein deutsches Requiem 6-2. Der Tod ist verschlungen", shopLink : "https://scorx.org/Product/Product?Id=5967", composer : "Johannes Brahms", licenseholder : "Körakademin", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2374, language : "German", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Ein deutsches Requiem 7. Selig sind die Toten", shopLink : "https://scorx.org/Product/Product?Id=5969", composer : "Johannes Brahms", licenseholder : "Körakademin", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2376, language : "German", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "En källa av kärlek", shopLink : "https://scorx.org/Product/Product?Id=950", composer : "Nadja Eriksson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Nils Holmqvist", paskmusik : "", playProducer : "Körakademin", scorxProductId : 602, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Björn Claeson"},{ title : "En skrift i snön", shopLink : "https://scorx.org/Product/Product?Id=3790", composer : "Benny Andersson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/en-skrift-i-snon-mm-007", lyricist : "Kristina Lugn", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1811, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "En välsignelse", shopLink : "https://scorx.org/Product/Product?Id=22", composer : "Fredrik Sixten", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/en-valsignelse", lyricist : "Sven Sixten", paskmusik : "", playProducer : "Körakademin", scorxProductId : 29, language : "Swedish", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Esmeraldas Bön", shopLink : "https://scorx.org/Product/Product?Id=5258", composer : "Alan Menken", licenseholder : "Gehrmans", externalLink : "", lyricist : "Stephen Schwarz", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2126, language : "Swedish", ensemble : "SAA", julmusik : "", arranger : "Daniel Möller"},{ title : "Ett litet stycke bröd", shopLink : "https://scorx.org/Product/Product?Id=24", composer : "Fredrik Sixten", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/ett-litet-stycke-brod", lyricist : "Christina Lövestam", paskmusik : "", playProducer : "Körakademin", scorxProductId : 31, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Ett senapskorn", shopLink : "https://scorx.org/Product/Product?Id=2832", composer : "Fredrik Sixten", licenseholder : "Gehrmans", externalLink : "", lyricist : "Anita Bohl", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1363, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Every step of the way", shopLink : "https://scorx.org/Product/Product?Id=3952", composer : "Cynthia Nunn", licenseholder : "Gospel Start Publishing", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1997, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Fader i din härlighet", shopLink : "https://scorx.org/Product/Product?Id=1136", composer : "Anders Nyberg", licenseholder : "Peace of Music", externalLink : "http://www.peaceofmusic.com/Cms.aspx/Show/136", lyricist : "Anders Nyberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 713, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Fauré Requiem - 2. Offertoire", shopLink : "https://scorx.org/Product/Product?Id=3035", composer : "Gabriel Fauré", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 35, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Fauré Requiem - 5. Agnus Dei", shopLink : "https://scorx.org/Product/Product?Id=3037", composer : "Gabriel Fauré", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 37, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Fauré Requiem - 7. In paradisum", shopLink : "https://scorx.org/Product/Product?Id=3039", composer : "Gabriel Fauré", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 39, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Fingerprints", shopLink : "https://scorx.org/Product/Product?Id=3957", composer : "Trad.", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1992, language : "English", ensemble : "SATB", julmusik : "", arranger : "Joakim Arenius"},{ title : "Finvisa", shopLink : "https://scorx.org/Product/Product?Id=3365", composer : "Pelle Hyvlar", licenseholder : "Ejeby Förlag", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1650, language : "Swedish", ensemble : "SSAA", julmusik : "", arranger : "Anna Cederberg-Orreteg"},{ title : "Fredssång i advent", shopLink : "https://scorx.org/Product/Product?Id=928", composer : "Thomas Ravenscroft", licenseholder : "Gehrmans", externalLink : "", lyricist : "Christina Lövestam", paskmusik : "", playProducer : "Körakademin", scorxProductId : 580, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Freut euch des Herrn", shopLink : "https://scorx.org/Product/Product?Id=27", composer : "Heinrich Schütz", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Copyright free", scorxProductId : 40, language : "German", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Frid på jord", shopLink : "https://scorx.org/Product/Product?Id=2672", composer : "Sofia Karlsson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Sofia Karlsson", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1203, language : "Swedish", ensemble : "SSAA", julmusik : "JA", arranger : "Kjell Lönnå"},{ title : "Fyra latinska sentenser - Amabit sapiens", shopLink : "https://scorx.org/Product/Product?Id=2787", composer : "Jerker Leijon", licenseholder : "Gehrmans", externalLink : "", lyricist : "Lucius Afranius", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1318, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Fyra latinska sentenser - Pax optima rerum", shopLink : "https://scorx.org/Product/Product?Id=2788", composer : "Jerker Leijon", licenseholder : "Gehrmans", externalLink : "", lyricist : "Silius Italicus", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1319, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Fånga mig vind", shopLink : "https://scorx.org/Product/Product?Id=2800", composer : "Gunnar Persson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Gunnar Persson", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1331, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Förklädd gud - sats 2", shopLink : "https://scorx.org/Product/Product?Id=28", composer : "Lars-Erik Larsson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/forkladd-gud-korpartitur-(svenska)", lyricist : "Hjalmar Gullberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 41, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Förklädd Gud - sats 4", shopLink : "https://scorx.org/Product/Product?Id=30", composer : "Lars-Erik Larsson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/forkladd-gud-korpartitur-(svenska)", lyricist : "Hjalmar Gullberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 43, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Förklädd Gud - sats 6", shopLink : "https://scorx.org/Product/Product?Id=32", composer : "Lars-Erik Larsson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/forkladd-gud-korpartitur-(svenska)", lyricist : "Hjalmar Gullberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 45, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Förvårskväll", shopLink : "https://scorx.org/Product/Product?Id=997", composer : "David Wikander", licenseholder : "Gehrmans", externalLink : "", lyricist : "Ragnar Jändel", paskmusik : "", playProducer : "Körakademin", scorxProductId : 647, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Gaudete - 1. Gaudete", shopLink : "https://scorx.org/Product/Product?Id=88", composer : "Anders Öhrwall", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/gaudete-korpartitur", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 239, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Gaudete - 3. In dulci jubilo", shopLink : "https://scorx.org/Product/Product?Id=1165", composer : "Anders Öhrwall", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 730, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Gaudete - 4b. Låt oss fröjdas", shopLink : "https://scorx.org/Product/Product?Id=907", composer : "Anders Öhrwall", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 559, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Gaudete - 6. Gloria in excelsis Deo", shopLink : "https://scorx.org/Product/Product?Id=909", composer : "Anders Öhrwall", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 561, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Gaudete - 8. Gladeligh wij nu siunge tigh", shopLink : "https://scorx.org/Product/Product?Id=911", composer : "Anders Öhrwall", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 563, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Genom varje andetag", shopLink : "https://scorx.org/Product/Product?Id=987", composer : "Anders Widmark", licenseholder : "Gehrmans", externalLink : "", lyricist : "Anders Widmark", paskmusik : "", playProducer : "Körakademin", scorxProductId : 637, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Glad såsom fågeln", shopLink : "https://scorx.org/Product/Product?Id=974", composer : "Prins Gustaf", licenseholder : "Gehrmans", externalLink : "", lyricist : "Herman Sätherberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 624, language : "Swedish", ensemble : "TTBB", julmusik : "", arranger : ""},{ title : "Gloria. Sats 1 - Gloria", shopLink : "https://scorx.org/Product/Product?Id=5911", composer : "John Rutter", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2336, language : "Latin", ensemble : "SATB", julmusik : "JA", arranger : "John Rutter"},{ title : "Gloria. Sats 3 - Quoniam tu solos sanctus", shopLink : "https://scorx.org/Product/Product?Id=5909", composer : "John Rutter", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2338, language : "Latin", ensemble : "SATB", julmusik : "", arranger : "John Rutter"},{ title : "Glory to God", shopLink : "https://scorx.org/Product/Product?Id=739", composer : "Karin Öberg", licenseholder : "Tribal Music", externalLink : "", lyricist : "Karin Öberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 396, language : "English", ensemble : "SAB", julmusik : "", arranger : "Karin Öberg"},{ title : "Glädjens blomster", shopLink : "https://scorx.org/Product/Product?Id=954", composer : "Hugo Alfvén", licenseholder : "Gehrmans", externalLink : "", lyricist : "Trad.", paskmusik : "", playProducer : "Körakademin", scorxProductId : 606, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Gläns över sjö och strand", shopLink : "https://scorx.org/Product/Product?Id=2266", composer : "Ivar Widéen", licenseholder : "Gehrmans", externalLink : "", lyricist : "Viktor Rydberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 817, language : "Swedish", ensemble : "SSAA or more", julmusik : "JA", arranger : "Henrik Bergion"},{ title : "Go tell it on the mountains", shopLink : "https://scorx.org/Product/Product?Id=6177", composer : "", licenseholder : "Wessmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2476, language : "Engelska", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Gospelmässa-Halleluja", shopLink : "https://scorx.org/Product/Product?Id=745", composer : "Jonas Öberg", licenseholder : "Tribal Music", externalLink : "", lyricist : "Jonas Öberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 402, language : "Latin", ensemble : "SATB", julmusik : "", arranger : "Jonas Öberg"},{ title : "Gospelmässa-Sanctus", shopLink : "https://scorx.org/Product/Product?Id=747", composer : "Jonas Öberg", licenseholder : "Tribal Music", externalLink : "", lyricist : "Jonas Öberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 404, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Jonas Öberg"},{ title : "Greensleeves", shopLink : "https://scorx.org/Product/Product?Id=3337", composer : "Trad.", licenseholder : "Notfabriken/NotPoolen", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1643, language : "English", ensemble : "Two-parts", julmusik : "", arranger : "Anna Cederberg-Orreteg"},{ title : "Gud vill oss väl", shopLink : "https://scorx.org/Product/Product?Id=36", composer : "Israelisk folkmelodi", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-1", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 49, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Gud är kärlek utan gränser", shopLink : "https://scorx.org/Product/Product?Id=38", composer : "Israelisk folkmelodi", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/gud-ar-karlek-utan-granser", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 50, language : "Swedish", ensemble : "SA", julmusik : "", arranger : "Gunnar Andréasson"},{ title : "Gud är Mysterium", shopLink : "https://scorx.org/Product/Product?Id=2455", composer : "Georg Riedel", licenseholder : "Gehrmans", externalLink : "", lyricist : "Christina Lövestam", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1006, language : "Swedish", ensemble : "SA", julmusik : "", arranger : ""},{ title : "Gud, var mig nådig", shopLink : "https://scorx.org/Product/Product?Id=216", composer : "Kyllikki Solanterä", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/gud-var-mig-nadig", lyricist : "12 Psaltaren 51:3-4", paskmusik : "", playProducer : "Körakademin", scorxProductId : 52, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Gult är hoppet", shopLink : "https://scorx.org/Product/Product?Id=937", composer : "Nadja Eriksson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Nadja Eriksson", paskmusik : "", playProducer : "Körakademin", scorxProductId : 589, language : "Swedish", ensemble : "SSA", julmusik : "", arranger : ""},{ title : "Halleluja", shopLink : "https://scorx.org/Product/Product?Id=247", composer : "Musik från Karibien", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-1", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 53, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Havde je, o havde jeg en dattersøn, o ja!", shopLink : "https://scorx.org/Product/Product?Id=2448", composer : "Wilhelm Stenhammar", licenseholder : "Gehrmans", externalLink : "", lyricist : "Jens Peter Jacobsen", paskmusik : "", playProducer : "Körakademin", scorxProductId : 999, language : "Danish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Hear my prayer - del 2", shopLink : "https://scorx.org/Product/Product?Id=1250", composer : "Felix Mendelssohn Bartholdy", licenseholder : "Körakademin", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 789, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Hela Världen", shopLink : "https://scorx.org/Product/Product?Id=1205", composer : "Anders Nyberg", licenseholder : "Peace of Music", externalLink : "http://peaceofmusic.com/Cms.aspx/Show/55", lyricist : "Anders Nyberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 757, language : "Swedish", ensemble : "SSATB", julmusik : "", arranger : "Anders Nyberg"},{ title : "Helig, helig, helig", shopLink : "https://scorx.org/Product/Product?Id=250", composer : "Franz Schubert", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-2", lyricist : "Birgitta Wennerberg-Berggren", paskmusik : "", playProducer : "Körakademin", scorxProductId : 56, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Help me to believe", shopLink : "https://scorx.org/Product/Product?Id=740", composer : "Karin Öberg", licenseholder : "Tribal Music", externalLink : "", lyricist : "Karin Öberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 397, language : "English", ensemble : "SAB", julmusik : "", arranger : "Karin Öberg"},{ title : "Herdarnas kör", shopLink : "https://scorx.org/Product/Product?Id=256", composer : "Hector Berlioz", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/herdarnas-kor", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 58, language : "Swedish", ensemble : "SATB or more", julmusik : "JA", arranger : ""},{ title : "Herre, du hör mig", shopLink : "https://scorx.org/Product/Product?Id=279", composer : "Vincenzo Bellini", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/herre-du-hor-mig", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 59, language : "Swedish", ensemble : "SA", julmusik : "", arranger : ""},{ title : "Herren välsigne oss", shopLink : "https://scorx.org/Product/Product?Id=2826", composer : "Olle Lindberg", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1357, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Himlen hänger stjärnsvart", shopLink : "https://scorx.org/Product/Product?Id=2424", composer : "Okänd", licenseholder : "Gehrmans", externalLink : "", lyricist : "Okänd", paskmusik : "", playProducer : "Körakademin", scorxProductId : 975, language : "Swedish", ensemble : "SSA", julmusik : "JA", arranger : "Gunnel Haulin"},{ title : "Himmelriket liknas vid tio jungfrur", shopLink : "https://scorx.org/Product/Product?Id=6025", composer : "Trad", licenseholder : "Ejeby Förlag", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2405, language : "Svenska", ensemble : "SSATB", julmusik : "", arranger : "Anna Cederberg-Orreteg"},{ title : "Hold on", shopLink : "https://scorx.org/Product/Product?Id=741", composer : "Trad.", licenseholder : "Tribal Music", externalLink : "", lyricist : "Trad.", paskmusik : "", playProducer : "Körakademin", scorxProductId : 398, language : "English", ensemble : "SATB", julmusik : "", arranger : "Karin Öberg"},{ title : "Hoppfull ljus advent", shopLink : "https://scorx.org/Product/Product?Id=3541", composer : "Camilla Wellborg Käck", licenseholder : "Wessmans", externalLink : "", lyricist : "Maria Sundelius", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1786, language : "Swedish", ensemble : "SSA", julmusik : "JA", arranger : ""},{ title : "Hosianna!", shopLink : "https://scorx.org/Product/Product?Id=5108", composer : "Anna-Karin Klockar", licenseholder : "Gehrmans", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2098, language : "Svenska", ensemble : "SAB", julmusik : "JA", arranger : ""},{ title : "How great Thou art", shopLink : "https://scorx.org/Product/Product?Id=3956", composer : "Trad.", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "Carl Boberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1993, language : "English", ensemble : "SATB", julmusik : "", arranger : "Joakim Arenius"},{ title : "Hur kan du bli så liten?", shopLink : "https://scorx.org/Product/Product?Id=2846", composer : "Nadja Eriksson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Nils Holmqvist", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1377, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Här är gudagott att vara", shopLink : "https://scorx.org/Product/Product?Id=989", composer : "Gunnar Wennerberg", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 639, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Robert Sund"},{ title : "Här är gudagott att vara", shopLink : "https://scorx.org/Product/Product?Id=3338", composer : "Gunnar Wennerberg", licenseholder : "Notfabriken/NotPoolen", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1644, language : "Swedish", ensemble : "Two-parts", julmusik : "", arranger : "Anders Widestrand"},{ title : "Härlig är jorden", shopLink : "https://scorx.org/Product/Product?Id=433", composer : "Schlesisk folkvisa", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/harlig-ar-jorden-7625", lyricist : "B S Ingemann", paskmusik : "", playProducer : "Körakademin", scorxProductId : 61, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Erik Mohlin"},{ title : "I Betlehem", shopLink : "https://scorx.org/Product/Product?Id=3093", composer : "Malung Trad.", licenseholder : "Peace of Music", externalLink : "http://peaceofmusic.com/Cms.aspx/Show/62", lyricist : "Anders Nyberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1510, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Anders Nyberg"},{ title : "I denna ljuva sommartid", shopLink : "https://scorx.org/Product/Product?Id=1196", composer : "Vickes Karin Matson", licenseholder : "Peace of Music", externalLink : "http://peaceofmusic.com/Cms.aspx/Show/117", lyricist : "Paul Gerhardt", paskmusik : "", playProducer : "Körakademin", scorxProductId : 748, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Anders Nyberg"},{ title : "I dig vi lever och andas", shopLink : "https://scorx.org/Product/Product?Id=2850", composer : "Georg Riedel", licenseholder : "Gehrmans", externalLink : "", lyricist : "Margareta Melin", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1390, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "I Don't Know Why Jesus Loves Me", shopLink : "https://scorx.org/Product/Product?Id=4973", composer : "Andraé Crouch", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "Joakim Arenius", paskmusik : "", playProducer : "Bubblejam Music Productions", scorxProductId : 2064, language : "English", ensemble : "SA", julmusik : "", arranger : ""},{ title : "I frid och glädje", shopLink : "https://scorx.org/Product/Product?Id=5104", composer : "Johannes Brahms", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2096, language : "Svenska", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "I himmelen, i himmelen", shopLink : "https://scorx.org/Product/Product?Id=102", composer : "Nils Lindberg", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 250, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "I midnattstimmen", shopLink : "https://scorx.org/Product/Product?Id=435", composer : "Puerto Rico Trad", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/i-midnattstimmen", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 63, language : "Swedish", ensemble : "SA", julmusik : "JA", arranger : "Karl-Fredrik Jehrlander"},{ title : "I påskens glädje", shopLink : "https://scorx.org/Product/Product?Id=5862", composer : "Vreuchten 1600-tal,", licenseholder : "Gehrmans", externalLink : "", lyricist : "George Ratcliffe Woodward", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2315, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Austin C Lovelace"},{ title : "I skogens famn", shopLink : "https://scorx.org/Product/Product?Id=4947", composer : "Elisabeth Engdahl", licenseholder : "Gehrmans", externalLink : "", lyricist : "Karin Klingenstierna", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2051, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "I välsignan och fröjd - 1. Tre lå", shopLink : "https://scorx.org/Product/Product?Id=3482", composer : "A. Claesson", licenseholder : "Argument", externalLink : "http://www.argument.se/", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1776, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Hans Kennemark"},{ title : "I välsignan och fröjd - 14. Välsignelsen", shopLink : "https://scorx.org/Product/Product?Id=3490", composer : "J.H. Andersson", licenseholder : "Argument", externalLink : "http://www.argument.se/", lyricist : "Alf Hambe", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1784, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Hans Kennemark"},{ title : "I välsignan och fröjd - 3. Fram mellan bugande björkar", shopLink : "https://scorx.org/Product/Product?Id=3484", composer : "F. Pärson", licenseholder : "Argument", externalLink : "http://www.argument.se/", lyricist : "Alf Hambe", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1778, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Hans Kennemark"},{ title : "I välsignan och fröjd - 6. Gud förbarme Dig", shopLink : "https://scorx.org/Product/Product?Id=3486", composer : "Hans Kennemark", licenseholder : "Argument", externalLink : "http://www.argument.se/", lyricist : "Alf Hambe", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1780, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Hans Kennemark"},{ title : "I välsignan och fröjd - 8. Kan det va så lätt", shopLink : "https://scorx.org/Product/Product?Id=3488", composer : "H. Jansson", licenseholder : "Argument", externalLink : "http://www.argument.se/", lyricist : "Alf Hambe", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1782, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Hans Kennemark"},{ title : "I wish you Christmas", shopLink : "https://scorx.org/Product/Product?Id=6164", composer : "John Rutter", licenseholder : "Oxford University Press", externalLink : "", lyricist : "John Rutter", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2467, language : "Engelska", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "In dulci jubilo", shopLink : "https://scorx.org/Product/Product?Id=436", composer : "Sv ps 433", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/in-dulci-jubilo-11032", lyricist : "Piæ cantiones", paskmusik : "", playProducer : "Körakademin", scorxProductId : 64, language : "Swedish", ensemble : "SATB or more", julmusik : "JA", arranger : "Nils Lindberg"},{ title : "In These Delightful, Pleasant Groves", shopLink : "https://scorx.org/Product/Product?Id=2757", composer : "Henry Purcell", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1288, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Innanförskapets rum", shopLink : "https://scorx.org/Product/Product?Id=946", composer : "Nadja Eriksson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Nils Holmqvist", paskmusik : "", playProducer : "Körakademin", scorxProductId : 598, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Björn Claeson"},{ title : "Ipharadisi", shopLink : "https://scorx.org/Product/Product?Id=2992", composer : "Anders Nyberg", licenseholder : "Peace of Music", externalLink : "http://www.peaceofmusic.com/Cms.aspx/Show/130", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1509, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Jag följer dig Gud", shopLink : "https://scorx.org/Product/Product?Id=438", composer : "Trad. Filippinerna", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-1", lyricist : "Per Harling", paskmusik : "", playProducer : "Körakademin", scorxProductId : 66, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Jag lever av nåd", shopLink : "https://scorx.org/Product/Product?Id=1134", composer : "Anders Nyberg", licenseholder : "Peace of Music", externalLink : "http://peaceofmusic.com/Cms.aspx/Show/107", lyricist : "Anders Nyberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 711, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Jag ska fånga en ängel", shopLink : "https://scorx.org/Product/Product?Id=5438", composer : "Ted Gärdestad", licenseholder : "Ynde", externalLink : "", lyricist : "Kenneth Gärdestad", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2178, language : "Swedish", ensemble : "SA", julmusik : "", arranger : "Nills Wallnäs"},{ title : "Jag vet en dejlig rosa", shopLink : "https://scorx.org/Product/Product?Id=2587", composer : "Trad", licenseholder : "Notpoolen", externalLink : "", lyricist : "Trad", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1133, language : "Swedish", ensemble : "SSA", julmusik : "", arranger : "Eva Ericsson Berglund"},{ title : "Jag är tacksam", shopLink : "https://scorx.org/Product/Product?Id=3264", composer : "Anna Cederberg-Orreteg", licenseholder : "Wessmans", externalLink : "", lyricist : "Saga Lundh", paskmusik : "", playProducer : "Körakademin", scorxProductId : 778, language : "Swedish", ensemble : "SA", julmusik : "", arranger : "Anna Cederberg-Orreteg"},{ title : "Jauchzet dem Herren alle Welt Eccho - kör 1", shopLink : "https://scorx.org/Product/Product?Id=1248", composer : "Heinrich Schütz", licenseholder : "Körakademin", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 782, language : "German", ensemble : "SATB", julmusik : "", arranger : "Heinrich Schütz"},{ title : "Jericho", shopLink : "https://scorx.org/Product/Product?Id=3955", composer : "Trad.", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1994, language : "English", ensemble : "SATB", julmusik : "", arranger : "Joakim Arenius"},{ title : "Joshua fit the battle", shopLink : "https://scorx.org/Product/Product?Id=3375", composer : "Trad.", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/undervisning/vi-sjunger-i-kor-3", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1669, language : "English", ensemble : "SAB", julmusik : "", arranger : "Carl-Bertil Agnestig"},{ title : "Joy to the World", shopLink : "https://scorx.org/Product/Product?Id=2833", composer : "G. F. Händel", licenseholder : "Gehrmans", externalLink : "", lyricist : "Joakim Arenius, Isac Watts", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1364, language : "English", ensemble : "SAT", julmusik : "", arranger : "Joakim Arenius, Kristian Kraftling"},{ title : "Jubilate Deo", shopLink : "https://scorx.org/Product/Product?Id=6251", composer : "Reibjörn Carlshamre", licenseholder : "Wessman", externalLink : "", lyricist : "Psalm 99", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2514, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Jul, jul, strålande jul!", shopLink : "https://scorx.org/Product/Product?Id=3247", composer : "Gustaf Nordqvist", licenseholder : "Gehrmans", externalLink : "", lyricist : "Edvard Evers", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1628, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Julen kommer åter", shopLink : "https://scorx.org/Product/Product?Id=5232", composer : "Martin Runborg", licenseholder : "Gehrmans", externalLink : "", lyricist : "Martin Runborg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2125, language : "Swedish", ensemble : "SAB", julmusik : "JA", arranger : ""},{ title : "Julvisa", shopLink : "https://scorx.org/Product/Product?Id=931", composer : "Georg Riedel", licenseholder : "Gehrmans", externalLink : "", lyricist : "Ylva Eggehorn", paskmusik : "", playProducer : "Körakademin", scorxProductId : 583, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Keep Shining", shopLink : "https://scorx.org/Product/Product?Id=2834", composer : "Joakim Arenius", licenseholder : "Gehrmans", externalLink : "", lyricist : "Joakim Arenius", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1365, language : "English", ensemble : "SATB", julmusik : "JA", arranger : "Kristian Kraftling"},{ title : "Klinga mina klockor", shopLink : "https://scorx.org/Product/Product?Id=3792", composer : "Benny Andersson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/klinga-mina-klockor", lyricist : "Björn Ulvaeus", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1812, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Benny Andersson"},{ title : "Kom du ljuva hjärtevän", shopLink : "https://scorx.org/Product/Product?Id=1044", composer : "Adam de la Halle", licenseholder : "Gehrmans", externalLink : "", lyricist : "Einar Ralf", paskmusik : "", playProducer : "Körakademin", scorxProductId : 696, language : "Swedish", ensemble : "TTBB", julmusik : "", arranger : "Carl Schreiber"},{ title : "Kom kom du kungars kung", shopLink : "https://scorx.org/Product/Product?Id=443", composer : "Henry Purcell", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/kom-kom-du-kungars-kung", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 71, language : "Swedish", ensemble : "SAB", julmusik : "JA", arranger : "Lars Hallgren"},{ title : "Kom lova vår Gud", shopLink : "https://scorx.org/Product/Product?Id=444", composer : "Brasiliansk folkmelodi", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/kom-lova-var-gud", lyricist : "Gerhard Cartford", paskmusik : "", playProducer : "Körakademin", scorxProductId : 72, language : "Spanish", ensemble : "SA", julmusik : "", arranger : "Gunnar Andréasson"},{ title : "Kom ned, Sackaios!", shopLink : "https://scorx.org/Product/Product?Id=2845", composer : "Pär Olofsson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1376, language : "Swedish", ensemble : "SSA", julmusik : "", arranger : ""},{ title : "Kom o Helig Ande kom", shopLink : "https://scorx.org/Product/Product?Id=5914", composer : "Zebulon M Highben", licenseholder : "Gehrmans", externalLink : "", lyricist : "Leif Nahnfeldt, Neale, Westermeryer", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2341, language : "Svenska", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Kom sjung med fröjd", shopLink : "https://scorx.org/Product/Product?Id=2793", composer : "Heinrich Schütz", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1324, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Anders Öhrwall"},{ title : "Kom till ro, min själ", shopLink : "https://scorx.org/Product/Product?Id=5593", composer : "Mattias Ekström Koji", licenseholder : "Gehrmans", externalLink : "", lyricist : "Psaltaren 116:7-9", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2284, language : "Swedish", ensemble : "SA", julmusik : "", arranger : ""},{ title : "Koppången", shopLink : "https://scorx.org/Product/Product?Id=2264", composer : "Pererik Moraeus", licenseholder : "Gehrmans", externalLink : "", lyricist : "Py Bäckman", paskmusik : "", playProducer : "Körakademin", scorxProductId : 815, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Robert Sund"},{ title : "Kristallen den fina", shopLink : "https://scorx.org/Product/Product?Id=2997", composer : "Trad.", licenseholder : "Ejeby Förlag", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1456, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Gunnar Eriksson"},{ title : "Kristus har uppstått", shopLink : "https://scorx.org/Product/Product?Id=964", composer : "Johan Hermann Schein", licenseholder : "Gehrmans", externalLink : "", lyricist : "Per Olof Nisser", paskmusik : "", playProducer : "Körakademin", scorxProductId : 616, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Lars Hallgren"},{ title : "Kungarnas marsch", shopLink : "https://scorx.org/Product/Product?Id=926", composer : "Anders Öhrwall", licenseholder : "Gehrmans", externalLink : "", lyricist : "Ulla Rydbeck", paskmusik : "", playProducer : "Körakademin", scorxProductId : 578, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Anders Öhrwall"},{ title : "Kyrie (ur Missa Brevis)", shopLink : "https://scorx.org/Product/Product?Id=447", composer : "G.P. da Palestrina", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Copyright free", scorxProductId : 75, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Käraste bröder", shopLink : "https://scorx.org/Product/Product?Id=979", composer : "Carl Michael Bellman", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 629, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Robert Sund"},{ title : "Kärlekens lov", shopLink : "https://scorx.org/Product/Product?Id=6252", composer : "Anders Jorhammar", licenseholder : "Wessman", externalLink : "", lyricist : "Åsa Hagberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2515, language : "Svenska", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Kärlekspärlorna", shopLink : "https://scorx.org/Product/Product?Id=3555", composer : "Lars Åberg", licenseholder : "Wessmans", externalLink : "", lyricist : "Martin Lönnebo", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1793, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Lasciate mi morire", shopLink : "https://scorx.org/Product/Product?Id=449", composer : "Claudio Monteverdi", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "Octavio Rinaccini", paskmusik : "", playProducer : "Copyright free", scorxProductId : 77, language : "Italian", ensemble : "SATB or more", julmusik : "", arranger : ""},{ title : "Latinsk Mässa - 2. Gloria", shopLink : "https://scorx.org/Product/Product?Id=4018", composer : "Rolf Gravé", licenseholder : "Gehrmans", externalLink : "", lyricist : "Mässordinariet", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2007, language : "Latin", ensemble : "SSA", julmusik : "", arranger : ""},{ title : "Latinsk Mässa - 4. Sanctus", shopLink : "https://scorx.org/Product/Product?Id=4016", composer : "Rolf Gravé", licenseholder : "Gehrmans", externalLink : "", lyricist : "Mässordinariet", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2009, language : "Latin", ensemble : "SSA", julmusik : "", arranger : ""},{ title : "Lead me", shopLink : "https://scorx.org/Product/Product?Id=742", composer : "Trad.", licenseholder : "Tribal Music", externalLink : "", lyricist : "Trad.", paskmusik : "", playProducer : "Körakademin", scorxProductId : 399, language : "English", ensemble : "SATB", julmusik : "", arranger : "Jonas Öberg"},{ title : "Let freedom ring", shopLink : "https://scorx.org/Product/Product?Id=3939", composer : "Norris Garner", licenseholder : "Gospel Start Publishing", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1640, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Lika blå", shopLink : "https://scorx.org/Product/Product?Id=939", composer : "Nadja Eriksson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Nadja Eriksson", paskmusik : "", playProducer : "Körakademin", scorxProductId : 591, language : "Swedish", ensemble : "SSA", julmusik : "", arranger : ""},{ title : "Livet som helar", shopLink : "https://scorx.org/Product/Product?Id=5126", composer : "Fredrik Sjöblom", licenseholder : "Gehrmans", externalLink : "", lyricist : "Johannes XII", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2103, language : "Svenska", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Ljusa kvällar om våren", shopLink : "https://scorx.org/Product/Product?Id=3785", composer : "Benny Andersson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/ljusa-kvallar-om-varen", lyricist : "Björn Ulvaeus", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1808, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Henrik Bergion"},{ title : "Ljuvlig är din boning", shopLink : "https://scorx.org/Product/Product?Id=4951#", composer : "Karin Edwardsson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Ps 80, 150", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2055, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Lord, You Are Holy", shopLink : "https://scorx.org/Product/Product?Id=130", composer : "Lina Sidenmark", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/yes-i-m-coming-home", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 280, language : "English", ensemble : "SATB", julmusik : "", arranger : "Staffan Sundås"},{ title : "Lova Herren min själ", shopLink : "https://scorx.org/Product/Product?Id=2922", composer : "Kjell Janunger", licenseholder : "ACKJA Music & Production", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1468, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Love me, and the world is mine", shopLink : "https://scorx.org/Product/Product?Id=452", composer : "Ernest Ball", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "Dave Jr Reed", paskmusik : "", playProducer : "Copyright free", scorxProductId : 80, language : "English", ensemble : "TTBB", julmusik : "", arranger : ""},{ title : "Luciavisa från Dalsland", shopLink : "https://scorx.org/Product/Product?Id=2591", composer : "Trad.", licenseholder : "Notfabriken/NotPoolen", externalLink : "", lyricist : "Trad.", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1137, language : "Swedish", ensemble : "SSA", julmusik : "JA", arranger : "Mårten Jansson"},{ title : "Lustwijns wijsa", shopLink : "https://scorx.org/Product/Product?Id=1008", composer : "Knut Håkansson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Samuel Columbus", paskmusik : "", playProducer : "Körakademin", scorxProductId : 660, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Lyft jorden upp mot ljuset", shopLink : "https://scorx.org/Product/Product?Id=1199", composer : "Anders Nyberg", licenseholder : "Peace of Music", externalLink : "http://peaceofmusic.com/Cms.aspx/Show/54", lyricist : "Anders Nyberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 751, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Anders Nyberg"},{ title : "Lyriska möten Fyra sånger : Sången om Nobby", shopLink : "https://scorx.org/Product/Product?Id=3276", composer : "Margareta Hallin", licenseholder : "Wessmans", externalLink : "", lyricist : "Nils Ferlin", paskmusik : "", playProducer : "Körakademin", scorxProductId : 795, language : "Swedish", ensemble : "Unison", julmusik : "", arranger : ""},{ title : "Lyriska möten Fyra sånger: Guds födelsedag", shopLink : "https://scorx.org/Product/Product?Id=3274", composer : "Margareta Hallin", licenseholder : "Wessmans", externalLink : "", lyricist : "Nils Ferlin", paskmusik : "", playProducer : "Körakademin", scorxProductId : 793, language : "Swedish", ensemble : "Unison", julmusik : "JA", arranger : ""},{ title : "Lys för oss stjärna", shopLink : "https://scorx.org/Product/Product?Id=2843", composer : "Jens Eriksson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Jens Eriksson", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1374, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Låt mig bli stilla och lyssna till sanningen", shopLink : "https://scorx.org/Product/Product?Id=1131", composer : "Anders Nyberg", licenseholder : "Peace of Music", externalLink : "http://www.peaceofmusic.com/Cms.aspx/Show/136", lyricist : "Anders Nyberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 708, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Längtan till Advent", shopLink : "https://scorx.org/Product/Product?Id=2378", composer : "Anna Cederberg-Orreteg", licenseholder : "Gehrmans", externalLink : "", lyricist : "Sylvia Mård", paskmusik : "", playProducer : "Körakademin", scorxProductId : 929, language : "Swedish", ensemble : "SA", julmusik : "JA", arranger : ""},{ title : "Majsång", shopLink : "https://scorx.org/Product/Product?Id=972", composer : "Friedrich Kuhlau", licenseholder : "Gehrmans", externalLink : "", lyricist : "C W Böttiger", paskmusik : "", playProducer : "Körakademin", scorxProductId : 622, language : "Swedish", ensemble : "TTBB", julmusik : "", arranger : ""},{ title : "Majsång (Sköna maj, välkommen)", shopLink : "https://scorx.org/Product/Product?Id=973", composer : "L M Beén", licenseholder : "Gehrmans", externalLink : "", lyricist : "Johan Ludvig Runeberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 623, language : "Swedish", ensemble : "TTBB", julmusik : "", arranger : ""},{ title : "Marias lovsång", shopLink : "https://scorx.org/Product/Product?Id=466", composer : "Steve Dobrogosz", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/marias-lovsang-10828", lyricist : "Luk 1:46-55", paskmusik : "", playProducer : "Körakademin", scorxProductId : 94, language : "Swedish", ensemble : "SAB", julmusik : "JA", arranger : ""},{ title : "Masters in this Hall", shopLink : "https://scorx.org/Product/Product?Id=3382", composer : "Trad.", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/masters-in-this-hall-12499", lyricist : "William Morris", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1676, language : "English", ensemble : "SATB", julmusik : "JA", arranger : "Kjell Lönnå"},{ title : "Mellan", shopLink : "https://scorx.org/Product/Product?Id=4171", composer : "Ola Sjönneby", licenseholder : "Gehrmans", externalLink : "", lyricist : "Inga-Lill Sjönneby", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2044, language : "Swedish", ensemble : "SSA", julmusik : "", arranger : ""},{ title : "Messe Basse. 2 - Sanctus", shopLink : "https://scorx.org/Product/Product?Id=6022", composer : "Gabriel Fauré", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2402, language : "Latin", ensemble : "SATB", julmusik : "", arranger : "Anders Öhrwall"},{ title : "Messe Basse. 4 - Agnus Dei", shopLink : "https://scorx.org/Product/Product?Id=6024", composer : "Gabriel Fauré", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2404, language : "Latin", ensemble : "SATB", julmusik : "", arranger : "Anders Öhrwall"},{ title : "Minnet är mig nära", shopLink : "https://scorx.org/Product/Product?Id=3545", composer : "Camilla Wellborg Käck", licenseholder : "Wessmans", externalLink : "", lyricist : "Maria Sundelius", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1788, language : "Swedish", ensemble : "SA", julmusik : "", arranger : ""},{ title : "Missa Brevis - 1. Kyrie", shopLink : "https://scorx.org/Product/Product?Id=2789", composer : "Lars-Erik Larsson", licenseholder : "Gehrmans", externalLink : "", lyricist : "ur Mässordinariet", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1320, language : "Latin", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Missa brevis - 2. Gloria", shopLink : "https://scorx.org/Product/Product?Id=2790", composer : "Lars-Erik Larsson", licenseholder : "Gehrmans", externalLink : "", lyricist : "ur Mässordinariet", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1321, language : "Latin", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Missa brevis - 3. Sanctus", shopLink : "https://scorx.org/Product/Product?Id=2791", composer : "Lars-Erik Larsson", licenseholder : "Gehrmans", externalLink : "", lyricist : "ur Mässordinariet", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1322, language : "Latin", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Missa Brevis - 4. Sanctus", shopLink : "https://scorx.org/Product/Product?Id=3043", composer : "Joseph Haydn", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 98, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Missa Brevis - 6. Agnus Dei", shopLink : "https://scorx.org/Product/Product?Id=3045", composer : "Joseph Haydn", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 100, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Missa Brevis (K275) - 2. Gloria", shopLink : "https://scorx.org/Product/Product?Id=3046", composer : "Wolfgang Amadeus Mozart", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 101, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Missa Brevis (K275) - 4. Sanctus", shopLink : "https://scorx.org/Product/Product?Id=3049", composer : "Wolfgang Amadeus Mozart", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 104, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Missa Brevis (K275) - 6. Agnus Dei", shopLink : "https://scorx.org/Product/Product?Id=3051", composer : "Wolfgang Amadeus Mozart", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 107, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Missa compatiens - 3. Gloria", shopLink : "https://scorx.org/Product/Product?Id=5149", composer : "Anton Leanderson-Andréas", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2107, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Missa compatiens - 5. Agnus Dei", shopLink : "https://scorx.org/Product/Product?Id=5147", composer : "Anton Leanderson-Andréas", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2109, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Missa De Beata Virgine - 2. Gloria", shopLink : "https://scorx.org/Product/Product?Id=4130", composer : "Giovanni Pierluigi da Palestrina", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2036, language : "", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Missa De Beata Virgine - 4. Sanctus", shopLink : "https://scorx.org/Product/Product?Id=4132", composer : "Giovanni Pierluigi da Palestrina", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2038, language : "", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Missa De Beata Virgine - 6. Agnus Dei", shopLink : "https://scorx.org/Product/Product?Id=4134", composer : "Giovanni Pierluigi da Palestrina", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2040, language : "", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Missa Nova Sofiae - 2. Gloria", shopLink : "https://scorx.org/Product/Product?Id=3978", composer : "Nina Åkerblom Nielsen", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2000, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Missa Nova Sofiae - 4. Sanctus", shopLink : "https://scorx.org/Product/Product?Id=3980", composer : "Nina Åkerblom Nielsen", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2002, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Missa Nova Sofiae - 6. Agnus Dei", shopLink : "https://scorx.org/Product/Product?Id=3982", composer : "Nina Åkerblom Nielsen", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2004, language : "Latin", ensemble : "SATB, Solo", julmusik : "", arranger : ""},{ title : "Molnen har klarnat", shopLink : "https://scorx.org/Product/Product?Id=468", composer : "Johannes Johansson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/molnen-har-klarnat", lyricist : "Bengt Pohjanen", paskmusik : "", playProducer : "Körakademin", scorxProductId : 109, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Mozart Requiem - 1. Introitus", shopLink : "https://scorx.org/Product/Product?Id=469", composer : "Wolfgang Amadeus Mozart", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 110, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Mozart Requiem - 3.1 Dies irae", shopLink : "https://scorx.org/Product/Product?Id=471", composer : "Wolfgang Amadeus Mozart", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 112, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Mozart Requiem - 3.5 Confutatis", shopLink : "https://scorx.org/Product/Product?Id=473", composer : "Wolfgang Amadeus Mozart", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 114, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Mozart Requiem - 4.1 Domine Jesu, Quam olim 1", shopLink : "https://scorx.org/Product/Product?Id=475", composer : "Wolfgang Amadeus Mozart", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 116, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Mozart Requiem - 5. Sanctus (Hosanna)", shopLink : "https://scorx.org/Product/Product?Id=477", composer : "Wolfgang Amadeus Mozart", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 118, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Mozart Requiem - 7. Agnus dei", shopLink : "https://scorx.org/Product/Product?Id=479", composer : "Wolfgang Amadeus Mozart", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 120, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Music for a while", shopLink : "https://scorx.org/Product/Product?Id=2998", composer : "Henry Purcell", licenseholder : "Ejeby Förlag", externalLink : "", lyricist : "John Dryden", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1457, language : "English", ensemble : "SATB", julmusik : "", arranger : "Gunnar Eriksson"},{ title : "My Father", shopLink : "https://scorx.org/Product/Product?Id=5612", composer : "Joakim Arenius", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Bubblejam Music Productions", scorxProductId : 2290, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Må din väg gå dig till mötes", shopLink : "https://scorx.org/Product/Product?Id=481", composer : "Trad irländsk bön", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-1", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 122, language : "English", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Mässa i Dalaton. 1 - Kyrie", shopLink : "https://scorx.org/Product/Product?Id=6026", composer : "Olle Lindberg", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2406, language : "Svenska", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Mässa i Dalaton. 3 - Helig", shopLink : "https://scorx.org/Product/Product?Id=6028", composer : "Olle Lindberg", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2408, language : "Svenska", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Mässa i presens - 1. Introitus: Kom kom kom", shopLink : "https://scorx.org/Product/Product?Id=3290", composer : "Johan Lindström", licenseholder : "Wessmans", externalLink : "http://wessmans.com/ArticleDetail.aspx?art=SKSF1002", lyricist : "Tomas Boström", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1630, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Mässa i presens - 2. Kyrie: Hit till mitt inre rum", shopLink : "https://scorx.org/Product/Product?Id=3291", composer : "Johan Lindström", licenseholder : "Wessmans", externalLink : "http://wessmans.com/ArticleDetail.aspx?art=SKSF1002", lyricist : "Tomas Boström", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1631, language : "Swedish", ensemble : "SSATB", julmusik : "", arranger : ""},{ title : "Mässa i presens - 4. Halleluja: Stenarna dom ropar", shopLink : "https://scorx.org/Product/Product?Id=3293", composer : "Johan Lindström", licenseholder : "Wessmans", externalLink : "http://wessmans.com/ArticleDetail.aspx?art=SKSF1002", lyricist : "Tomas Boström", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1633, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Mässa i presens - 6. Sanctus: Hela livet bär du", shopLink : "https://scorx.org/Product/Product?Id=3295", composer : "Johan Lindström", licenseholder : "Wessmans", externalLink : "http://wessmans.com/ArticleDetail.aspx?art=SKSF1002", lyricist : "Tomas Boström", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1635, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Mässa i presens - 8. Agnus Dei: Du är lammet", shopLink : "https://scorx.org/Product/Product?Id=3297", composer : "Johan Lindström", licenseholder : "Wessmans", externalLink : "http://wessmans.com/ArticleDetail.aspx?art=SKSF1002", lyricist : "Tomas Boström", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1637, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Nattskärran", shopLink : "https://scorx.org/Product/Product?Id=4126", composer : "Emil Sundberg", licenseholder : "Gehrmans", externalLink : "", lyricist : "Karin Boye", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2032, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "No Hating Today", shopLink : "https://scorx.org/Product/Product?Id=5554", composer : "Joakim Arenius", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "Joakim Arenius", paskmusik : "", playProducer : "Bubblejam Music Productions", scorxProductId : 2266, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Now is the month of maying", shopLink : "https://scorx.org/Product/Product?Id=976", composer : "Thomas Morley", licenseholder : "Gehrmans", externalLink : "", lyricist : "E Beckman", paskmusik : "", playProducer : "Körakademin", scorxProductId : 626, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Nu skall jag söka Guds fred", shopLink : "https://scorx.org/Product/Product?Id=1135", composer : "Anders Nyberg", licenseholder : "Peace of Music", externalLink : "http://www.peaceofmusic.com/Cms.aspx/Show/136", lyricist : "Anders Nyberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 712, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Nu tändas tusen juleljus", shopLink : "https://scorx.org/Product/Product?Id=963", composer : "Emmy Köhler", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 615, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Jan Hillerud"},{ title : "Nu vilar folk och länder", shopLink : "https://scorx.org/Product/Product?Id=485", composer : "Johann Sebastian Bach", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Copyright free", scorxProductId : 126, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Nu är vi ett", shopLink : "https://scorx.org/Product/Product?Id=1132", composer : "Anders Nyberg", licenseholder : "Peace of Music", externalLink : "http://peaceofmusic.com/Cms.aspx/Show/106", lyricist : "Anders Nyberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 709, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "När det lider mot jul", shopLink : "https://scorx.org/Product/Product?Id=486", composer : "Ruben Liljefors", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/nar-det-lider-mot-jul-4883", lyricist : "Jeanna Otherdahl", paskmusik : "", playProducer : "Körakademin", scorxProductId : 127, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "När jag andas", shopLink : "https://scorx.org/Product/Product?Id=5221", composer : "Linda Sandström", licenseholder : "Gehrmans", externalLink : "", lyricist : "Marianne Bokblad", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2123, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "När natten skänker frid", shopLink : "", composer : "Karin Rehnqvist", licenseholder : "Reimers förlag", externalLink : "", lyricist : "Gunnar Björling", paskmusik : "", playProducer : "Körakademin", scorxProductId : 781, language : "Swedish", ensemble : "SATB or more", julmusik : "", arranger : "Karin Rehnqvist"},{ title : "O Holy Night", shopLink : "https://scorx.org/Product/Product?Id=2835", composer : "Adolphe Adam", licenseholder : "Gehrmans", externalLink : "", lyricist : "Placide Cappeau", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1366, language : "English", ensemble : "SATB", julmusik : "JA", arranger : "Kristian Kraftling"},{ title : "O Klang och Jubeltid", shopLink : "https://scorx.org/Product/Product?Id=3773", composer : "Benny Andersson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/o-klang-och-jubeltid-mm-008", lyricist : "Björn Ulvaeus", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1802, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Göran Arnberg"},{ title : "O store Gud", shopLink : "https://scorx.org/Product/Product?Id=2272", composer : "Trad.", licenseholder : "Gehrmans", externalLink : "", lyricist : "Carl Boberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 823, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Pär Olofsson"},{ title : "Och natten mot morgonen vänder", shopLink : "https://scorx.org/Product/Product?Id=6179", composer : "Alexander Öberg", licenseholder : "Gehrmans", externalLink : "", lyricist : "Elisabeth Aulén, Signe Hallström", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2478, language : "Svenska", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Oh Happy Day", shopLink : "https://scorx.org/Product/Product?Id=4974", composer : "Edwin Hawkins", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Bubblejam Music Productions", scorxProductId : 2065, language : "Engelska", ensemble : "SAT", julmusik : "", arranger : "Trad"},{ title : "Om kärlek", shopLink : "https://scorx.org/Product/Product?Id=4995", composer : "Georg Riedel", licenseholder : "Ej Specificerad", externalLink : "", lyricist : "Ulf Stark", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2076, language : "Svenska", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "One More Time", shopLink : "https://scorx.org/Product/Product?Id=4975", composer : "James E Moore Jr.", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Bubblejam Music Productions", scorxProductId : 2066, language : "Engelska", ensemble : "SAT", julmusik : "", arranger : "Joakim Arenius"},{ title : "Orddroppar: Framför allt", shopLink : "https://scorx.org/Product/Product?Id=3267", composer : "Maria Löfberg", licenseholder : "Wessmans", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 784, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Maria Löfberg"},{ title : "Orddroppar: Planer", shopLink : "https://scorx.org/Product/Product?Id=3268", composer : "Maria Löfberg", licenseholder : "Wessmans", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 785, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Maria Löfberg"},{ title : "Pastores loquebantur", shopLink : "https://scorx.org/Product/Product?Id=6236", composer : "Franz Xaver Brixi", licenseholder : "Not Specified", externalLink : "", lyricist : "Luk 2:15b", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2504, language : "Latin", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Per Spelman", shopLink : "https://scorx.org/Product/Product?Id=492", composer : "Norsk folkvisa", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Copyright free", scorxProductId : 133, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Jonas Nyström"},{ title : "Pingst", shopLink : "https://scorx.org/Product/Product?Id=2468", composer : "Oskar Lindberg", licenseholder : "Gehrmans", externalLink : "", lyricist : "Oscar Levertin", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1019, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Procession", shopLink : "https://scorx.org/Product/Product?Id=4989", composer : "Benjamin Britten", licenseholder : "Boosey and Hawkes Inc", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2071, language : "Latin", ensemble : "SSA", julmusik : "JA", arranger : ""},{ title : "Psalm 34 (Bless The Lord)", shopLink : "https://scorx.org/Product/Product?Id=4976", composer : "Chrisopher Mazen", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Bubblejam Music Productions", scorxProductId : 2067, language : "Engelska", ensemble : "SAT", julmusik : "", arranger : "Joakim Arenius"},{ title : "Psaltaren 121 - 1. Frågan", shopLink : "https://scorx.org/Product/Product?Id=495", composer : "Nyström Jonas", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/psaltaren-121-11893", lyricist : "Psaltaren 121", paskmusik : "", playProducer : "Körakademin", scorxProductId : 136, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Psaltaren 121 - 3. Hjälpen kommer från Herren", shopLink : "https://scorx.org/Product/Product?Id=497", composer : "Nyström Jonas", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/psaltaren-121-11893", lyricist : "Psaltaren 121", paskmusik : "", playProducer : "Körakademin", scorxProductId : 138, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Psaltaren 121 - 6. Ett frö som gror", shopLink : "https://scorx.org/Product/Product?Id=499", composer : "Nyström Jonas", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/psaltaren-121-11893", lyricist : "Nyström Jonas", paskmusik : "", playProducer : "Körakademin", scorxProductId : 140, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Psaltaren 148", shopLink : "https://scorx.org/Product/Product?Id=3263", composer : "Curt Lindström", licenseholder : "Wessmans", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 777, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Curt Lindström"},{ title : "Psaltarpsalm 139: Herre, du rannsakar mig", shopLink : "https://scorx.org/Product/Product?Id=5142", composer : "Sonny Jansson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Psaltaren 139", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2114, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Psaltarpsalm 25: Herre, lär mig dina vägar", shopLink : "https://scorx.org/Product/Product?Id=5144", composer : "Sonny Jansson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Psaltaren 25", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2112, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Psaltartriptyk 1", shopLink : "https://scorx.org/Product/Product?Id=6255", composer : "Jakob Jonsson", licenseholder : "Wessman", externalLink : "", lyricist : "Psaltaren", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2518, language : "Svenska", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Psaltartriptyk 3", shopLink : "https://scorx.org/Product/Product?Id=6257", composer : "Jakob Jonsson", licenseholder : "Wessman", externalLink : "", lyricist : "Psaltaren", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2520, language : "Svenska", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Quand mon mari", shopLink : "https://scorx.org/Product/Product?Id=501", composer : "Orlando Lasso di", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Copyright free", scorxProductId : 142, language : "French", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Rosens sång", shopLink : "https://scorx.org/Product/Product?Id=3570", composer : "Stefan Forssén", licenseholder : "Ejeby Förlag", externalLink : "", lyricist : "Eva-Stina Byggmästar", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1798, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Sakta nalkas gryning", shopLink : "https://scorx.org/Product/Product?Id=2666", composer : "Anna Cederberg-Orreteg", licenseholder : "Gehrmans", externalLink : "", lyricist : "Elisabeth Asker", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1197, language : "Swedish", ensemble : "SSA", julmusik : "JA", arranger : ""},{ title : "Salve regina", shopLink : "https://scorx.org/Product/Product?Id=502", composer : "Domenico Scarlatti", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/salve-regina", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 143, language : "Latin", ensemble : "SA", julmusik : "", arranger : "Mats E J Åberg"},{ title : "Sanctus (Helig)", shopLink : "https://scorx.org/Product/Product?Id=503", composer : "Franz Schubert", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Copyright free", scorxProductId : 144, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Sankta Lucia", shopLink : "https://scorx.org/Product/Product?Id=2410", composer : "Trad.", licenseholder : "Gehrmans", externalLink : "", lyricist : "Sigrid Elmblad", paskmusik : "", playProducer : "Körakademin", scorxProductId : 961, language : "Swedish", ensemble : "SSA", julmusik : "JA", arranger : "Carl-Bertil Agnestig"},{ title : "Satellit", shopLink : "https://scorx.org/Product/Product?Id=5468", composer : "Ted Gärdestad", licenseholder : "Ynde", externalLink : "", lyricist : "Kenneth Gärdestad", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2208, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Nills Wallnäs"},{ title : "Se människan", shopLink : "https://scorx.org/Product/Product?Id=4028", composer : "Torebjörn Widfeldt", licenseholder : "Gehrmans", externalLink : "", lyricist : "Margareta Melin", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2016, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : ""},{ title : "Sealed with a Kiss", shopLink : "https://scorx.org/Product/Product?Id=4135", composer : "Gary Geld, Peter Udell", licenseholder : "Gehrmans", externalLink : "", lyricist : "Gary Geld, Peter Udell", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2041, language : "English", ensemble : "SATB", julmusik : "", arranger : "Anna Cederberg-Orreteg"},{ title : "Seeds of Peace", shopLink : "https://scorx.org/Product/Product?Id=1202", composer : "Anders Nyberg", licenseholder : "Peace of Music", externalLink : "http://peaceofmusic.com/Cms.aspx/Show/7", lyricist : "Anders Nyberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 754, language : "English", ensemble : "SATB or more", julmusik : "", arranger : "Anders Nyberg"},{ title : "Shall I Compare Thee", shopLink : "https://scorx.org/Product/Product?Id=980", composer : "Nils Lindberg", licenseholder : "Gehrmans", externalLink : "", lyricist : "William Shakespeare", paskmusik : "", playProducer : "Körakademin", scorxProductId : 630, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Sitt ljus nu solen döljer", shopLink : "https://scorx.org/Product/Product?Id=506", composer : "Michael Praetorius", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Copyright free", scorxProductId : 147, language : "German", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Slut dina ögon", shopLink : "https://scorx.org/Product/Product?Id=6030", composer : "Linda Sandström", licenseholder : "Gehrmans", externalLink : "", lyricist : "Linda Sandström", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2410, language : "Svenska", ensemble : "SATB", julmusik : "", arranger : "Hans-Erik Holgersson"},{ title : "Slåttervisa", shopLink : "https://scorx.org/Product/Product?Id=2539", composer : "Staffan Lindberg", licenseholder : "Gehrmans", externalLink : "", lyricist : "Trad.", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1090, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Sol, vind och vatten", shopLink : "https://scorx.org/Product/Product?Id=5475", composer : "Ted Gärdestad", licenseholder : "Ynde", externalLink : "", lyricist : "Kenneth Gärdestad", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2215, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Nills Wallnäs"},{ title : "Solen, månen och stjärnorna de små", shopLink : "https://scorx.org/Product/Product?Id=917", composer : "Trad.", licenseholder : "Gehrmans", externalLink : "", lyricist : "Lars Hernqvist", paskmusik : "", playProducer : "Körakademin", scorxProductId : 569, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Som en fågel", shopLink : "https://scorx.org/Product/Product?Id=3265", composer : "Jonas Nyström", licenseholder : "Wessmans", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 779, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Jonas Nyström"},{ title : "Som ett blommande mandelträd", shopLink : "https://scorx.org/Product/Product?Id=968", composer : "Hildor Lundvik", licenseholder : "Gehrmans", externalLink : "", lyricist : "Pär Lagerkvist", paskmusik : "", playProducer : "Körakademin", scorxProductId : 620, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Som morgonen en sommardag", shopLink : "https://scorx.org/Product/Product?Id=509", composer : "Felix Mendelssohn-Bartholdy", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/som-morgonen-en-sommardag", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 150, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Som sådden förnimmer Guds välbehag", shopLink : "https://scorx.org/Product/Product?Id=1052", composer : "Sven-Eric Johanson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Bengt E Nyström", paskmusik : "", playProducer : "Körakademin", scorxProductId : 704, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Sommarlängtan", shopLink : "https://scorx.org/Product/Product?Id=5477", composer : "Ted Gärdestad", licenseholder : "Körakademin", externalLink : "", lyricist : "Kenneth Gärdestad", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2217, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Nils Wallnäs"},{ title : "Sommarpsalm", shopLink : "https://scorx.org/Product/Product?Id=510", composer : "Waldemar Åhlén", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sommarpsalm-n01026", lyricist : "D C af Wirsén", paskmusik : "", playProducer : "Körakademin", scorxProductId : 151, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Sommartrall", shopLink : "https://scorx.org/Product/Product?Id=2610", composer : "Trad.", licenseholder : "Notfabriken/NotPoolen", externalLink : "", lyricist : "Trad.", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1156, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Karl-Fredrik Jehrlander"},{ title : "Sonet 76 – Why is my Verse so Barren of New Pride", shopLink : "https://scorx.org/Product/Product?Id=2479", composer : "Håkan Parkman", licenseholder : "Gehrmans", externalLink : "", lyricist : "William Shakespeare", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1030, language : "Svenska", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Stemning", shopLink : "https://scorx.org/Product/Product?Id=3410", composer : "Wilhelm Peterson-Berger", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/stemning-12915", lyricist : "Jens Peter Jacobsen", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1704, language : "Danish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Stilla natt", shopLink : "https://scorx.org/Product/Product?Id=6087", composer : "Joseph Mohr", licenseholder : "Dynamic Vocal", externalLink : "", lyricist : "Franz Gruber", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2422, language : "Svenska", ensemble : "SATB, SAATB", julmusik : "JA", arranger : ""},{ title : "Stjärna klar", shopLink : "https://scorx.org/Product/Product?Id=2388", composer : "Emma Anstey", licenseholder : "Gehrmans", externalLink : "", lyricist : "Malin Hasselqvist", paskmusik : "", playProducer : "Körakademin", scorxProductId : 939, language : "Swedish", ensemble : "SSA", julmusik : "JA", arranger : ""},{ title : "Stjärnorna dansar", shopLink : "https://scorx.org/Product/Product?Id=6180", composer : "Bengt Lundin", licenseholder : "Wessmans", externalLink : "", lyricist : "Christina Lövestam", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2479, language : "Svenska", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Stå upp, var ljus", shopLink : "https://scorx.org/Product/Product?Id=2807", composer : "Agneta Sköld", licenseholder : "Gehrmans", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1338, language : "Swedish", ensemble : "SAB", julmusik : "JA", arranger : ""},{ title : "Svenska Messan - 11. Du som borttager världens synder", shopLink : "https://scorx.org/Product/Product?Id=514", composer : "Johan Helmich Roman", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/svenska-messan-korpartitur", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 155, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Svenska Messan - 13. Med den helga Anda", shopLink : "https://scorx.org/Product/Product?Id=516", composer : "Johan Helmich Roman", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/svenska-messan-korpartitur", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 157, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Svenska Messan - 3. Gloria (Och frid på jordene)", shopLink : "https://scorx.org/Product/Product?Id=519", composer : "Johan Helmich Roman", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/svenska-messan-korpartitur", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 160, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Svenska Messan - 6. O Herre Gud Himmelske konung", shopLink : "https://scorx.org/Product/Product?Id=521", composer : "Johan Helmich Roman", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/svenska-messan-korpartitur", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 162, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Sweet Adeline", shopLink : "https://scorx.org/Product/Product?Id=512", composer : "Harry Armstrong", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "R H Gerard", paskmusik : "", playProducer : "Copyright free", scorxProductId : 153, language : "English", ensemble : "TTBB", julmusik : "", arranger : ""},{ title : "Så går en dag än från vår tid", shopLink : "https://scorx.org/Product/Product?Id=523", composer : "Melodi från Dalarna", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sa-gar-en-dag-an-fran-var-tid", lyricist : "Johan Olof Wallin", paskmusik : "", playProducer : "Körakademin", scorxProductId : 164, language : "German", ensemble : "SATB", julmusik : "", arranger : "Nils Lindberg"},{ title : "Så lunka vi så småningom", shopLink : "https://scorx.org/Product/Product?Id=960", composer : "Carl Michael Bellman", licenseholder : "Gehrmans", externalLink : "", lyricist : "Carl Michael Bellman", paskmusik : "", playProducer : "Körakademin", scorxProductId : 612, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Karl-Fredrik Jehrlander"},{ title : "Så mörk är natten (Lucia)", shopLink : "https://scorx.org/Product/Product?Id=2411", composer : "Carl-Bertil Agnestig", licenseholder : "Gehrmans", externalLink : "", lyricist : "Johnny Johansson", paskmusik : "", playProducer : "Körakademin", scorxProductId : 962, language : "Swedish", ensemble : "SSA", julmusik : "JA", arranger : ""},{ title : "Så var du en länk", shopLink : "https://scorx.org/Product/Product?Id=6156", composer : "Lars Roos", licenseholder : "Gehrmans", externalLink : "", lyricist : "Pär Lagerkvist", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2465, language : "Svenska", ensemble : "SATB", julmusik : "", arranger : "Sven-David Sandström"},{ title : "Tack", shopLink : "https://scorx.org/Product/Product?Id=5033", composer : "Georg Riedel", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2082, language : "Swedish", ensemble : "SA", julmusik : "", arranger : ""},{ title : "Tacka Herren", shopLink : "https://scorx.org/Product/Product?Id=525", composer : "Engelsk melodi", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-1", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 166, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Take, Oh Take those Lips Away", shopLink : "https://scorx.org/Product/Product?Id=2480", composer : "Håkan Parkman", licenseholder : "Gehrmans", externalLink : "", lyricist : "William Shakespeare", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1031, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Tantum ergo", shopLink : "https://scorx.org/Product/Product?Id=526", composer : "Anton Bruckner", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/tantum-ergo-6967", lyricist : "Thomas av Aquino", paskmusik : "", playProducer : "Körakademin", scorxProductId : 167, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "The Angels Can Fly", shopLink : "https://scorx.org/Product/Product?Id=205", composer : "Lina Sidenmark", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/yes-i-m-coming-home", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 352, language : "English", ensemble : "SATB", julmusik : "JA", arranger : "Staffan Sundås"},{ title : "The Star", shopLink : "https://scorx.org/Product/Product?Id=2829", composer : "Joakim Arenius", licenseholder : "Gehrmans", externalLink : "", lyricist : "Joakim Arenius", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1360, language : "English", ensemble : "SATB", julmusik : "JA", arranger : "Kristian Kraftling"},{ title : "There are three things", shopLink : "https://scorx.org/Product/Product?Id=3266", composer : "Piret Rips-Laul", licenseholder : "Wessmans", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 783, language : "English", ensemble : "SATB", julmusik : "", arranger : "Piret Rips-Laul"},{ title : "Thy Will Be Done", shopLink : "https://scorx.org/Product/Product?Id=3467", composer : "Johann Sebastian Bach", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "Joakim Arenius", paskmusik : "", playProducer : "Bubblejam Music Productions", scorxProductId : 1761, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Till Betlehem mitt hjärta", shopLink : "https://scorx.org/Product/Product?Id=6181", composer : "Trad. Västergötaland", licenseholder : "Gehrmans", externalLink : "", lyricist : "Johan Michael Lindblad", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2480, language : "Svenska", ensemble : "SATB", julmusik : "JA", arranger : "John Lönmyr"},{ title : "Till den som bär", shopLink : "https://scorx.org/Product/Product?Id=948", composer : "Nadja Eriksson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Nils Holmqvist", paskmusik : "", playProducer : "Körakademin", scorxProductId : 600, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Björn Claeson"},{ title : "Till Österland vill jag fara", shopLink : "https://scorx.org/Product/Product?Id=2999", composer : "Trad.", licenseholder : "Ejeby Förlag", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1458, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Gunnar Eriksson"},{ title : "Tjuv och tjuv, det ska du heta", shopLink : "https://scorx.org/Product/Product?Id=957", composer : "Hugo Alfvén", licenseholder : "Gehrmans", externalLink : "", lyricist : "Trad.", paskmusik : "", playProducer : "Körakademin", scorxProductId : 609, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Together", shopLink : "https://scorx.org/Product/Product?Id=1149", composer : "Trad. Sydafrika", licenseholder : "Peace of Music", externalLink : "http://peaceofmusic.com/Cms.aspx/Show/46", lyricist : "Anders Nyberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 726, language : "English", ensemble : "SATB", julmusik : "", arranger : "Anders Nyberg"},{ title : "Tomten", shopLink : "https://scorx.org/Product/Product?Id=6165", composer : "Frida Johansson", licenseholder : "Ejeby Förlag", externalLink : "", lyricist : "Victor Rydberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2468, language : "Svenska", ensemble : "SSAA", julmusik : "JA", arranger : ""},{ title : "Träd in i hjärtats rum", shopLink : "https://scorx.org/Product/Product?Id=929", composer : "Jerker Leijon", licenseholder : "Gehrmans", externalLink : "", lyricist : "Alf Härdelin", paskmusik : "", playProducer : "Körakademin", scorxProductId : 581, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Tyst är det rum", shopLink : "https://scorx.org/Product/Product?Id=5141", composer : "Gabriella Gullin", licenseholder : "Gehrmans", externalLink : "", lyricist : "Pär Lagerkvist", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2115, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Ubi Caritas", shopLink : "https://scorx.org/Product/Product?Id=4082", composer : "Ola Gjeilo", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2024, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Uti din nåd", shopLink : "https://scorx.org/Product/Product?Id=530", composer : "Amerikansk melodi", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-1", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 171, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Uti vår hage", shopLink : "https://scorx.org/Product/Product?Id=2271", composer : "Hugo Alfvén", licenseholder : "Gehrmans", externalLink : "", lyricist : "Trad.", paskmusik : "", playProducer : "Körakademin", scorxProductId : 822, language : "Swedish", ensemble : "SSAA", julmusik : "", arranger : "Jan Åke Hillerud"},{ title : "Vandra på jorden försiktigt", shopLink : "https://scorx.org/Product/Product?Id=941", composer : "Nadja Eriksson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Nadja Eriksson", paskmusik : "", playProducer : "Körakademin", scorxProductId : 593, language : "Swedish", ensemble : "SSA", julmusik : "", arranger : ""},{ title : "Var inte rädd för mörkret", shopLink : "https://scorx.org/Product/Product?Id=532", composer : "Stefan Forssén", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/var-inte-radd-for-morkret", lyricist : "Erik Blomberg", paskmusik : "", playProducer : "Körakademin", scorxProductId : 173, language : "Swedish", ensemble : "SAB", julmusik : "JA", arranger : ""},{ title : "Var stilla min själ", shopLink : "https://scorx.org/Product/Product?Id=533", composer : "Sven-Eric Johanson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/var-stilla-min-sjal", lyricist : "Atle Burman", paskmusik : "", playProducer : "Körakademin", scorxProductId : 174, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Vem gjorde skyn så klar och blå", shopLink : "https://scorx.org/Product/Product?Id=5139", composer : "Betty Ehrenborg", licenseholder : "Gehrmans", externalLink : "", lyricist : "Anna-Karin Klockar", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2117, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Vem kan segla", shopLink : "https://scorx.org/Product/Product?Id=3000", composer : "Trad.", licenseholder : "Ejeby Förlag", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1459, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Gunnar Eriksson"},{ title : "Vem vandrar vid min sida", shopLink : "https://scorx.org/Product/Product?Id=4950", composer : "Linda Sandström", licenseholder : "Gehrmans", externalLink : "", lyricist : "Linda Sandström", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2054, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Hans-Erik Holgersson"},{ title : "Verily, verily I say unto you", shopLink : "https://scorx.org/Product/Product?Id=535", composer : "Arvid Mörne", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "Joh. 6:53-56", paskmusik : "", playProducer : "Copyright free", scorxProductId : 176, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Vi gick alla vilse som får", shopLink : "https://scorx.org/Product/Product?Id=2923", composer : "Kjell Janunger", licenseholder : "ACKJA Music & Production", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1469, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Vi vaktade fåren", shopLink : "https://scorx.org/Product/Product?Id=1049", composer : "Trad.", licenseholder : "Gehrmans", externalLink : "", lyricist : "Florence Vilén", paskmusik : "", playProducer : "Körakademin", scorxProductId : 701, language : "Swedish", ensemble : "SAB", julmusik : "JA", arranger : ""},{ title : "Vi är vise män", shopLink : "https://scorx.org/Product/Product?Id=538", composer : "Puerto Rico Trad", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/vi-ar-vise-man", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 179, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : "Karl-Fredrik Jehrlander"},{ title : "Vid graven", shopLink : "https://scorx.org/Product/Product?Id=539", composer : "Hugo Wolf", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/tva-korsanger", lyricist : "Lenz Lorenzi", paskmusik : "", playProducer : "Körakademin", scorxProductId : 180, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Vilar glad. I din famn", shopLink : "https://scorx.org/Product/Product?Id=3794", composer : "Benny Andersson", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/vilar-glad-i-din-famn", lyricist : "Kristina Lugn", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1813, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Anders Eljas"},{ title : "Vinterpsalm", shopLink : "https://scorx.org/Product/Product?Id=5050", composer : "Lars Åberg", licenseholder : "Gehrmans", externalLink : "", lyricist : "Martin Lönnebo", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2087, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Vivaldi Gloria - 1. Gloria", shopLink : "https://scorx.org/Product/Product?Id=3052", composer : "Antonio Vivaldi", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 181, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Vivaldi Gloria - 12. Cum sancto spirito", shopLink : "https://scorx.org/Product/Product?Id=3054", composer : "Antonio Vivaldi", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 183, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Vivaldi Gloria - 4. Gratias agimus tibi", shopLink : "https://scorx.org/Product/Product?Id=3056", composer : "Antonio Vivaldi", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 185, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Vivaldi Gloria - 7. Domine fili unigenite", shopLink : "https://scorx.org/Product/Product?Id=3058", composer : "Antonio Vivaldi", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 187, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Vivaldi Gloria - 9. Qui tollis peccata mundi", shopLink : "https://scorx.org/Product/Product?Id=3059", composer : "Antonio Vivaldi", licenseholder : "Körakademin", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 188, language : "Latin", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Vårvintervisa - I väntan på våren", shopLink : "https://scorx.org/Product/Product?Id=3549", composer : "Camilla Wellborg Käck", licenseholder : "Wessmans", externalLink : "", lyricist : "Maria Sundelius", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1790, language : "Swedish", ensemble : "SA", julmusik : "", arranger : ""},{ title : "Välsignad är du som kommer", shopLink : "https://scorx.org/Product/Product?Id=3234", composer : "Marc-Antoine Charpentier", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/sab-helt-enkelt-del-2", lyricist : "Birgitta Wennerberg-Berggren", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1617, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Lars Hernqvist"},{ title : "Waldesnacht", shopLink : "https://scorx.org/Product/Product?Id=531", composer : "Johannes Brahms", licenseholder : "Upphovsrättsfri", externalLink : "", lyricist : "Paul Heyse", paskmusik : "", playProducer : "Copyright free", scorxProductId : 172, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "We Pray", shopLink : "https://scorx.org/Product/Product?Id=3420", composer : "Joakim Arenius", licenseholder : "Bubblejam Music Productions", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1714, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Weep Oh Mine Eyes", shopLink : "https://scorx.org/Product/Product?Id=2849", composer : "John Bennett", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1380, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Yes, I'm coming home", shopLink : "https://scorx.org/Product/Product?Id=239", composer : "Lina Sidenmark", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/yes-i-m-coming-home", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 385, language : "English", ensemble : "SATB", julmusik : "", arranger : "Staffan Sundås"},{ title : "You are holy", shopLink : "https://scorx.org/Product/Product?Id=3714", composer : "Jonas Engström", licenseholder : "Gospel Start Publishing", externalLink : "http://www.gospelstart.se/store/p/gospel-6-109111/gospel-6-noth%C3%A4fte-123573", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1861, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Äggen är slut - 10. Varför sa ni ingenting?", shopLink : "https://scorx.org/Product/Product?Id=3742", composer : "Paula af Malmborg Ward", licenseholder : "Upward Music", externalLink : "", lyricist : "Lina Ekdahl", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1878, language : "Swedish", ensemble : "SA", julmusik : "", arranger : ""},{ title : "Äggen är slut - 13. Epilog", shopLink : "https://scorx.org/Product/Product?Id=3745", composer : "Paula af Malmborg Ward", licenseholder : "Upward Music", externalLink : "", lyricist : "Lina Ekdahl", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1881, language : "Swedish", ensemble : "SA", julmusik : "", arranger : ""},{ title : "Äggen är slut - 4. Flytta inte in", shopLink : "https://scorx.org/Product/Product?Id=3736", composer : "Paula af Malmborg Ward", licenseholder : "Upward Music", externalLink : "", lyricist : "Lina Ekdahl", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1872, language : "Swedish", ensemble : "SA", julmusik : "", arranger : ""},{ title : "Äggen är slut - 6. Saft", shopLink : "https://scorx.org/Product/Product?Id=3738", composer : "Paula af Malmborg Ward", licenseholder : "Upward Music", externalLink : "", lyricist : "Lina Ekdahl", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1874, language : "Swedish", ensemble : "SA", julmusik : "", arranger : ""},{ title : "Äggen är slut - 8. Koftan", shopLink : "https://scorx.org/Product/Product?Id=3740", composer : "Paula af Malmborg Ward", licenseholder : "Upward Music", externalLink : "", lyricist : "Lina Ekdahl", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1876, language : "Swedish", ensemble : "SA", julmusik : "", arranger : ""},{ title : "Älska mej", shopLink : "https://scorx.org/Product/Product?Id=3779", composer : "Benny Andersson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Marie Nilsson", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1805, language : "Swedish", ensemble : "SAB", julmusik : "", arranger : "Nils Ljung"},{ title : "Är någon törstig", shopLink : "https://scorx.org/Product/Product?Id=2924", composer : "Kjell Janunger", licenseholder : "ACKJA Music & Production", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 1470, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Ära i höjden", shopLink : "https://scorx.org/Product/Product?Id=6032", composer : "Torbjörn Widfeldt", licenseholder : "Gehrmans", externalLink : "", lyricist : "Lukas 2:14", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2412, language : "Svenska", ensemble : "SAATB", julmusik : "JA", arranger : ""},{ title : "Öppna ditt hjärta för kärleken", shopLink : "https://scorx.org/Product/Product?Id=940", composer : "Nadja Eriksson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Nadja Eriksson", paskmusik : "", playProducer : "Körakademin", scorxProductId : 592, language : "Swedish", ensemble : "SSA", julmusik : "", arranger : ""},{ title : "Öppna en väg för ljuset", shopLink : "https://scorx.org/Product/Product?Id=244", composer : "Anna Cederberg-Orreteg", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/oppna-en-vag-for-ljuset-11658", lyricist : "Lars Björklund", paskmusik : "", playProducer : "Körakademin", scorxProductId : 390, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Öppna en väg för ljuset", shopLink : "https://scorx.org/Product/Product?Id=246", composer : "Nils-Petter Ankarblom", licenseholder : "Gehrmans", externalLink : "http://www.gehrmans.se/butik/kor/oppna-en-vag-for-ljuset", lyricist : "Lars Björklund", paskmusik : "", playProducer : "Körakademin", scorxProductId : 392, language : "Swedish", ensemble : "SATB", julmusik : "JA", arranger : ""},{ title : "Missa ordinarium - 2. Gloria", shopLink : "https://scorx.org/Product/Product?Id=6299", composer : "Henrik Dahlgren, Martina Tomner", licenseholder : "Gehrmans", externalLink : "", lyricist : "Mässordinariet", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2537, language : "Latin", ensemble : "Two-parts", julmusik : "", arranger : ""},{ title : "Missa ordinarium - 4. Agnus dei", shopLink : "https://scorx.org/Product/Product?Id=6301", composer : "Henrik Dahlgren, Martina Tomner", licenseholder : "Gehrmans", externalLink : "", lyricist : "Mässordinariet", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2539, language : "Latin", ensemble : "Two-parts", julmusik : "", arranger : ""},{ title : "Oändligt Han ger", shopLink : "https://scorx.org/Product/Product?Id=6325", composer : "Gabriel Fauré", licenseholder : "Gehrmans", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2542, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Psalm XXIII", shopLink : "https://scorx.org/Product/Product?Id=6329", composer : "Anton Leanderson-Andréas", licenseholder : "Gehrmans", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2544, language : "Swedish", ensemble : "SA", julmusik : "", arranger : ""},{ title : "Bound for the Promised Land", shopLink : "https://scorx.org/Product/Product?Id=6342", composer : "Trad. Amerikansk", licenseholder : "Hal Leonard", externalLink : "", lyricist : "", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2548, language : "English", ensemble : "TTB", julmusik : "", arranger : "Emily Crocker"},{ title : "Det spirar i Guds örtagård", shopLink : "https://scorx.org/Product/Product?Id=6344", composer : "Hans Ove Olsson", licenseholder : "Gehrmans", externalLink : "", lyricist : "Samuel Gabrielsson", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2550, language : "Swedish", ensemble : "SATB", julmusik : "", arranger : "Andreas E Olsson"},{ title : "God is gone up", shopLink : "https://scorx.org/Product/Product?Id=6346", composer : "Gerald Finzi", licenseholder : "Gehrmans", externalLink : "", lyricist : "Edward Taylor", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2552, language : "English", ensemble : "SATB", julmusik : "", arranger : ""},{ title : "Kyrie", shopLink : "https://scorx.org/Product/Product?Id=6348", composer : "Frode Fjellheim", licenseholder : "Boosey & Hawkes", externalLink : "", lyricist : "Frode Fjellheim", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2554, language : "Latin", ensemble : "SSAA", julmusik : "", arranger : ""},{ title : "Psalm XXIII", shopLink : "https://scorx.org/Product/Product?Id=6350", composer : "Anton Leanderson-Andréas", licenseholder : "Gehrmans", externalLink : "", lyricist : "Bibeln", paskmusik : "", playProducer : "Körakademin", scorxProductId : 2556, language : "Swedish", ensemble : "SA", julmusik : "", arranger : ""}];
 };
 var data_SensusUser = $hxEnums["data.SensusUser"] = { __ename__ : true, __constructs__ : ["UserClaimed","SensusVerified"]
 	,UserClaimed: {_hx_index:0,__enum__:"data.SensusUser",toString:$estr}
 	,SensusVerified: {_hx_index:1,__enum__:"data.SensusUser",toString:$estr}
 };
-var data_UserPrivilege = $hxEnums["data.UserPrivilege"] = { __ename__ : true, __constructs__ : ["KorakademinUserAccess","ScorxLotteryLifetimeAccess"]
-	,KorakademinUserAccess: ($_=function(expires) { return {_hx_index:0,expires:expires,__enum__:"data.UserPrivilege",toString:$estr}; },$_.__params__ = ["expires"],$_)
-	,ScorxLotteryLifetimeAccess: {_hx_index:1,__enum__:"data.UserPrivilege",toString:$estr}
+var data_ScorxAccess = $hxEnums["data.ScorxAccess"] = { __ename__ : true, __constructs__ : ["FreeItem","UserPurchase","UserPrivilege","GroupPurchase","GroupPrivilege"]
+	,FreeItem: ($_=function(scorxProductId,provider) { return {_hx_index:0,scorxProductId:scorxProductId,provider:provider,__enum__:"data.ScorxAccess",toString:$estr}; },$_.__params__ = ["scorxProductId","provider"],$_)
+	,UserPurchase: ($_=function(scorxProductId,expires) { return {_hx_index:1,scorxProductId:scorxProductId,expires:expires,__enum__:"data.ScorxAccess",toString:$estr}; },$_.__params__ = ["scorxProductId","expires"],$_)
+	,UserPrivilege: ($_=function(scorxProductId,privilege) { return {_hx_index:2,scorxProductId:scorxProductId,privilege:privilege,__enum__:"data.ScorxAccess",toString:$estr}; },$_.__params__ = ["scorxProductId","privilege"],$_)
+	,GroupPurchase: ($_=function(scorxProductId,expires,validOnlyForTheseMembers) { return {_hx_index:3,scorxProductId:scorxProductId,expires:expires,validOnlyForTheseMembers:validOnlyForTheseMembers,__enum__:"data.ScorxAccess",toString:$estr}; },$_.__params__ = ["scorxProductId","expires","validOnlyForTheseMembers"],$_)
+	,GroupPrivilege: ($_=function(scorxProductId,privilege) { return {_hx_index:4,scorxProductId:scorxProductId,privilege:privilege,__enum__:"data.ScorxAccess",toString:$estr}; },$_.__params__ = ["scorxProductId","privilege"],$_)
 };
-var data_UserSongAccess = $hxEnums["data.UserSongAccess"] = { __ename__ : true, __constructs__ : ["UserPurchase","UserPrivilege"]
-	,UserPurchase: ($_=function(songtitle,expires) { return {_hx_index:0,songtitle:songtitle,expires:expires,__enum__:"data.UserSongAccess",toString:$estr}; },$_.__params__ = ["songtitle","expires"],$_)
-	,UserPrivilege: ($_=function(songtitle,privilege) { return {_hx_index:1,songtitle:songtitle,privilege:privilege,__enum__:"data.UserSongAccess",toString:$estr}; },$_.__params__ = ["songtitle","privilege"],$_)
+var data_UserPrivilegeType = $hxEnums["data.UserPrivilegeType"] = { __ename__ : true, __constructs__ : ["KorakademinUserAccess","ScorxLotteryLifetimeAccess"]
+	,KorakademinUserAccess: {_hx_index:0,__enum__:"data.UserPrivilegeType",toString:$estr}
+	,ScorxLotteryLifetimeAccess: {_hx_index:1,__enum__:"data.UserPrivilegeType",toString:$estr}
 };
-var data_GroupSongAccess = $hxEnums["data.GroupSongAccess"] = { __ename__ : true, __constructs__ : ["GroupPurchase","GroupPrivilege"]
-	,GroupPurchase: ($_=function(songtitle,expires,validOnlyForTheseMembers) { return {_hx_index:0,songtitle:songtitle,expires:expires,validOnlyForTheseMembers:validOnlyForTheseMembers,__enum__:"data.GroupSongAccess",toString:$estr}; },$_.__params__ = ["songtitle","expires","validOnlyForTheseMembers"],$_)
-	,GroupPrivilege: ($_=function(songtitle,privilege) { return {_hx_index:1,songtitle:songtitle,privilege:privilege,__enum__:"data.GroupSongAccess",toString:$estr}; },$_.__params__ = ["songtitle","privilege"],$_)
+var data_GroupPrivilegeType = $hxEnums["data.GroupPrivilegeType"] = { __ename__ : true, __constructs__ : ["KorakademinGroupAccess"]
+	,KorakademinGroupAccess: {_hx_index:0,__enum__:"data.GroupPrivilegeType",toString:$estr}
 };
-var data_GroupPrivilege = $hxEnums["data.GroupPrivilege"] = { __ename__ : true, __constructs__ : ["KorakademinGroupAccess"]
-	,KorakademinGroupAccess: ($_=function(expires) { return {_hx_index:0,expires:expires,__enum__:"data.GroupPrivilege",toString:$estr}; },$_.__params__ = ["expires"],$_)
+var data_ScorxAccessUtils = function() { };
+$hxClasses["data.ScorxAccessUtils"] = data_ScorxAccessUtils;
+data_ScorxAccessUtils.__name__ = true;
+data_ScorxAccessUtils.getProductId = function(access) {
+	var productId;
+	switch(access._hx_index) {
+	case 0:
+		productId = access.scorxProductId;
+		break;
+	case 1:
+		productId = access.scorxProductId;
+		break;
+	case 2:
+		productId = access.scorxProductId;
+		break;
+	case 3:
+		productId = access.scorxProductId;
+		break;
+	case 4:
+		productId = access.scorxProductId;
+		break;
+	}
+	return productId;
 };
-var data_ScorxFilter = $hxEnums["data.ScorxFilter"] = { __ename__ : true, __constructs__ : ["SelectProductIds","LicenseHolder"]
-	,SelectProductIds: ($_=function(ids) { return {_hx_index:0,ids:ids,__enum__:"data.ScorxFilter",toString:$estr}; },$_.__params__ = ["ids"],$_)
-	,LicenseHolder: ($_=function(lic) { return {_hx_index:1,lic:lic,__enum__:"data.ScorxFilter",toString:$estr}; },$_.__params__ = ["lic"],$_)
+data_ScorxAccessUtils.getAccessListItem = function(access) {
+	return { access : access, song : data_KorakademinScorxItems.getSong(data_ScorxAccessUtils.getProductId(access))};
 };
-var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs__ : ["Image","Title","Info","SonglistHeader","Songlist","Infoblobs","SearchChoir","ListGroupMembers","InviteGroupMembers","AutogeneratedKorakademinLeaderSonglist","BuySongs"]
+var data_HomeCell = $hxEnums["data.HomeCell"] = { __ename__ : true, __constructs__ : ["Image","Title","Info","Infoblobs","SonglistHeader","Songlist2","SearchChoir","GroupAddSongs","UserAddSongs","ShowFreeSongsIfNothingElse","ListGroupMembers","InviteGroupMembers","AutogeneratedSensusLeaderSonglist","AutogeneratedNewsList","AutogeneratedHistoryList"]
 	,Image: ($_=function(url) { return {_hx_index:0,url:url,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["url"],$_)
 	,Title: ($_=function(title) { return {_hx_index:1,title:title,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["title"],$_)
 	,Info: ($_=function(info) { return {_hx_index:2,info:info,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["info"],$_)
-	,SonglistHeader: ($_=function(title,info) { return {_hx_index:3,title:title,info:info,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["title","info"],$_)
-	,Songlist: ($_=function(title,songs,filter) { return {_hx_index:4,title:title,songs:songs,filter:filter,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["title","songs","filter"],$_)
-	,Infoblobs: ($_=function(blobs) { return {_hx_index:5,blobs:blobs,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["blobs"],$_)
+	,Infoblobs: ($_=function(blobs) { return {_hx_index:3,blobs:blobs,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["blobs"],$_)
+	,SonglistHeader: ($_=function(title,info) { return {_hx_index:4,title:title,info:info,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["title","info"],$_)
+	,Songlist2: ($_=function(accesses) { return {_hx_index:5,accesses:accesses,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["accesses"],$_)
 	,SearchChoir: {_hx_index:6,__enum__:"data.HomeCell",toString:$estr}
-	,ListGroupMembers: ($_=function(groupname) { return {_hx_index:7,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
-	,InviteGroupMembers: ($_=function(groupname) { return {_hx_index:8,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
-	,AutogeneratedKorakademinLeaderSonglist: {_hx_index:9,__enum__:"data.HomeCell",toString:$estr}
-	,BuySongs: {_hx_index:10,__enum__:"data.HomeCell",toString:$estr}
+	,GroupAddSongs: ($_=function(group) { return {_hx_index:7,group:group,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["group"],$_)
+	,UserAddSongs: ($_=function(user) { return {_hx_index:8,user:user,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["user"],$_)
+	,ShowFreeSongsIfNothingElse: ($_=function(user) { return {_hx_index:9,user:user,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["user"],$_)
+	,ListGroupMembers: ($_=function(groupname) { return {_hx_index:10,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
+	,InviteGroupMembers: ($_=function(groupname) { return {_hx_index:11,groupname:groupname,__enum__:"data.HomeCell",toString:$estr}; },$_.__params__ = ["groupname"],$_)
+	,AutogeneratedSensusLeaderSonglist: {_hx_index:12,__enum__:"data.HomeCell",toString:$estr}
+	,AutogeneratedNewsList: {_hx_index:13,__enum__:"data.HomeCell",toString:$estr}
+	,AutogeneratedHistoryList: {_hx_index:14,__enum__:"data.HomeCell",toString:$estr}
 };
 var data_Infoblob = $hxEnums["data.Infoblob"] = { __ename__ : true, __constructs__ : ["Standard"]
 	,Standard: ($_=function(title,info) { return {_hx_index:0,title:title,info:info,__enum__:"data.Infoblob",toString:$estr}; },$_.__params__ = ["title","info"],$_)
@@ -1276,10 +1338,10 @@ var data_Default = function() { };
 $hxClasses["data.Default"] = data_Default;
 data_Default.__name__ = true;
 data_Default.users = function() {
-	return [{ firstname : "Adam", lastname : "Adamsson", username : "adam@adam.se", password : "adam", sensus : data_SensusUser.UserClaimed, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([999,789]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Beda", lastname : "Bensin", username : "beda@bensin.se", password : "beda", sensus : null, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Caesar", lastname : "Citrus", username : "caesar@citrus.se", password : "caesar", sensus : null, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Avledare", lastname : "Jonsson", username : "avledare@kor.se", password : "avledare", sensus : null, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel1", lastname : "Örkelsson", username : "orkel1@orkel.se", password : "orkel1", sensus : data_SensusUser.SensusVerified, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel2", lastname : "Örkelsson", username : "orkel2@orkel.se", password : "orkel2", sensus : null, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel3", lastname : "Örkelsson", username : "orkel3@orkel.se", password : "orkel3", sensus : null, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel4", lastname : "Örkelsson", username : "orkel4@orkel.se", password : "orkel4", sensus : null, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro1", lastname : "Brorsson", username : "bro1@bro.se", password : "bro1", sensus : null, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro2", lastname : "Brorsson", username : "bro2@bro.se", password : "bro2", sensus : null, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro3", lastname : "Brorsson", username : "bro3@bro.se", password : "bro3", sensus : null, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro4", lastname : "Brorsson", username : "bro4@bro.se", password : "bro4", sensus : null, songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
+	return [{ firstname : "Adam", lastname : "Adamsson", username : "adam@adam.se", password : "adam", sensus : data_SensusUser.UserClaimed, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([data_ScorxAccess.UserPurchase(999,HxOverrides.strDate("2020-01-18")),data_ScorxAccess.UserPrivilege(789,data_UserPrivilegeType.KorakademinUserAccess)])},{ firstname : "Beda", lastname : "Bensin", username : "beda@bensin.se", password : "beda", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([data_ScorxAccess.UserPurchase(1353,HxOverrides.strDate("2020-03-03"))])},{ firstname : "Caesar", lastname : "Citrus", username : "caesar@citrus.se", password : "caesar", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Avledare", lastname : "Jonsson", username : "avledare@kor.se", password : "avledare", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel1", lastname : "Örkelsson", username : "orkel1@orkel.se", password : "orkel1", sensus : data_SensusUser.SensusVerified, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel2", lastname : "Örkelsson", username : "orkel2@orkel.se", password : "orkel2", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel3", lastname : "Örkelsson", username : "orkel3@orkel.se", password : "orkel3", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel4", lastname : "Örkelsson", username : "orkel4@orkel.se", password : "orkel4", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro1", lastname : "Brorsson", username : "bro1@bro.se", password : "bro1", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro2", lastname : "Brorsson", username : "bro2@bro.se", password : "bro2", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro3", lastname : "Brorsson", username : "bro3@bro.se", password : "bro3", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro4", lastname : "Brorsson", username : "bro4@bro.se", password : "bro4", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
 };
 data_Default.groups = function() {
-	return [{ name : "Örkelhåla kyrkokör", info : "Soli deo gloria. Plus vår körledare.", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["orkel1@orkel.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["adam@adam.se","orkel1@orkel.se","orkel2@orkel.se","orkel3@orkel.se"]), songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([56,397,58,59,1357,975,2405]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Bromölla Bandidos", info : "Vi sjunger - ni pröjsar!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([1993,1377,639]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Lingonbergens sångfåglar", info : "Vi trallar så glatt! Vill du va me?", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([2096,250,63,2315]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Avunda Kyrkokör", info : "Ju mer förr, desto bättre!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["avledare@kor.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([1784,1778,1780,2467,64,1288,598]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Nya kören, Hässleholm", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Nya kören, Hallandsåsen", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), songs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
+	return [{ name : "Örkelhåla kyrkokör", info : "Soli deo gloria. Plus vår körledare.", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["orkel1@orkel.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["adam@adam.se","orkel1@orkel.se","orkel2@orkel.se","orkel3@orkel.se"]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([data_ScorxAccess.GroupPurchase(397,HxOverrides.strDate("2020-01-18"),ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["orkel1@orkel.se","orkel2@orkel.se"])),data_ScorxAccess.GroupPrivilege(975,data_GroupPrivilegeType.KorakademinGroupAccess)])},{ name : "Bromölla Bandidos", info : "Vi sjunger - ni pröjsar!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Lingonbergens sångfåglar", info : "Vi trallar så glatt! Vill du va me?", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Avunda Kyrkokör", info : "Ju mer förr, desto bättre!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["avledare@kor.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Nya kören, Hässleholm", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Nya kören, Hallandsåsen", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
 };
 data_Default.messages = function() {
 	return [];
@@ -2208,10 +2270,15 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 		}
 	}
 	,guestView: function() {
-		return [this.buildCells([data_HomeCell.Image("assets/img/old-town.jpg"),data_HomeCell.Title("Sjung och spela var du vill"),data_HomeCell.Info("ScorX spelare funkar både för mobil och surfplatta!")]),this.buildCells([data_HomeCell.Infoblobs([data_Infoblob.Standard("Har du prövat?","Klicka här för att..."),data_Infoblob.Standard("Titta här!","Skulle inte du också vilja åka till..."),data_Infoblob.Standard("Vill du veta mer?","Undrar du över något? klicka här!")]),data_HomeCell.Image("assets/img/happy.jpg"),data_HomeCell.Title("Pröva ScorX gratis!"),data_HomeCell.Info("Klicka på valfri titel i listan nedan, lyssna och sjung med!"),data_HomeCell.SonglistHeader("Gratis låtar",null),data_HomeCell.Songlist("Gratislåtar",data_KorakademinScorxItems.items(),[data_ScorxFilter.LicenseHolder("Upphovsrättsfri")])])];
+		var freeListItems = data_KorakademinScorxItems.songs().filter(function(song) {
+			return song.licenseholder == "Upphovsrättsfri";
+		}).map(function(song1) {
+			return { access : data_ScorxAccess.FreeItem(song1.scorxProductId,"Folkbildningsrådet"), song : song1};
+		});
+		return [this.buildCells([data_HomeCell.Image("assets/img/old-town.jpg"),data_HomeCell.Title("Sjung och spela var du vill"),data_HomeCell.Info("ScorX spelare funkar både för mobil och surfplatta!")]),this.buildCells([data_HomeCell.Infoblobs([data_Infoblob.Standard("Har du prövat?","Klicka här för att..."),data_Infoblob.Standard("Titta här!","Skulle inte du också vilja åka till..."),data_Infoblob.Standard("Vill du veta mer?","Undrar du över något? klicka här!")]),data_HomeCell.Image("assets/img/happy.jpg"),data_HomeCell.Title("Pröva ScorX gratis!"),data_HomeCell.Info("Klicka på valfri titel i listan nedan, lyssna och sjung med!"),data_HomeCell.SonglistHeader("Gratis låtar",null),data_HomeCell.Songlist2(freeListItems)])];
 	}
 	,userView: function() {
-		return [this.choirAdminView(),this.choirMemberView(),this.mySongsView()];
+		return [this.choirAdminView(),this.choirMemberView(),this.userSongsView()];
 	}
 	,choirMemberView: function() {
 		var _gthis = this;
@@ -2223,12 +2290,12 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 			return ds__$ImmutableArray_ImmutableArray_$Impl_$.indexOf(group1.admins,user.username) <= -1;
 		});
 		var groupLists = groups.map(function(group2) {
-			var groupLists1 = data_HomeCell.SonglistHeader(group2.name,null);
-			var groupLists2 = data_HomeCell.Songlist(group2.name,data_KorakademinScorxItems.items(),[data_ScorxFilter.SelectProductIds(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(group2.songs))]);
-			return _gthis.buildCells([groupLists1,groupLists2]);
+			var accesses = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(group2.groupSongs,function(access) {
+				return data_ScorxAccessUtils.getAccessListItem(access);
+			}));
+			return _gthis.buildCells([data_HomeCell.SonglistHeader(group2.name,null),data_HomeCell.Songlist2(accesses)]);
 		});
-		var choirsInfo = groupLists.length > 0 ? "Här visas de låtar som delats ut till dig av dina körer." : "Du verkar inte vara deltagare i någon kör eller grupp i ScorX.";
-		return [this.buildCells([data_HomeCell.Infoblobs([data_Infoblob.Standard("Hej Körsångare","Klicka här för att..."),data_Infoblob.Standard("1000 låtar gratis!","Körakademin Plus är stället för dej!"),data_Infoblob.Standard("Vad betyder \"con tenerezza\"?","Undrar du över något? klicka här!")])]),this.buildCells([data_HomeCell.Title("Körernas låtar"),data_HomeCell.Info(choirsInfo)]),groupLists,groupLists.length == 0 ? this.buildCells([data_HomeCell.SearchChoir]) : null];
+		return [this.buildCells([data_HomeCell.Title("Körernas låtar"),data_HomeCell.Info(groupLists.length > 0 ? "Här visas de låtar som delats ut till dig av dina körer." : "Du verkar inte vara deltagare i någon kör eller grupp i ScorX.")]),groupLists,groupLists.length == 0 ? m.m("div.centerpad",this.buildCells([data_HomeCell.SearchChoir])) : null];
 	}
 	,choirAdminView: function() {
 		var _gthis = this;
@@ -2240,20 +2307,33 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 			return null;
 		}
 		var groupLists = groups.map(function(group1) {
-			var groupLists1 = data_HomeCell.SonglistHeader(group1.name,"Info...");
-			var groupLists2 = data_HomeCell.Songlist(group1.name,data_KorakademinScorxItems.items(),[data_ScorxFilter.SelectProductIds(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(group1.songs))]);
-			return _gthis.buildCells([groupLists1,groupLists2,data_HomeCell.ListGroupMembers(group1.name),data_HomeCell.InviteGroupMembers(group1.name)]);
+			var accesses = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(group1.groupSongs,function(access) {
+				return data_ScorxAccessUtils.getAccessListItem(access);
+			}));
+			_gthis.store.groupIsSensusGroup(group1);
+			return _gthis.buildCells([data_HomeCell.SonglistHeader(group1.name,null),data_HomeCell.Songlist2(accesses),data_HomeCell.GroupAddSongs(group1),data_HomeCell.InviteGroupMembers(group1.name)]);
 		});
-		return [this.buildCells([data_HomeCell.Title("Du leder följande körer")]),groupLists,this.buildCells([data_HomeCell.AutogeneratedKorakademinLeaderSonglist])];
+		return [this.buildCells([data_HomeCell.Title("Du leder följande körer")]),groupLists,this.buildCells([data_HomeCell.AutogeneratedSensusLeaderSonglist])];
 	}
-	,mySongsView: function() {
+	,userSongsView: function() {
 		var user = this.store.getUser();
-		return [this.buildCells([data_HomeCell.Title("Mina låtar"),data_HomeCell.Info("Här visas de låtar som du har köpt eller valt genom förmånserbjudanden."),data_HomeCell.SonglistHeader("Mina låtar",null),data_HomeCell.Songlist("Mina låtar",data_KorakademinScorxItems.items(),[data_ScorxFilter.SelectProductIds(ds__$ImmutableArray_ImmutableArray_$Impl_$.array(user.songs))]),data_HomeCell.BuySongs])];
+		var myListItems;
+		try {
+			myListItems = ds__$ImmutableArray_ImmutableArray_$Impl_$.array(ds__$ImmutableArray_ImmutableArray_$Impl_$.map(user.userSongs,function(access) {
+				return { access : access, song : data_KorakademinScorxItems.getSong(data_ScorxAccessUtils.getProductId(access))};
+			}));
+		} catch( e ) {
+			js_Browser.alert(((e) instanceof js__$Boot_HaxeError) ? e.val : e);
+			myListItems = [];
+		}
+		console.log("src/view/HomeView.hx:145:",myListItems);
+		return [this.buildCells([data_HomeCell.Title("Mina låtar"),data_HomeCell.Info("Här visas de låtar som du har köpt eller valt genom förmånserbjudanden."),data_HomeCell.SonglistHeader("Mina låtar",null),data_HomeCell.Songlist2(myListItems),data_HomeCell.UserAddSongs(user),data_HomeCell.ShowFreeSongsIfNothingElse(user)])];
 	}
 	,buildCells: function(cells) {
 		var _gthis = this;
-		var onSongClick = function(song) {
-			_gthis.store.updateState({ type : "HomeView.buildCells", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("playerSong")]), value : song}])});
+		var onListItemClick = function(item) {
+			_gthis.store.updateState({ type : "y", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("playerAccessItem")]), value : item}])});
+			_gthis.store.updateState({ type : "x", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("playerShow")]), value : true}])});
 		};
 		return m.m("section",cells.map(function(cell) {
 			switch(cell._hx_index) {
@@ -2264,14 +2344,14 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 			case 2:
 				return m.m("h3.center-narrow.vspace",cell.info);
 			case 3:
-				var info = cell.info;
-				return m.m("div.centerpad",[m.m("h2",cell.title),info != null ? m.m("p",info) : null]);
-			case 4:
-				return m.m("div.centerpad",new view_SongListView(_gthis.store,cell.title,cell.songs,cell.filter,onSongClick).view());
-			case 5:
 				return m.m("div.infoblobs-wide",m.m("div.infoblobs.centerdiv",cell.blobs.map(function(blob) {
 					return m.m("div.infoblob",m.m("div.infoblob-content",[m.m("div.infoblob-title",blob.title),m.m("div.infoblob-info",blob.info)]));
 				})));
+			case 4:
+				var info = cell.info;
+				return m.m("div.centerpad",[m.m("h2",cell.title),info != null ? m.m("p",info) : null]);
+			case 5:
+				return m.m("div.centerpad",new view_SongListView2(_gthis.store,cell.accesses,onListItemClick).view());
 			case 6:
 				return new view_SearchGroupView(_gthis.store,"Skriv körens namn i listan för att hitta din kör. Klicka därefter på körens namn för att ansluta dig till gruppen.",function(group) {
 					_gthis.store.addGroupMember(_gthis.store.get_state().userId,group.name);
@@ -2282,30 +2362,63 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 					});
 				}).view();
 			case 7:
+				var group1 = cell.group;
+				var sensusbutton = _gthis.store.groupIsSensusGroup(group1) ? m.m("button.bigger",{ onclick : function(e) {
+					_gthis.store.gotoPage(data_Page.Other);
+					return;
+				}},"Lägg till via Körakademins förmånserbjudande") : m.m("div.graytext","Ej Sensus-kör, kan ej använda Körakademins grupperbjudande");
+				return m.m("div.centerpad",[m.m("button.bigger",{ onclick : function(e1) {
+					js_Browser.alert("Gå till butiken");
+					return;
+				}},"Köp fler titlar till " + group1.name),sensusbutton]);
+			case 8:
+				var sensusbutton1 = _gthis.store.userIsSensusMember(cell.user) ? m.m("button.bigger",{ onclick : function(e2) {
+					_gthis.store.gotoPage(data_Page.Other);
+					return;
+				}},"Lägg till via Körakademins förmånserbjudande") : m.m("div.graytext","Ej Sensus-användare, kan ej använda Körakademins grupperbjudande");
+				return m.m("div.center",[m.m("div.centerpad",[m.m("button.bigger",{ onclick : function(e3) {
+					js_Browser.alert("Gå till butiken");
+					return;
+				}},"Köp fler titlar till Mina låtar-listan"),sensusbutton1])]);
+			case 9:
+				var user = cell.user;
+				if(user.userSongs.length > 0) {
+					return null;
+				}
+				if(_gthis.store.getUserGroups(user.username).length > 0) {
+					return null;
+				}
+				var freeListItems = data_KorakademinScorxItems.songs().filter(function(song) {
+					return song.licenseholder == "Upphovsrättsfri";
+				}).map(function(song1) {
+					return { access : data_ScorxAccess.FreeItem(song1.scorxProductId,"Folkbildningsrådet"), song : song1};
+				});
+				return m.m("div.centerpad",[m.m("h1.center-narrow.vspace","Gratislåtarna igen"),m.m("h3.center-narrow.vspace","(Denna lista visas för att användaren varken har låtar i Mina låtar-listan, eller fått tilldelat genom någon kör.)"),new view_SongListView2(_gthis.store,freeListItems,onListItemClick).view()]);
+			case 10:
 				var tmp = m.m("ul",ds__$ImmutableArray_ImmutableArray_$Impl_$.map(_gthis.store.getGroup(cell.groupname).members,function(member) {
 					return m.m("li",member);
 				}));
 				return m.m("div.centerpad",[_gthis.detailsSummary("Gruppens medlemmar",[tmp])]);
-			case 8:
-				var group1 = _gthis.store.getGroup(cell.groupname);
-				var tmp1 = new view_LeaderInviteUsers(_gthis.store,group1).view();
-				return m.m("div.centerpad",[_gthis.detailsSummary("Bjud in medlemmar",tmp1)]);
-			case 9:
-				var user = _gthis.store.getUser();
-				var sensusGroups = _gthis.store.getLeaderGroups(user.username).filter(function(group2) {
-					return _gthis.store.groupIsSensusGroup(group2);
-				});
-				if(sensusGroups.length <= 0) {
+			case 11:
+				var groupname = cell.groupname;
+				var group2 = _gthis.store.getGroup(groupname);
+				var tmp1 = new view_LeaderInviteUsers(_gthis.store,group2).view();
+				return m.m("div.centerpad",[_gthis.detailsSummary("Bjud in medlemmar till " + groupname,tmp1)]);
+			case 12:
+				var user1 = _gthis.store.getUser();
+				if(_gthis.store.getLeaderGroups(user1.username).filter(function(group3) {
+					return _gthis.store.groupIsSensusGroup(group3);
+				}).length <= 0) {
 					return m.m("p.centerpad","(Denna körledare ser INTE Sensus Körledarlista - beroende på att hen leder inte någon grupp där samtliga admins har sensus:SensusUser satt.)");
 				}
-				return m.m("div.centerpad",[m.m("h2","Körakademins kompletta låtlista"),m.m("p","Du kan se denna lista därför du leder någon kör som är kopplad till Sensus körverksamhet (dvs samtliga ledare i någon av grupperna har sensus:SensusUser satt.)"),m.m("p","Du kan se och spela samtliga låtar i listan."),sensusGroups.map(function(group3) {
-					return m.m("p",group3.name);
-				})]);
-			case 10:
-				return m.m("div.center",[m.m("button.center",{ onclick : function(e) {
-					console.log("src/view/HomeView.hx:172:","Click");
-					return;
-				}},"Gå till butiken")]);
+				var items = data_KorakademinScorxItems.songs().map(function(song2) {
+					return { song : song2, access : data_ScorxAccess.GroupPrivilege(song2.scorxProductId,null)};
+				});
+				return m.m("div.centerpad",[m.m("h1.center-narrow.vspace","Körakademins samtliga låtar"),m.m("h3.center-narrow.vspace","(Denna lista därför att användaren leder någon kör som är kopplad till Sensus körverksamhet, dvs. samtliga ledare i någon av grupperna har sensus:SensusUser satt.)"),new view_SongListView2(_gthis.store,items,onListItemClick).view()]);
+			case 13:
+				return null;
+			case 14:
+				return null;
 			}
 		}));
 	}
@@ -2474,21 +2587,23 @@ view_OverlayView.prototype = $extend(view_AppBaseView.prototype,{
 	view: function() {
 		var _gthis = this;
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		if(this.store.get_state().playerSong == null) {
-			return m.m("h2","No song selected");
-		} else {
-			return [m.m("h2",this.store.get_state().playerSong.title),m.m("button.round",{ onclick : function(e) {
-				_gthis.store.updateState({ type : "showPlayer", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("playerShow")]), value : !_gthis.store.get_state().playerShow}])});
-				return;
-			}},"Stäng")];
+		var closeButton = m.m("button.round",{ onclick : function(e) {
+			_gthis.store.updateState({ type : "showPlayer", updates : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([{ path : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([ds_PathAccess.Field("playerShow")]), value : !_gthis.store.get_state().playerShow}])});
+			return;
+		}},"Stäng");
+		if(this.store.get_state().playerAccessItem == null) {
+			return [m.m("h2","Inget item valt!"),closeButton];
 		}
+		return [m.m("div",[m.m("h3","" + this.store.get_state().playerAccessItem.song.title),m.m("p.smalltext","access: " + Std.string(this.store.get_state().playerAccessItem.access))]),closeButton];
 	}
 	,__class__: view_OverlayView
 });
 var view_PageView = function(store) {
 	view_AppBaseView.call(this,store);
 	this.home = new view_HomeView(store);
-	this.selectSongs = new view_SelectSongsView(store,data_KorakademinScorxItems.items(),[]);
+	this.selectSongs = new view_SelectSongsView(store,data_KorakademinScorxItems.songs().map(function(song) {
+		return { song : song, access : data_ScorxAccess.GroupPrivilege(song.scorxProductId,null)};
+	}),[]);
 };
 $hxClasses["view.PageView"] = view_PageView;
 view_PageView.__name__ = true;
@@ -2561,60 +2676,40 @@ view_SelectSongsView.prototype = $extend(view_AppBaseView.prototype,{
 		this.leftSongs = this.rightSongs.splice(this.rightSongs.indexOf(song),1).concat(this.leftSongs);
 	}
 	,view: function() {
+		var _gthis = this;
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		return m.m("div.selectSongsView",[m.m("h1","SelectSongs"),m.m("div.twoColumns",[new view_SongListView(this.store,"Left",this.leftSongs,null,$bind(this,this.leftSongClick)).view(),new view_SongListView(this.store,"Right",this.rightSongs,null,$bind(this,this.rightSongClick)).view()])]);
+		return m.m("div.selectSongsView",[m.m("h1.center-narrow.vspace","Välj låtar till /listans-namn/ här"),m.m("h3.center-narrow.vspace","Bra och tydlig info om hur valet går till..."),m.m("div.twoColumns",[m.m("div",[m.m("h3","Tillgängliga låtar, " + this.leftSongs.length + " st"),new view_SongListView2(this.store,this.leftSongs,$bind(this,this.leftSongClick)).view()]),m.m("div",[m.m("h3","Valda låtar, " + this.rightSongs.length + " st"),new view_SongListView2(this.store,this.rightSongs,$bind(this,this.rightSongClick)).view(),m.m("button.bigger",{ onclick : function(e) {
+			js_Browser.alert("Du har valt " + _gthis.rightSongs.length + " låtar som kommer att läggas till listan /listans-namn/...");
+			return;
+		}},"Bekräfta val av låtar...")])])]);
 	}
 	,__class__: view_SelectSongsView
 });
-var view_SongListView = function(store,title,songs,filters,onSongClick) {
+var view_SongListView2 = function(store,items,onItemClick) {
 	view_AppBaseView.call(this,store);
-	this.title = title;
-	this.songs = this.applyScorxFilters(songs,filters);
-	this.onSongClick = onSongClick;
+	this.items = items.slice();
+	this.onItemClick = onItemClick;
 };
-$hxClasses["view.SongListView"] = view_SongListView;
-view_SongListView.__name__ = true;
-view_SongListView.__super__ = view_AppBaseView;
-view_SongListView.prototype = $extend(view_AppBaseView.prototype,{
-	applyScorxFilters: function(songs,filters) {
-		var songs1 = songs.slice();
-		if(filters != null) {
-			var _g = 0;
-			while(_g < filters.length) {
-				var filter = filters[_g];
-				++_g;
-				switch(filter._hx_index) {
-				case 0:
-					songs1 = songs1.filter((function(ids) {
-						return function(song) {
-							return ids[0].indexOf(song.scorxProductId) > -1;
-						};
-					})([filter.ids]));
-					break;
-				case 1:
-					songs1 = songs1.filter((function(lic) {
-						return function(song1) {
-							return song1.licenseholder == lic[0];
-						};
-					})([filter.lic]));
-					break;
-				}
-			}
-		}
-		return songs1;
-	}
-	,view: function() {
+$hxClasses["view.SongListView2"] = view_SongListView2;
+view_SongListView2.__name__ = true;
+view_SongListView2.__super__ = view_AppBaseView;
+view_SongListView2.prototype = $extend(view_AppBaseView.prototype,{
+	view: function() {
 		var _gthis = this;
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
-		var searchStrings = view_SongListView.searchString.split(" ");
+		var searchStrings = view_SongListView2.searchString.split(" ");
 		var _g = 0;
 		while(_g < searchStrings.length) {
 			var search = [searchStrings[_g]];
 			++_g;
-			this.songs = this.songs.filter((function(search1) {
+			this.items = this.items.filter((function(search1) {
 				return function(item) {
-					if(!(item.title.toLowerCase().indexOf(search1[0].toLowerCase()) > -1 || item.composer.toLowerCase().indexOf(search1[0].toLowerCase()) > -1 || item.lyricist.toLowerCase().indexOf(search1[0].toLowerCase()) > -1 || item.arranger.toLowerCase().indexOf(search1[0].toLowerCase()) > -1)) {
-						return item.ensemble.toLowerCase().indexOf(search1[0].toLowerCase()) > -1;
+					if(!(item.song.title.toLowerCase().indexOf(search1[0].toLowerCase()) > -1 || item.song.composer != null && item.song.composer.toLowerCase().indexOf(search1[0].toLowerCase()) > -1 || item.song.lyricist != null && item.song.lyricist.toLowerCase().indexOf(search1[0].toLowerCase()) > -1 || item.song.arranger != null && item.song.arranger.toLowerCase().indexOf(search1[0].toLowerCase()) > -1)) {
+						if(item.song.ensemble != null) {
+							return item.song.ensemble.toLowerCase().indexOf(search1[0].toLowerCase()) > -1;
+						} else {
+							return false;
+						}
 					} else {
 						return true;
 					}
@@ -2626,40 +2721,42 @@ view_SongListView.prototype = $extend(view_AppBaseView.prototype,{
 			return m.m("option",{ value : alt},alt);
 		});
 		var sort11 = m.m("select",{ onchange : function(e) {
-			console.log("src/view/SongListView.hx:55:",e.target.selectedIndex);
-			return view_SongListView.sortindex = e.target.selectedIndex;
+			console.log("src/view/SongListView2.hx:35:",e.target.selectedIndex);
+			return view_SongListView2.sortindex = e.target.selectedIndex;
 		}, onblur : function(e1) {
-			console.log("src/view/SongListView.hx:59:",e1.target.selectedIndex);
-			return view_SongListView.sortindex = e1.target.selectedIndex;
+			console.log("src/view/SongListView2.hx:39:",e1.target.selectedIndex);
+			return view_SongListView2.sortindex = e1.target.selectedIndex;
 		}},sort1);
-		this.songs.sort(function(a,b) {
-			switch(view_SongListView.sortindex) {
+		this.items.sort(function(a,b) {
+			switch(view_SongListView2.sortindex) {
 			case 0:
-				return Reflect.compare(a.title,b.title);
+				return Reflect.compare(a.song.title,b.song.title);
 			case 1:
-				return Reflect.compare(a.composer,b.composer);
+				return Reflect.compare(a.song.composer,b.song.composer);
 			case 2:
-				return Reflect.compare(a.lyricist,b.lyricist);
+				return Reflect.compare(a.song.lyricist,b.song.lyricist);
 			case 3:
-				return Reflect.compare(a.arranger,b.arranger);
+				return Reflect.compare(a.song.arranger,b.song.arranger);
 			case 4:
-				return Reflect.compare(a.ensemble,b.ensemble);
+				return Reflect.compare(a.song.ensemble,b.song.ensemble);
 			default:
 				return 0;
 			}
 		});
 		return m.m("div.songListView",[m.m("div.searchinput",[m.m("input[placeholder=Sök titel, upphovspersoner, besättning]",{ oninput : function(e2) {
-			return view_SongListView.searchString = e2.target.value;
-		}, value : view_SongListView.searchString}),sort11]),m.m("div.scorxlist",this.songs.map(function(song) {
-			return m.m("div.scorxitem",[m.m("div.columnOne",[[m.m("span.title",song.title),m.m("span.ensemble." + song.ensemble,song.ensemble),m.m("span.idnr",song.scorxProductId)],song.composer != "" ? m.m("div.orig",[m.m("span","musik:"),m.m("span",song.composer)]) : null,song.lyricist != "" ? m.m("div.orig",[m.m("span","text:"),m.m("span",song.lyricist)]) : null,song.arranger != "" ? m.m("div.orig",[m.m("span","arr:"),m.m("span",song.arranger)]) : null]),m.m("div.columnTwo",[m.m("button.round",{ onclick : function(e3) {
-				if(_gthis.onSongClick != null) {
-					_gthis.onSongClick(song);
+			return view_SongListView2.searchString = e2.target.value;
+		}, value : view_SongListView2.searchString}),sort11,m.m("span"," " + this.items.length + " låtar i listan")]),m.m("div.scorxlist",this.items.map(function(item1) {
+			var tmp = m.m("div.columnOne",[[m.m("span.title",item1.song.title),m.m("span.ensemble." + item1.song.ensemble,item1.song.ensemble),m.m("span.idnr",item1.song.scorxProductId)],item1.song.composer != "" ? m.m("div.orig",[m.m("span","musik:"),m.m("span",item1.song.composer)]) : null,item1.song.lyricist != "" ? m.m("div.orig",[m.m("span","text:"),m.m("span",item1.song.lyricist)]) : null,item1.song.arranger != "" ? m.m("div.orig",[m.m("span","arr:"),m.m("span",item1.song.arranger)]) : null]);
+			var e3 = item1.access;
+			return m.m("div.scorxitem",[tmp,m.m("div.columnTwo",m.m("div.scorxaccess",[m.m("p.smalltext","" + $hxEnums[e3.__enum__].__constructs__[e3._hx_index]),m.m("p.smalltext","" + Std.string(Type.enumParameters(item1.access)))])),m.m("div.columnThree",[m.m("button.round",{ onclick : function(e4) {
+				if(_gthis.onItemClick != null) {
+					_gthis.onItemClick(item1);
 				}
 				return;
 			}},"Play")])]);
-		})),m.m("div.underlist",[m.m("p",this.songs.length + " låtar")])]);
+		}))]);
 	}
-	,__class__: view_SongListView
+	,__class__: view_SongListView2
 });
 var view_UserSettingsView = function(store) {
 	view_AppBaseView.call(this,store);
@@ -2771,7 +2868,7 @@ var __varName1 = global.m;
 } catch(_) {}
 DeepState_$data_$AppState._stateTypes = (function($this) {
 	var $r;
-	var _g9 = new haxe_ds_StringMap();
+	var _g12 = new haxe_ds_StringMap();
 	{
 		var _g = new haxe_ds_StringMap();
 		var value = ds_StateObjectType.String;
@@ -2780,444 +2877,533 @@ DeepState_$data_$AppState._stateTypes = (function($this) {
 		} else {
 			_g.h["username"] = value;
 		}
-		var value1 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
+		var value1 = ds_StateObjectType.Array(ds_StateObjectType.Recursive("data.ScorxAccess"));
 		if(__map_reserved["userSongs"] != null) {
 			_g.setReserved("userSongs",value1);
 		} else {
 			_g.h["userSongs"] = value1;
 		}
-		var value2 = ds_StateObjectType.Array(ds_StateObjectType.Int);
-		if(__map_reserved["songs"] != null) {
-			_g.setReserved("songs",value2);
-		} else {
-			_g.h["songs"] = value2;
-		}
-		var value3 = ds_StateObjectType.Recursive("data.SensusUser");
+		var value2 = ds_StateObjectType.Recursive("data.SensusUser");
 		if(__map_reserved["sensus"] != null) {
-			_g.setReserved("sensus",value3);
+			_g.setReserved("sensus",value2);
 		} else {
-			_g.h["sensus"] = value3;
+			_g.h["sensus"] = value2;
+		}
+		var value3 = ds_StateObjectType.String;
+		if(__map_reserved["password"] != null) {
+			_g.setReserved("password",value3);
+		} else {
+			_g.h["password"] = value3;
 		}
 		var value4 = ds_StateObjectType.String;
-		if(__map_reserved["password"] != null) {
-			_g.setReserved("password",value4);
+		if(__map_reserved["lastname"] != null) {
+			_g.setReserved("lastname",value4);
 		} else {
-			_g.h["password"] = value4;
+			_g.h["lastname"] = value4;
 		}
 		var value5 = ds_StateObjectType.String;
-		if(__map_reserved["lastname"] != null) {
-			_g.setReserved("lastname",value5);
-		} else {
-			_g.h["lastname"] = value5;
-		}
-		var value6 = ds_StateObjectType.String;
 		if(__map_reserved["firstname"] != null) {
-			_g.setReserved("firstname",value6);
+			_g.setReserved("firstname",value5);
 		} else {
-			_g.h["firstname"] = value6;
+			_g.h["firstname"] = value5;
 		}
-		var value7 = ds_StateObjectType.Anonymous(_g);
+		var value6 = ds_StateObjectType.Anonymous(_g);
 		if(__map_reserved["data.User"] != null) {
-			_g9.setReserved("data.User",value7);
+			_g12.setReserved("data.User",value6);
 		} else {
-			_g9.h["data.User"] = value7;
+			_g12.h["data.User"] = value6;
 		}
 	}
 	{
 		var _g1 = new haxe_ds_StringMap();
-		var value8 = ds_StateObjectType.String;
+		var value7 = ds_StateObjectType.String;
 		if(__map_reserved["title"] != null) {
-			_g1.setReserved("title",value8);
+			_g1.setReserved("title",value7);
 		} else {
-			_g1.h["title"] = value8;
+			_g1.h["title"] = value7;
 		}
-		var value9 = ds_StateObjectType.String;
+		var value8 = ds_StateObjectType.String;
 		if(__map_reserved["shopLink"] != null) {
-			_g1.setReserved("shopLink",value9);
+			_g1.setReserved("shopLink",value8);
 		} else {
-			_g1.h["shopLink"] = value9;
+			_g1.h["shopLink"] = value8;
 		}
-		var value10 = ds_StateObjectType.Int;
+		var value9 = ds_StateObjectType.Int;
 		if(__map_reserved["scorxProductId"] != null) {
-			_g1.setReserved("scorxProductId",value10);
+			_g1.setReserved("scorxProductId",value9);
 		} else {
-			_g1.h["scorxProductId"] = value10;
+			_g1.h["scorxProductId"] = value9;
+		}
+		var value10 = ds_StateObjectType.String;
+		if(__map_reserved["playProducer"] != null) {
+			_g1.setReserved("playProducer",value10);
+		} else {
+			_g1.h["playProducer"] = value10;
 		}
 		var value11 = ds_StateObjectType.String;
-		if(__map_reserved["playProducer"] != null) {
-			_g1.setReserved("playProducer",value11);
+		if(__map_reserved["paskmusik"] != null) {
+			_g1.setReserved("paskmusik",value11);
 		} else {
-			_g1.h["playProducer"] = value11;
+			_g1.h["paskmusik"] = value11;
 		}
 		var value12 = ds_StateObjectType.String;
-		if(__map_reserved["paskmusik"] != null) {
-			_g1.setReserved("paskmusik",value12);
+		if(__map_reserved["lyricist"] != null) {
+			_g1.setReserved("lyricist",value12);
 		} else {
-			_g1.h["paskmusik"] = value12;
+			_g1.h["lyricist"] = value12;
 		}
 		var value13 = ds_StateObjectType.String;
-		if(__map_reserved["lyricist"] != null) {
-			_g1.setReserved("lyricist",value13);
+		if(__map_reserved["licenseholder"] != null) {
+			_g1.setReserved("licenseholder",value13);
 		} else {
-			_g1.h["lyricist"] = value13;
+			_g1.h["licenseholder"] = value13;
 		}
 		var value14 = ds_StateObjectType.String;
-		if(__map_reserved["licenseholder"] != null) {
-			_g1.setReserved("licenseholder",value14);
+		if(__map_reserved["language"] != null) {
+			_g1.setReserved("language",value14);
 		} else {
-			_g1.h["licenseholder"] = value14;
+			_g1.h["language"] = value14;
 		}
 		var value15 = ds_StateObjectType.String;
-		if(__map_reserved["language"] != null) {
-			_g1.setReserved("language",value15);
+		if(__map_reserved["julmusik"] != null) {
+			_g1.setReserved("julmusik",value15);
 		} else {
-			_g1.h["language"] = value15;
+			_g1.h["julmusik"] = value15;
 		}
 		var value16 = ds_StateObjectType.String;
-		if(__map_reserved["julmusik"] != null) {
-			_g1.setReserved("julmusik",value16);
+		if(__map_reserved["externalLink"] != null) {
+			_g1.setReserved("externalLink",value16);
 		} else {
-			_g1.h["julmusik"] = value16;
+			_g1.h["externalLink"] = value16;
 		}
 		var value17 = ds_StateObjectType.String;
-		if(__map_reserved["externalLink"] != null) {
-			_g1.setReserved("externalLink",value17);
+		if(__map_reserved["ensemble"] != null) {
+			_g1.setReserved("ensemble",value17);
 		} else {
-			_g1.h["externalLink"] = value17;
+			_g1.h["ensemble"] = value17;
 		}
 		var value18 = ds_StateObjectType.String;
-		if(__map_reserved["ensemble"] != null) {
-			_g1.setReserved("ensemble",value18);
+		if(__map_reserved["composer"] != null) {
+			_g1.setReserved("composer",value18);
 		} else {
-			_g1.h["ensemble"] = value18;
+			_g1.h["composer"] = value18;
 		}
 		var value19 = ds_StateObjectType.String;
-		if(__map_reserved["composer"] != null) {
-			_g1.setReserved("composer",value19);
-		} else {
-			_g1.h["composer"] = value19;
-		}
-		var value20 = ds_StateObjectType.String;
 		if(__map_reserved["arranger"] != null) {
-			_g1.setReserved("arranger",value20);
+			_g1.setReserved("arranger",value19);
 		} else {
-			_g1.h["arranger"] = value20;
+			_g1.h["arranger"] = value19;
 		}
-		var value21 = ds_StateObjectType.Anonymous(_g1);
+		var value20 = ds_StateObjectType.Anonymous(_g1);
 		if(__map_reserved["data.ScorxItem"] != null) {
-			_g9.setReserved("data.ScorxItem",value21);
+			_g12.setReserved("data.ScorxItem",value20);
 		} else {
-			_g9.h["data.ScorxItem"] = value21;
-		}
-	}
-	{
-		var _g2 = new haxe_ds_StringMap();
-		var value22 = ds_StateObjectType.Array(ds_StateObjectType.Int);
-		if(__map_reserved["songs"] != null) {
-			_g2.setReserved("songs",value22);
-		} else {
-			_g2.h["songs"] = value22;
-		}
-		var value23 = ds_StateObjectType.String;
-		if(__map_reserved["name"] != null) {
-			_g2.setReserved("name",value23);
-		} else {
-			_g2.h["name"] = value23;
-		}
-		var value24 = ds_StateObjectType.Array(ds_StateObjectType.String);
-		if(__map_reserved["members"] != null) {
-			_g2.setReserved("members",value24);
-		} else {
-			_g2.h["members"] = value24;
-		}
-		var value25 = ds_StateObjectType.String;
-		if(__map_reserved["info"] != null) {
-			_g2.setReserved("info",value25);
-		} else {
-			_g2.h["info"] = value25;
-		}
-		var value26 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
-		if(__map_reserved["groupSongs"] != null) {
-			_g2.setReserved("groupSongs",value26);
-		} else {
-			_g2.h["groupSongs"] = value26;
-		}
-		var value27 = ds_StateObjectType.Array(ds_StateObjectType.String);
-		if(__map_reserved["admins"] != null) {
-			_g2.setReserved("admins",value27);
-		} else {
-			_g2.h["admins"] = value27;
-		}
-		var value28 = ds_StateObjectType.Anonymous(_g2);
-		if(__map_reserved["data.Group"] != null) {
-			_g9.setReserved("data.Group",value28);
-		} else {
-			_g9.h["data.Group"] = value28;
+			_g12.h["data.ScorxItem"] = value20;
 		}
 	}
 	{
 		var _g3 = new haxe_ds_StringMap();
-		var value29 = ds_StateObjectType.Enumm;
-		if(__map_reserved["type"] != null) {
-			_g3.setReserved("type",value29);
+		var _g2 = new haxe_ds_StringMap();
+		var value21 = ds_StateObjectType.String;
+		if(__map_reserved["title"] != null) {
+			_g2.setReserved("title",value21);
 		} else {
-			_g3.h["type"] = value29;
+			_g2.h["title"] = value21;
+		}
+		var value22 = ds_StateObjectType.String;
+		if(__map_reserved["shopLink"] != null) {
+			_g2.setReserved("shopLink",value22);
+		} else {
+			_g2.h["shopLink"] = value22;
+		}
+		var value23 = ds_StateObjectType.Int;
+		if(__map_reserved["scorxProductId"] != null) {
+			_g2.setReserved("scorxProductId",value23);
+		} else {
+			_g2.h["scorxProductId"] = value23;
+		}
+		var value24 = ds_StateObjectType.String;
+		if(__map_reserved["playProducer"] != null) {
+			_g2.setReserved("playProducer",value24);
+		} else {
+			_g2.h["playProducer"] = value24;
+		}
+		var value25 = ds_StateObjectType.String;
+		if(__map_reserved["paskmusik"] != null) {
+			_g2.setReserved("paskmusik",value25);
+		} else {
+			_g2.h["paskmusik"] = value25;
+		}
+		var value26 = ds_StateObjectType.String;
+		if(__map_reserved["lyricist"] != null) {
+			_g2.setReserved("lyricist",value26);
+		} else {
+			_g2.h["lyricist"] = value26;
+		}
+		var value27 = ds_StateObjectType.String;
+		if(__map_reserved["licenseholder"] != null) {
+			_g2.setReserved("licenseholder",value27);
+		} else {
+			_g2.h["licenseholder"] = value27;
+		}
+		var value28 = ds_StateObjectType.String;
+		if(__map_reserved["language"] != null) {
+			_g2.setReserved("language",value28);
+		} else {
+			_g2.h["language"] = value28;
+		}
+		var value29 = ds_StateObjectType.String;
+		if(__map_reserved["julmusik"] != null) {
+			_g2.setReserved("julmusik",value29);
+		} else {
+			_g2.h["julmusik"] = value29;
 		}
 		var value30 = ds_StateObjectType.String;
-		if(__map_reserved["to"] != null) {
-			_g3.setReserved("to",value30);
+		if(__map_reserved["externalLink"] != null) {
+			_g2.setReserved("externalLink",value30);
 		} else {
-			_g3.h["to"] = value30;
+			_g2.h["externalLink"] = value30;
 		}
 		var value31 = ds_StateObjectType.String;
-		if(__map_reserved["from"] != null) {
-			_g3.setReserved("from",value31);
+		if(__map_reserved["ensemble"] != null) {
+			_g2.setReserved("ensemble",value31);
 		} else {
-			_g3.h["from"] = value31;
+			_g2.h["ensemble"] = value31;
 		}
-		var value32 = ds_StateObjectType.Anonymous(_g3);
-		if(__map_reserved["data.EmailMessage"] != null) {
-			_g9.setReserved("data.EmailMessage",value32);
+		var value32 = ds_StateObjectType.String;
+		if(__map_reserved["composer"] != null) {
+			_g2.setReserved("composer",value32);
 		} else {
-			_g9.h["data.EmailMessage"] = value32;
+			_g2.h["composer"] = value32;
+		}
+		var value33 = ds_StateObjectType.String;
+		if(__map_reserved["arranger"] != null) {
+			_g2.setReserved("arranger",value33);
+		} else {
+			_g2.h["arranger"] = value33;
+		}
+		var value34 = ds_StateObjectType.Anonymous(_g2);
+		if(__map_reserved["song"] != null) {
+			_g3.setReserved("song",value34);
+		} else {
+			_g3.h["song"] = value34;
+		}
+		var value35 = ds_StateObjectType.Recursive("data.ScorxAccess");
+		if(__map_reserved["access"] != null) {
+			_g3.setReserved("access",value35);
+		} else {
+			_g3.h["access"] = value35;
+		}
+		var value36 = ds_StateObjectType.Anonymous(_g3);
+		if(__map_reserved["data.ScorxAccessListItem"] != null) {
+			_g12.setReserved("data.ScorxAccessListItem",value36);
+		} else {
+			_g12.h["data.ScorxAccessListItem"] = value36;
 		}
 	}
 	{
-		var _g8 = new haxe_ds_StringMap();
 		var _g4 = new haxe_ds_StringMap();
-		var value33 = ds_StateObjectType.String;
-		if(__map_reserved["username"] != null) {
-			_g4.setReserved("username",value33);
-		} else {
-			_g4.h["username"] = value33;
-		}
-		var value34 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
-		if(__map_reserved["userSongs"] != null) {
-			_g4.setReserved("userSongs",value34);
-		} else {
-			_g4.h["userSongs"] = value34;
-		}
-		var value35 = ds_StateObjectType.Array(ds_StateObjectType.Int);
-		if(__map_reserved["songs"] != null) {
-			_g4.setReserved("songs",value35);
-		} else {
-			_g4.h["songs"] = value35;
-		}
-		var value36 = ds_StateObjectType.Recursive("data.SensusUser");
-		if(__map_reserved["sensus"] != null) {
-			_g4.setReserved("sensus",value36);
-		} else {
-			_g4.h["sensus"] = value36;
-		}
 		var value37 = ds_StateObjectType.String;
-		if(__map_reserved["password"] != null) {
-			_g4.setReserved("password",value37);
+		if(__map_reserved["name"] != null) {
+			_g4.setReserved("name",value37);
 		} else {
-			_g4.h["password"] = value37;
+			_g4.h["name"] = value37;
 		}
-		var value38 = ds_StateObjectType.String;
-		if(__map_reserved["lastname"] != null) {
-			_g4.setReserved("lastname",value38);
+		var value38 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		if(__map_reserved["members"] != null) {
+			_g4.setReserved("members",value38);
 		} else {
-			_g4.h["lastname"] = value38;
+			_g4.h["members"] = value38;
 		}
 		var value39 = ds_StateObjectType.String;
-		if(__map_reserved["firstname"] != null) {
-			_g4.setReserved("firstname",value39);
-		} else {
-			_g4.h["firstname"] = value39;
-		}
-		var value40 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g4));
-		if(__map_reserved["users"] != null) {
-			_g8.setReserved("users",value40);
-		} else {
-			_g8.h["users"] = value40;
-		}
-		var value41 = ds_StateObjectType.String;
-		if(__map_reserved["userId"] != null) {
-			_g8.setReserved("userId",value41);
-		} else {
-			_g8.h["userId"] = value41;
-		}
-		var value42 = ds_StateObjectType.Bool;
-		if(__map_reserved["showOverlay"] != null) {
-			_g8.setReserved("showOverlay",value42);
-		} else {
-			_g8.h["showOverlay"] = value42;
-		}
-		var _g5 = new haxe_ds_StringMap();
-		var value43 = ds_StateObjectType.String;
-		if(__map_reserved["title"] != null) {
-			_g5.setReserved("title",value43);
-		} else {
-			_g5.h["title"] = value43;
-		}
-		var value44 = ds_StateObjectType.String;
-		if(__map_reserved["shopLink"] != null) {
-			_g5.setReserved("shopLink",value44);
-		} else {
-			_g5.h["shopLink"] = value44;
-		}
-		var value45 = ds_StateObjectType.Int;
-		if(__map_reserved["scorxProductId"] != null) {
-			_g5.setReserved("scorxProductId",value45);
-		} else {
-			_g5.h["scorxProductId"] = value45;
-		}
-		var value46 = ds_StateObjectType.String;
-		if(__map_reserved["playProducer"] != null) {
-			_g5.setReserved("playProducer",value46);
-		} else {
-			_g5.h["playProducer"] = value46;
-		}
-		var value47 = ds_StateObjectType.String;
-		if(__map_reserved["paskmusik"] != null) {
-			_g5.setReserved("paskmusik",value47);
-		} else {
-			_g5.h["paskmusik"] = value47;
-		}
-		var value48 = ds_StateObjectType.String;
-		if(__map_reserved["lyricist"] != null) {
-			_g5.setReserved("lyricist",value48);
-		} else {
-			_g5.h["lyricist"] = value48;
-		}
-		var value49 = ds_StateObjectType.String;
-		if(__map_reserved["licenseholder"] != null) {
-			_g5.setReserved("licenseholder",value49);
-		} else {
-			_g5.h["licenseholder"] = value49;
-		}
-		var value50 = ds_StateObjectType.String;
-		if(__map_reserved["language"] != null) {
-			_g5.setReserved("language",value50);
-		} else {
-			_g5.h["language"] = value50;
-		}
-		var value51 = ds_StateObjectType.String;
-		if(__map_reserved["julmusik"] != null) {
-			_g5.setReserved("julmusik",value51);
-		} else {
-			_g5.h["julmusik"] = value51;
-		}
-		var value52 = ds_StateObjectType.String;
-		if(__map_reserved["externalLink"] != null) {
-			_g5.setReserved("externalLink",value52);
-		} else {
-			_g5.h["externalLink"] = value52;
-		}
-		var value53 = ds_StateObjectType.String;
-		if(__map_reserved["ensemble"] != null) {
-			_g5.setReserved("ensemble",value53);
-		} else {
-			_g5.h["ensemble"] = value53;
-		}
-		var value54 = ds_StateObjectType.String;
-		if(__map_reserved["composer"] != null) {
-			_g5.setReserved("composer",value54);
-		} else {
-			_g5.h["composer"] = value54;
-		}
-		var value55 = ds_StateObjectType.String;
-		if(__map_reserved["arranger"] != null) {
-			_g5.setReserved("arranger",value55);
-		} else {
-			_g5.h["arranger"] = value55;
-		}
-		var value56 = ds_StateObjectType.Anonymous(_g5);
-		if(__map_reserved["playerSong"] != null) {
-			_g8.setReserved("playerSong",value56);
-		} else {
-			_g8.h["playerSong"] = value56;
-		}
-		var value57 = ds_StateObjectType.Bool;
-		if(__map_reserved["playerShow"] != null) {
-			_g8.setReserved("playerShow",value57);
-		} else {
-			_g8.h["playerShow"] = value57;
-		}
-		var value58 = ds_StateObjectType.Enumm;
-		if(__map_reserved["page"] != null) {
-			_g8.setReserved("page",value58);
-		} else {
-			_g8.h["page"] = value58;
-		}
-		var _g6 = new haxe_ds_StringMap();
-		var value59 = ds_StateObjectType.Enumm;
-		if(__map_reserved["type"] != null) {
-			_g6.setReserved("type",value59);
-		} else {
-			_g6.h["type"] = value59;
-		}
-		var value60 = ds_StateObjectType.String;
-		if(__map_reserved["to"] != null) {
-			_g6.setReserved("to",value60);
-		} else {
-			_g6.h["to"] = value60;
-		}
-		var value61 = ds_StateObjectType.String;
-		if(__map_reserved["from"] != null) {
-			_g6.setReserved("from",value61);
-		} else {
-			_g6.h["from"] = value61;
-		}
-		var value62 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g6));
-		if(__map_reserved["messages"] != null) {
-			_g8.setReserved("messages",value62);
-		} else {
-			_g8.h["messages"] = value62;
-		}
-		var _g7 = new haxe_ds_StringMap();
-		var value63 = ds_StateObjectType.Array(ds_StateObjectType.Int);
-		if(__map_reserved["songs"] != null) {
-			_g7.setReserved("songs",value63);
-		} else {
-			_g7.h["songs"] = value63;
-		}
-		var value64 = ds_StateObjectType.String;
-		if(__map_reserved["name"] != null) {
-			_g7.setReserved("name",value64);
-		} else {
-			_g7.h["name"] = value64;
-		}
-		var value65 = ds_StateObjectType.Array(ds_StateObjectType.String);
-		if(__map_reserved["members"] != null) {
-			_g7.setReserved("members",value65);
-		} else {
-			_g7.h["members"] = value65;
-		}
-		var value66 = ds_StateObjectType.String;
 		if(__map_reserved["info"] != null) {
-			_g7.setReserved("info",value66);
+			_g4.setReserved("info",value39);
 		} else {
-			_g7.h["info"] = value66;
+			_g4.h["info"] = value39;
 		}
-		var value67 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
+		var value40 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
 		if(__map_reserved["groupSongs"] != null) {
-			_g7.setReserved("groupSongs",value67);
+			_g4.setReserved("groupSongs",value40);
 		} else {
-			_g7.h["groupSongs"] = value67;
+			_g4.h["groupSongs"] = value40;
 		}
-		var value68 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		var value41 = ds_StateObjectType.Array(ds_StateObjectType.String);
 		if(__map_reserved["admins"] != null) {
-			_g7.setReserved("admins",value68);
+			_g4.setReserved("admins",value41);
 		} else {
-			_g7.h["admins"] = value68;
+			_g4.h["admins"] = value41;
 		}
-		var value69 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g7));
-		if(__map_reserved["groups"] != null) {
-			_g8.setReserved("groups",value69);
+		var value42 = ds_StateObjectType.Anonymous(_g4);
+		if(__map_reserved["data.Group"] != null) {
+			_g12.setReserved("data.Group",value42);
 		} else {
-			_g8.h["groups"] = value69;
-		}
-		var value70 = ds_StateObjectType.Anonymous(_g8);
-		if(__map_reserved["data.AppState"] != null) {
-			_g9.setReserved("data.AppState",value70);
-		} else {
-			_g9.h["data.AppState"] = value70;
+			_g12.h["data.Group"] = value42;
 		}
 	}
-	$r = _g9;
+	{
+		var _g5 = new haxe_ds_StringMap();
+		var value43 = ds_StateObjectType.Enumm;
+		if(__map_reserved["type"] != null) {
+			_g5.setReserved("type",value43);
+		} else {
+			_g5.h["type"] = value43;
+		}
+		var value44 = ds_StateObjectType.String;
+		if(__map_reserved["to"] != null) {
+			_g5.setReserved("to",value44);
+		} else {
+			_g5.h["to"] = value44;
+		}
+		var value45 = ds_StateObjectType.String;
+		if(__map_reserved["from"] != null) {
+			_g5.setReserved("from",value45);
+		} else {
+			_g5.h["from"] = value45;
+		}
+		var value46 = ds_StateObjectType.Anonymous(_g5);
+		if(__map_reserved["data.EmailMessage"] != null) {
+			_g12.setReserved("data.EmailMessage",value46);
+		} else {
+			_g12.h["data.EmailMessage"] = value46;
+		}
+	}
+	{
+		var _g11 = new haxe_ds_StringMap();
+		var _g6 = new haxe_ds_StringMap();
+		var value47 = ds_StateObjectType.String;
+		if(__map_reserved["username"] != null) {
+			_g6.setReserved("username",value47);
+		} else {
+			_g6.h["username"] = value47;
+		}
+		var value48 = ds_StateObjectType.Array(ds_StateObjectType.Recursive("data.ScorxAccess"));
+		if(__map_reserved["userSongs"] != null) {
+			_g6.setReserved("userSongs",value48);
+		} else {
+			_g6.h["userSongs"] = value48;
+		}
+		var value49 = ds_StateObjectType.Recursive("data.SensusUser");
+		if(__map_reserved["sensus"] != null) {
+			_g6.setReserved("sensus",value49);
+		} else {
+			_g6.h["sensus"] = value49;
+		}
+		var value50 = ds_StateObjectType.String;
+		if(__map_reserved["password"] != null) {
+			_g6.setReserved("password",value50);
+		} else {
+			_g6.h["password"] = value50;
+		}
+		var value51 = ds_StateObjectType.String;
+		if(__map_reserved["lastname"] != null) {
+			_g6.setReserved("lastname",value51);
+		} else {
+			_g6.h["lastname"] = value51;
+		}
+		var value52 = ds_StateObjectType.String;
+		if(__map_reserved["firstname"] != null) {
+			_g6.setReserved("firstname",value52);
+		} else {
+			_g6.h["firstname"] = value52;
+		}
+		var value53 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g6));
+		if(__map_reserved["users"] != null) {
+			_g11.setReserved("users",value53);
+		} else {
+			_g11.h["users"] = value53;
+		}
+		var value54 = ds_StateObjectType.String;
+		if(__map_reserved["userId"] != null) {
+			_g11.setReserved("userId",value54);
+		} else {
+			_g11.h["userId"] = value54;
+		}
+		var value55 = ds_StateObjectType.Bool;
+		if(__map_reserved["showOverlay"] != null) {
+			_g11.setReserved("showOverlay",value55);
+		} else {
+			_g11.h["showOverlay"] = value55;
+		}
+		var value56 = ds_StateObjectType.Bool;
+		if(__map_reserved["playerShow"] != null) {
+			_g11.setReserved("playerShow",value56);
+		} else {
+			_g11.h["playerShow"] = value56;
+		}
+		var _g8 = new haxe_ds_StringMap();
+		var _g7 = new haxe_ds_StringMap();
+		var value57 = ds_StateObjectType.String;
+		if(__map_reserved["title"] != null) {
+			_g7.setReserved("title",value57);
+		} else {
+			_g7.h["title"] = value57;
+		}
+		var value58 = ds_StateObjectType.String;
+		if(__map_reserved["shopLink"] != null) {
+			_g7.setReserved("shopLink",value58);
+		} else {
+			_g7.h["shopLink"] = value58;
+		}
+		var value59 = ds_StateObjectType.Int;
+		if(__map_reserved["scorxProductId"] != null) {
+			_g7.setReserved("scorxProductId",value59);
+		} else {
+			_g7.h["scorxProductId"] = value59;
+		}
+		var value60 = ds_StateObjectType.String;
+		if(__map_reserved["playProducer"] != null) {
+			_g7.setReserved("playProducer",value60);
+		} else {
+			_g7.h["playProducer"] = value60;
+		}
+		var value61 = ds_StateObjectType.String;
+		if(__map_reserved["paskmusik"] != null) {
+			_g7.setReserved("paskmusik",value61);
+		} else {
+			_g7.h["paskmusik"] = value61;
+		}
+		var value62 = ds_StateObjectType.String;
+		if(__map_reserved["lyricist"] != null) {
+			_g7.setReserved("lyricist",value62);
+		} else {
+			_g7.h["lyricist"] = value62;
+		}
+		var value63 = ds_StateObjectType.String;
+		if(__map_reserved["licenseholder"] != null) {
+			_g7.setReserved("licenseholder",value63);
+		} else {
+			_g7.h["licenseholder"] = value63;
+		}
+		var value64 = ds_StateObjectType.String;
+		if(__map_reserved["language"] != null) {
+			_g7.setReserved("language",value64);
+		} else {
+			_g7.h["language"] = value64;
+		}
+		var value65 = ds_StateObjectType.String;
+		if(__map_reserved["julmusik"] != null) {
+			_g7.setReserved("julmusik",value65);
+		} else {
+			_g7.h["julmusik"] = value65;
+		}
+		var value66 = ds_StateObjectType.String;
+		if(__map_reserved["externalLink"] != null) {
+			_g7.setReserved("externalLink",value66);
+		} else {
+			_g7.h["externalLink"] = value66;
+		}
+		var value67 = ds_StateObjectType.String;
+		if(__map_reserved["ensemble"] != null) {
+			_g7.setReserved("ensemble",value67);
+		} else {
+			_g7.h["ensemble"] = value67;
+		}
+		var value68 = ds_StateObjectType.String;
+		if(__map_reserved["composer"] != null) {
+			_g7.setReserved("composer",value68);
+		} else {
+			_g7.h["composer"] = value68;
+		}
+		var value69 = ds_StateObjectType.String;
+		if(__map_reserved["arranger"] != null) {
+			_g7.setReserved("arranger",value69);
+		} else {
+			_g7.h["arranger"] = value69;
+		}
+		var value70 = ds_StateObjectType.Anonymous(_g7);
+		if(__map_reserved["song"] != null) {
+			_g8.setReserved("song",value70);
+		} else {
+			_g8.h["song"] = value70;
+		}
+		var value71 = ds_StateObjectType.Recursive("data.ScorxAccess");
+		if(__map_reserved["access"] != null) {
+			_g8.setReserved("access",value71);
+		} else {
+			_g8.h["access"] = value71;
+		}
+		var value72 = ds_StateObjectType.Anonymous(_g8);
+		if(__map_reserved["playerAccessItem"] != null) {
+			_g11.setReserved("playerAccessItem",value72);
+		} else {
+			_g11.h["playerAccessItem"] = value72;
+		}
+		var value73 = ds_StateObjectType.Enumm;
+		if(__map_reserved["page"] != null) {
+			_g11.setReserved("page",value73);
+		} else {
+			_g11.h["page"] = value73;
+		}
+		var _g9 = new haxe_ds_StringMap();
+		var value74 = ds_StateObjectType.Enumm;
+		if(__map_reserved["type"] != null) {
+			_g9.setReserved("type",value74);
+		} else {
+			_g9.h["type"] = value74;
+		}
+		var value75 = ds_StateObjectType.String;
+		if(__map_reserved["to"] != null) {
+			_g9.setReserved("to",value75);
+		} else {
+			_g9.h["to"] = value75;
+		}
+		var value76 = ds_StateObjectType.String;
+		if(__map_reserved["from"] != null) {
+			_g9.setReserved("from",value76);
+		} else {
+			_g9.h["from"] = value76;
+		}
+		var value77 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g9));
+		if(__map_reserved["messages"] != null) {
+			_g11.setReserved("messages",value77);
+		} else {
+			_g11.h["messages"] = value77;
+		}
+		var _g10 = new haxe_ds_StringMap();
+		var value78 = ds_StateObjectType.String;
+		if(__map_reserved["name"] != null) {
+			_g10.setReserved("name",value78);
+		} else {
+			_g10.h["name"] = value78;
+		}
+		var value79 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		if(__map_reserved["members"] != null) {
+			_g10.setReserved("members",value79);
+		} else {
+			_g10.h["members"] = value79;
+		}
+		var value80 = ds_StateObjectType.String;
+		if(__map_reserved["info"] != null) {
+			_g10.setReserved("info",value80);
+		} else {
+			_g10.h["info"] = value80;
+		}
+		var value81 = ds_StateObjectType.Array(ds_StateObjectType.Enumm);
+		if(__map_reserved["groupSongs"] != null) {
+			_g10.setReserved("groupSongs",value81);
+		} else {
+			_g10.h["groupSongs"] = value81;
+		}
+		var value82 = ds_StateObjectType.Array(ds_StateObjectType.String);
+		if(__map_reserved["admins"] != null) {
+			_g10.setReserved("admins",value82);
+		} else {
+			_g10.h["admins"] = value82;
+		}
+		var value83 = ds_StateObjectType.Array(ds_StateObjectType.Anonymous(_g10));
+		if(__map_reserved["groups"] != null) {
+			_g11.setReserved("groups",value83);
+		} else {
+			_g11.h["groups"] = value83;
+		}
+		var value84 = ds_StateObjectType.Anonymous(_g11);
+		if(__map_reserved["data.AppState"] != null) {
+			_g12.setReserved("data.AppState",value84);
+		} else {
+			_g12.h["data.AppState"] = value84;
+		}
+	}
+	$r = _g12;
 	return $r;
 }(this));
 cx_Validation.emailReg = new EReg("^[\\w-\\.]{2,}@[\\w-\\.]{2,}\\.[a-z]{2,6}$","i");
@@ -3231,8 +3417,8 @@ view_LeaderInviteUsers.inviteFirstnames = [];
 view_LeaderInviteUsers.inviteLastnames = [];
 view_SearchGroupView.searchChoirText = "";
 view_SearchGroupView.filteredGroups = [];
-view_SongListView.searchString = "";
-view_SongListView.sortindex = 0;
+view_SongListView2.searchString = "";
+view_SongListView2.sortindex = 0;
 view_Userview.tryUsername = "";
 view_Userview.tryPassword = "";
 Client.main();

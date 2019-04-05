@@ -1,6 +1,5 @@
 package data;
 
-import data.KorakademinScorxItems.ScorxItem;
 import js.Browser;
 import haxe.Json;
 import ds.ImmutableArray;
@@ -50,7 +49,7 @@ typedef AppState = {
 	 */
 	final page:Page;
 	final playerShow:Bool;
-	final playerSong:ScorxItem;
+	final playerAccessItem:ScorxAccessListItem;
 }
 
 /**
@@ -368,7 +367,6 @@ class AppStore extends DeepStateContainer<AppState> {
 						firstname: firstname,
 						lastname: lastname,
 						sensus: sensus,
-						songs: [],
 						userSongs: [],
 					};
 
@@ -393,7 +391,6 @@ class AppStore extends DeepStateContainer<AppState> {
 						firstname: firstname,
 						lastname: lastname,
 						sensus: null,
-						songs: [],
 						userSongs: [],
 					};
 
@@ -525,7 +522,7 @@ class AppStore extends DeepStateContainer<AppState> {
 			page: Home,
 			showOverlay: false,
 			playerShow: false,
-			playerSong: null,
+			playerAccessItem: null,
 		}, 'do reset');
 		this.save();
 	}

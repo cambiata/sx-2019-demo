@@ -1,23 +1,14 @@
 package data;
 
-typedef ScorxItem = {
-	final title:String;
-	final composer:String;
-	final lyricist:String;
-	final arranger:String;
-	final ensemble:String;
-	final language:String;
-	final licenseholder:String;
-	final playProducer:String;
-	final scorxProductId:Int;
-	final paskmusik:String;
-	final julmusik:String;
-	final shopLink:String;
-	final externalLink:String;
-}
+import data.Model;
+
+using cx.ArrayItems;
 
 class KorakademinScorxItems {
-	public static function items()
+	public static function getSong(productId:Int)
+		return songs().filter(s -> s.scorxProductId == productId).first();
+
+	public static function songs():Array<ScorxItem>
 		return [
 			{
 				title: "Alleluia",

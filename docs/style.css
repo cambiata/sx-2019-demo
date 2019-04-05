@@ -37,9 +37,7 @@ body {
     max-width: 1000px;
     padding-left: 2vmax;
     padding-right: 2vmax;
-    /* text-align: center; */
-    /* border: 1px solid green; */
-    margin: 0 auto;
+    margin: 1vmax auto;
 }
 
 .center-narrow {
@@ -155,6 +153,10 @@ section {
     padding-bottom: 3vmax;
 }
 
+p {
+    margin-bottom: .3vmax;
+}
+
 h1 {
     font-weight: bold;
     font-size: 6vmax;
@@ -165,11 +167,13 @@ h1 {
 h2 {
     font-weight: normal;
     font-size: 3vmax;
+    margin-bottom: 1vmax;
 }
 
 h3 {
     font-weight: normal;
-    font-size: 2.2vmax;
+    font-size: 2.4vmax;
+    line-height: 3.4vmax;
 }
 
 /* section p {
@@ -536,7 +540,7 @@ div.invitationform button {
 
 #overlay header {
     /* border: 1px solid red; */
-    height: 5vmax;
+    height: 6vmax;
     padding: 1vmax;
     background: #eee;
     display: flex;
@@ -545,7 +549,7 @@ div.invitationform button {
  
 
 #overlay iframe {
-    height: calc(100% - 5vmax);
+    height: calc(100% - 6vmax);
     width: 100%;    
     border: 0;
     padding: 1vmax;
@@ -587,9 +591,12 @@ h3.scorxlisttitle {
     color: #444;
     /* padding: 1.6vmax; */
     cursor:pointer;
-    display: flex;
+    /* display: flex;
     flex-direction: row; 
-    justify-content:space-between;
+    justify-content:space-between; */
+    display:grid;
+    grid-template-columns: 3fr 2fr 8vmax;
+    grid-gap: 1vmax;
 }
 
 
@@ -727,10 +734,26 @@ h3.scorxlisttitle {
 .twoColumns {
     display:grid;
     grid-template-columns: 1fr 1fr;
+    grid-gap: 1vmax;
+    padding: 1vmax 1vmax;
 }
 
 
 button.round {
     font-size: 130%;
 
+}
+
+.smalltext {
+    font-size: 1.2vmax;
+}
+
+button.bigger {
+    font-size: 1.8vmax;
+    margin-right: 1vmax;
+
+}
+
+.graytext {
+    color: #ccc;
 }
