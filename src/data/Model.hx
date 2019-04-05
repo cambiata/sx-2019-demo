@@ -185,9 +185,9 @@ enum EmailType {
 	SimpleMessage(title:String, text:String);
 } // enum OverlayPage {
 
-//---------------------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 /**
  * Defaultvärden så att vi har något att utgå ifrån
@@ -257,14 +257,6 @@ class Default {
 				userSongs: [],
 			},
 			{
-				firstname: 'Örkel4',
-				lastname: 'Örkelsson',
-				username: 'orkel4@orkel.se',
-				password: 'orkel4',
-				sensus: null,
-				userSongs: [],
-			},
-			{
 				firstname: 'Bro1',
 				lastname: 'Brorsson',
 				username: 'bro1@bro.se',
@@ -280,22 +272,7 @@ class Default {
 				sensus: null,
 				userSongs: [],
 			},
-			{
-				firstname: 'Bro3',
-				lastname: 'Brorsson',
-				username: 'bro3@bro.se',
-				password: 'bro3',
-				sensus: null,
-				userSongs: [],
-			},
-			{
-				firstname: 'Bro4',
-				lastname: 'Brorsson',
-				username: 'bro4@bro.se',
-				password: 'bro4',
-				sensus: null,
-				userSongs: [],
-			},
+
 		];
 	}
 
@@ -307,7 +284,7 @@ class Default {
 				admins: ['orkel1@orkel.se'],
 				members: ['adam@adam.se', 'orkel1@orkel.se', 'orkel2@orkel.se', 'orkel3@orkel.se',],
 				groupSongs: [
-					ScorxAccess.GroupPurchase(397, Date.fromString('2020-01-18'), ['orkel1@orkel.se', 'orkel2@orkel.se']),
+					ScorxAccess.GroupPurchase(397, Date.fromString('2020-01-18'), []),
 					ScorxAccess.GroupPrivilege(975, KorakademinGroupAccess),
 				],
 			},
@@ -319,33 +296,13 @@ class Default {
 				groupSongs: [],
 			},
 			{
-				name: 'Lingonbergens sångfåglar',
-				info: 'Vi trallar så glatt! Vill du va me?',
-				admins: [],
-				members: [],
-				groupSongs: [],
-			},
-			{
 				name: 'Avunda Kyrkokör',
 				info: 'Ju mer förr, desto bättre!',
 				admins: ['avledare@kor.se'],
 				members: [],
-				groupSongs: [],
+				groupSongs: [ScorxAccess.GroupPurchase(50, Date.fromString('2020-01-18'), []),],
 			},
-			{
-				name: 'Nya kören, Hässleholm',
-				info: 'Information...',
-				admins: [],
-				members: [],
-				groupSongs: [],
-			},
-			{
-				name: 'Nya kören, Hallandsåsen',
-				info: 'Information...',
-				admins: [],
-				members: [],
-				groupSongs: [],
-			},
+
 		];
 	}
 

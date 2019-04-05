@@ -281,6 +281,9 @@ class HomeView extends AppBaseView {
 					if (user.userSongs.length > 0) return null;
 
 					if (this.store.getUserGroups(user.username).length > 0) return null;
+
+					if (this.store.getLeaderGroups(user.username).length > 0) return null;
+
 					var freeListItems:Array<ScorxAccessListItem> = KorakademinScorxItems.songs().filter(song -> song.licenseholder == 'Upphovsrättsfri')
 						.map(song -> {access: FreeItem(song.scorxProductId, 'Folkbildningsrådet'), song: song});
 

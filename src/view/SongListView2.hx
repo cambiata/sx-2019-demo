@@ -20,6 +20,9 @@ class SongListView2 extends AppBaseView {
 	public function view() {
 		var searchStrings:Array<String> = searchString.split(' ');
 
+		if (items.length == 0)
+			return m('p.graytext', 'Listan är tom');
+
 		for (search in searchStrings) {
 			items = items.filter(item -> ((item.song.title.toLowerCase().indexOf(search.toLowerCase()) > -1)
 				|| (item.song.composer != null && (item.song.composer.toLowerCase().indexOf(search.toLowerCase()) > -1))
@@ -52,6 +55,35 @@ class SongListView2 extends AppBaseView {
 			}
 		});
 
+		var songlist = m('div.scorxlist', items.map(item -> m('div.scorxitem', [
+
+			m('div.columnOne', [
+
+				[
+					m('span.title', item.song.title),
+					m('span.ensemble.' + item.song.ensemble, item.song.ensemble),
+					m('span.idnr', item.song.scorxProductId)
+				],
+				item.song.composer != '' ? m('div.orig', [m('span', 'musik:'), m('span', item.song.composer)]) : null,
+				item.song.lyricist != '' ? m('div.orig', [m('span', 'text:'), m('span', item.song.lyricist)]) : null,
+				item.song.arranger != '' ? m('div.orig', [m('span', 'arr:'), m('span', item.song.arranger)]) : null,
+			]),
+			m('div.columnTwo', m('div.scorxaccess', [
+				m('p.smalltext', '' + item.access.getName()),
+				m('p.smalltext', '' + item.access.getParameters()),
+			])),
+
+			m('div.columnThree', [
+
+				m('button.round', {
+					onclick: e -> {
+						if (this.onItemClick != null)
+							this.onItemClick(item);
+					}
+				}, 'Play'),
+			]),
+		])));
+
 		return m('div.songListView', [
 			m('div.searchinput', [
 				m('input[placeholder=Sök titel, upphovspersoner, besättning]', {
@@ -63,35 +95,7 @@ class SongListView2 extends AppBaseView {
 				sort1,
 				m('span', ' ' + items.length + ' låtar i listan'),
 			]),
-
-			m('div.scorxlist', items.map(item -> m('div.scorxitem', [
-
-				m('div.columnOne', [
-
-					[
-						m('span.title', item.song.title),
-						m('span.ensemble.' + item.song.ensemble, item.song.ensemble),
-						m('span.idnr', item.song.scorxProductId)
-					],
-					item.song.composer != '' ? m('div.orig', [m('span', 'musik:'), m('span', item.song.composer)]) : null,
-					item.song.lyricist != '' ? m('div.orig', [m('span', 'text:'), m('span', item.song.lyricist)]) : null,
-					item.song.arranger != '' ? m('div.orig', [m('span', 'arr:'), m('span', item.song.arranger)]) : null,
-				]),
-				m('div.columnTwo', m('div.scorxaccess', [
-					m('p.smalltext', '' + item.access.getName()),
-					m('p.smalltext', '' + item.access.getParameters()),
-				])),
-
-				m('div.columnThree', [
-
-					m('button.round', {
-						onclick: e -> {
-							if (this.onItemClick != null)
-								this.onItemClick(item);
-						}
-					}, 'Play'),
-				]),
-			]))),
+			songlist,
 
 		]);
 	}

@@ -1338,10 +1338,10 @@ var data_Default = function() { };
 $hxClasses["data.Default"] = data_Default;
 data_Default.__name__ = true;
 data_Default.users = function() {
-	return [{ firstname : "Adam", lastname : "Adamsson", username : "adam@adam.se", password : "adam", sensus : data_SensusUser.UserClaimed, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([data_ScorxAccess.UserPurchase(999,HxOverrides.strDate("2020-01-18")),data_ScorxAccess.UserPrivilege(789,data_UserPrivilegeType.KorakademinUserAccess)])},{ firstname : "Beda", lastname : "Bensin", username : "beda@bensin.se", password : "beda", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([data_ScorxAccess.UserPurchase(1353,HxOverrides.strDate("2020-03-03"))])},{ firstname : "Caesar", lastname : "Citrus", username : "caesar@citrus.se", password : "caesar", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Avledare", lastname : "Jonsson", username : "avledare@kor.se", password : "avledare", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel1", lastname : "Örkelsson", username : "orkel1@orkel.se", password : "orkel1", sensus : data_SensusUser.SensusVerified, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel2", lastname : "Örkelsson", username : "orkel2@orkel.se", password : "orkel2", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel3", lastname : "Örkelsson", username : "orkel3@orkel.se", password : "orkel3", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel4", lastname : "Örkelsson", username : "orkel4@orkel.se", password : "orkel4", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro1", lastname : "Brorsson", username : "bro1@bro.se", password : "bro1", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro2", lastname : "Brorsson", username : "bro2@bro.se", password : "bro2", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro3", lastname : "Brorsson", username : "bro3@bro.se", password : "bro3", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro4", lastname : "Brorsson", username : "bro4@bro.se", password : "bro4", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
+	return [{ firstname : "Adam", lastname : "Adamsson", username : "adam@adam.se", password : "adam", sensus : data_SensusUser.UserClaimed, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([data_ScorxAccess.UserPurchase(999,HxOverrides.strDate("2020-01-18")),data_ScorxAccess.UserPrivilege(789,data_UserPrivilegeType.KorakademinUserAccess)])},{ firstname : "Beda", lastname : "Bensin", username : "beda@bensin.se", password : "beda", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([data_ScorxAccess.UserPurchase(1353,HxOverrides.strDate("2020-03-03"))])},{ firstname : "Caesar", lastname : "Citrus", username : "caesar@citrus.se", password : "caesar", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Avledare", lastname : "Jonsson", username : "avledare@kor.se", password : "avledare", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel1", lastname : "Örkelsson", username : "orkel1@orkel.se", password : "orkel1", sensus : data_SensusUser.SensusVerified, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel2", lastname : "Örkelsson", username : "orkel2@orkel.se", password : "orkel2", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Örkel3", lastname : "Örkelsson", username : "orkel3@orkel.se", password : "orkel3", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro1", lastname : "Brorsson", username : "bro1@bro.se", password : "bro1", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ firstname : "Bro2", lastname : "Brorsson", username : "bro2@bro.se", password : "bro2", sensus : null, userSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
 };
 data_Default.groups = function() {
-	return [{ name : "Örkelhåla kyrkokör", info : "Soli deo gloria. Plus vår körledare.", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["orkel1@orkel.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["adam@adam.se","orkel1@orkel.se","orkel2@orkel.se","orkel3@orkel.se"]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([data_ScorxAccess.GroupPurchase(397,HxOverrides.strDate("2020-01-18"),ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["orkel1@orkel.se","orkel2@orkel.se"])),data_ScorxAccess.GroupPrivilege(975,data_GroupPrivilegeType.KorakademinGroupAccess)])},{ name : "Bromölla Bandidos", info : "Vi sjunger - ni pröjsar!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Lingonbergens sångfåglar", info : "Vi trallar så glatt! Vill du va me?", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Avunda Kyrkokör", info : "Ju mer förr, desto bättre!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["avledare@kor.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Nya kören, Hässleholm", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Nya kören, Hallandsåsen", info : "Information...", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])}];
+	return [{ name : "Örkelhåla kyrkokör", info : "Soli deo gloria. Plus vår körledare.", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["orkel1@orkel.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["adam@adam.se","orkel1@orkel.se","orkel2@orkel.se","orkel3@orkel.se"]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([data_ScorxAccess.GroupPurchase(397,HxOverrides.strDate("2020-01-18"),ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])),data_ScorxAccess.GroupPrivilege(975,data_GroupPrivilegeType.KorakademinGroupAccess)])},{ name : "Bromölla Bandidos", info : "Vi sjunger - ni pröjsar!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([])},{ name : "Avunda Kyrkokör", info : "Ju mer förr, desto bättre!", admins : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray(["avledare@kor.se"]), members : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]), groupSongs : ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([data_ScorxAccess.GroupPurchase(50,HxOverrides.strDate("2020-01-18"),ds__$ImmutableArray_ImmutableArray_$Impl_$.fromArray([]))])}];
 };
 data_Default.messages = function() {
 	return [];
@@ -2388,6 +2388,9 @@ view_HomeView.prototype = $extend(view_AppBaseView.prototype,{
 				if(_gthis.store.getUserGroups(user.username).length > 0) {
 					return null;
 				}
+				if(_gthis.store.getLeaderGroups(user.username).length > 0) {
+					return null;
+				}
 				var freeListItems = data_KorakademinScorxItems.songs().filter(function(song) {
 					return song.licenseholder == "Upphovsrättsfri";
 				}).map(function(song1) {
@@ -2698,6 +2701,9 @@ view_SongListView2.prototype = $extend(view_AppBaseView.prototype,{
 		var _gthis = this;
 		if(arguments.length > 0 && arguments[0].tag != this) return arguments[0].tag.view.apply(arguments[0].tag, arguments);
 		var searchStrings = view_SongListView2.searchString.split(" ");
+		if(this.items.length == 0) {
+			return m.m("p.graytext","Listan är tom");
+		}
 		var _g = 0;
 		while(_g < searchStrings.length) {
 			var search = [searchStrings[_g]];
@@ -2721,10 +2727,10 @@ view_SongListView2.prototype = $extend(view_AppBaseView.prototype,{
 			return m.m("option",{ value : alt},alt);
 		});
 		var sort11 = m.m("select",{ onchange : function(e) {
-			console.log("src/view/SongListView2.hx:35:",e.target.selectedIndex);
+			console.log("src/view/SongListView2.hx:38:",e.target.selectedIndex);
 			return view_SongListView2.sortindex = e.target.selectedIndex;
 		}, onblur : function(e1) {
-			console.log("src/view/SongListView2.hx:39:",e1.target.selectedIndex);
+			console.log("src/view/SongListView2.hx:42:",e1.target.selectedIndex);
 			return view_SongListView2.sortindex = e1.target.selectedIndex;
 		}},sort1);
 		this.items.sort(function(a,b) {
@@ -2743,18 +2749,19 @@ view_SongListView2.prototype = $extend(view_AppBaseView.prototype,{
 				return 0;
 			}
 		});
-		return m.m("div.songListView",[m.m("div.searchinput",[m.m("input[placeholder=Sök titel, upphovspersoner, besättning]",{ oninput : function(e2) {
-			return view_SongListView2.searchString = e2.target.value;
-		}, value : view_SongListView2.searchString}),sort11,m.m("span"," " + this.items.length + " låtar i listan")]),m.m("div.scorxlist",this.items.map(function(item1) {
-			var tmp = m.m("div.columnOne",[[m.m("span.title",item1.song.title),m.m("span.ensemble." + item1.song.ensemble,item1.song.ensemble),m.m("span.idnr",item1.song.scorxProductId)],item1.song.composer != "" ? m.m("div.orig",[m.m("span","musik:"),m.m("span",item1.song.composer)]) : null,item1.song.lyricist != "" ? m.m("div.orig",[m.m("span","text:"),m.m("span",item1.song.lyricist)]) : null,item1.song.arranger != "" ? m.m("div.orig",[m.m("span","arr:"),m.m("span",item1.song.arranger)]) : null]);
-			var e3 = item1.access;
-			return m.m("div.scorxitem",[tmp,m.m("div.columnTwo",m.m("div.scorxaccess",[m.m("p.smalltext","" + $hxEnums[e3.__enum__].__constructs__[e3._hx_index]),m.m("p.smalltext","" + Std.string(Type.enumParameters(item1.access)))])),m.m("div.columnThree",[m.m("button.round",{ onclick : function(e4) {
+		var songlist = m.m("div.scorxlist",this.items.map(function(item1) {
+			var songlist1 = m.m("div.columnOne",[[m.m("span.title",item1.song.title),m.m("span.ensemble." + item1.song.ensemble,item1.song.ensemble),m.m("span.idnr",item1.song.scorxProductId)],item1.song.composer != "" ? m.m("div.orig",[m.m("span","musik:"),m.m("span",item1.song.composer)]) : null,item1.song.lyricist != "" ? m.m("div.orig",[m.m("span","text:"),m.m("span",item1.song.lyricist)]) : null,item1.song.arranger != "" ? m.m("div.orig",[m.m("span","arr:"),m.m("span",item1.song.arranger)]) : null]);
+			var e2 = item1.access;
+			return m.m("div.scorxitem",[songlist1,m.m("div.columnTwo",m.m("div.scorxaccess",[m.m("p.smalltext","" + $hxEnums[e2.__enum__].__constructs__[e2._hx_index]),m.m("p.smalltext","" + Std.string(Type.enumParameters(item1.access)))])),m.m("div.columnThree",[m.m("button.round",{ onclick : function(e3) {
 				if(_gthis.onItemClick != null) {
 					_gthis.onItemClick(item1);
 				}
 				return;
 			}},"Play")])]);
-		}))]);
+		}));
+		return m.m("div.songListView",[m.m("div.searchinput",[m.m("input[placeholder=Sök titel, upphovspersoner, besättning]",{ oninput : function(e4) {
+			return view_SongListView2.searchString = e4.target.value;
+		}, value : view_SongListView2.searchString}),sort11,m.m("span"," " + this.items.length + " låtar i listan")]),songlist]);
 	}
 	,__class__: view_SongListView2
 });
