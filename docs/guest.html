@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="//fonts.googleapis.com/css?family=Open+Sans:400,300,600,700,800" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/colors.css">
+    <link rel="stylesheet" href="css/fonts.css">
+
+    <style>
+
+        body > * {
+            top: 0;
+            position:sticky;
+        }
+
+        .wide {
+            width: 100wv;
+            background: white;
+        }
+
+        .mid {
+            width: calc(100vw - 3rem);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .narrow {
+            width: calc(100vw - 3rem);
+            max-width: 800px;
+            margin: 0 auto;
+            /* background: #eef; */
+        }
+
+        .center-text {
+            text-align: center;
+        }
+
+
+        .vpad {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .grid2cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 4vmin;
+        }
+
+        .grid3cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-gap: 4vmin;
+        }
+
+        .imgbackground {
+            background-image: url("assets/img/jänta.jpg");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            min-height: 16em;
+        }
+
+        .color-scorxblue {
+            color: var(--scorxblue);
+        }
+
+        header {
+            padding: .4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        input {
+            border: 0;
+            background: #eee;
+            padding: .2rem .5rem;
+            border-radius: .6rem;
+        }
+
+        button {
+            border: 0;
+            padding: .15rem .5rem .2rem;
+            border-radius: .6rem;
+            background: var(--scorxblue);
+            color: white;
+            /* font-weight: re; */
+            /* text-transform: uppercase; */
+        }
+
+        .gradientblue {
+            background: #004C73;
+        }
+
+        footer {
+            min-height: 20vmin;
+            background: #555;
+            color: white;
+            position: inherit;
+        }
+
+    </style>
+</head>
+
+<body>
+    <!-- <img  src="https://unsplash.it/1000" alt="" srcset=""> -->
+    <header class="sticky">
+        <img style="height:2rem" src="assets/img/scorx.png">
+        <form>
+            <input style="width:9rem;" placeholder="e-postadress">
+            <input style="width:6rem;" type="password" placeholder="lösenord">
+            <button>Logga in</button>
+
+
+        </form>
+
+    </header>
+    <div class="wide sticky" style="background: var(--scorxcleargreen);color:white;">
+        <div class="mid grid2cols">
+            <div class="vpad" style="text-align: right;">
+                <h2>Välkommen till</h2>
+                <h1>Nya Scorx</h1>
+                <p style="font-size: 1.6rem;padding-left: 2rem;">Nya enklare Scorx...</p>
+            </div>
+            <div>
+                <img style="height:50vmin" src="assets/img/jänta.jpg" alt="">
+            </div>
+        </div>
+    </div>
+
+    <div class="wide vpad sticky">
+        <div class="mid grid3cols" style="min-height:10rem">
+            <div>
+                <h3 class="center-text">Nytt för körledare</h3>
+                <p class="center-text">I nya Scorx så kan du som körledare...</p>
+            </div>
+            <div>
+                <h3 class="center-text">Nytt för körsångare</h3>
+                <p class="center-text">Nu är det enklare än någonsin att...</p>
+            </div>
+            <div>
+                <h3 class="center-text">Nytt för ...</h3>
+                <p class="center-text">I nya Scorx så kan du...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="wide gradientblue sticy">
+
+        <div class="mid grid2cols vpad">
+            <div style="text-align: right;">
+                <img style="height:40vmin" src="assets/img/player.png" alt="">
+            </div>
+            <div class="" style="color: white">                
+                <h1 style="font-size:6vmin; line-height: 7vmin;">Lär dig din stämma - var du vill!</h1>
+                <p style="font-size:1.2rem;">Scorx är körsångarens bästa vän. Du kan... </p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="wide vpad sticky" style="background: #eee">
+            <div class="mid grid3cols" style="min-height:10rem">
+                <div>
+                    <h3 class="center-text">Över 1000 körsånger</h3>
+                    <p class="center-text">I Scorx spelar vi in med riktiga röster, och använder riktiga notbilder...</p>
+                </div>
+                <div>
+                    <h3 class="center-text">Lyssna och sjung med i din egen stämma</h3>
+                    <p class="center-text">Med hjälp av mixern kan du lyssna till och sjunga med i din egen stämma, eller valfri kombinataion av stämmor...</p>
+                </div>
+                <div>
+                    <h3 class="center-text">Nytt för ...</h3>
+                    <p class="center-text">I nya Scorx så kan du...</p>
+                </div>
+            </div>
+        </div>
+
+    <div class="wide sticky">
+        <div class="mid center-text vpad">
+            <h1 class="center-text">Pröva Scorx gratis!</h1>
+            <p style="font-size:1.2rem;">Klicka på titlarna nedan för att pröva Scorx.</p>
+            <img class="vpad" style="max-width: 100%" src="assets/img/gratislåtar.png" alt="">
+        </div>        
+    </div>
+
+    <footer>
+        <div class="mid vpad">Footer</div>
+    </footer>
+
+</body>
+
+</html>

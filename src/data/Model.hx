@@ -1,4 +1,11 @@
-package data;
+/**
+ * Datamodeller i Scorx 2019 Demo
+ * data.Model.hx
+ *
+ * Jonas Nyström
+ */
+
+package data; // Model.hx
 
 import js.Browser;
 import haxe.Json;
@@ -8,12 +15,6 @@ import data.KorakademinScorxItems;
 using cx.ArrayItems;
 using cx.Validation;
 
-/**
- * ---------------------------------------------------------------------------
- * Datamodeller i Scorx 2019 Demo
- * Jonas Nyström
- * ---------------------------------------------------------------------------
- */
 /**
  * Användare
  */
@@ -127,6 +128,13 @@ typedef ScorxAccessListItem = {
 	final access:ScorxAccess;
 }
 
+// enum SongListFunctions {
+// 	EditUser;
+// 	EditGroup;
+// 	BuyToUser;
+// 	BuyToGroup;
+// }
+
 /**
  * Kombinerbara celler Array<HomeCell> som används för att styra uppbyggnaden av Hemsidan för
  * de olika användarkategorierna (gäst, användare, ledare)
@@ -138,6 +146,7 @@ enum HomeCell {
 	Infoblobs(blobs:Array<Infoblob>); // Länkklickbara annons-utrymmen
 	SonglistHeader(title:String, info:String); // Rubrik för låtlista
 	Songlist2(accesses:Array<ScorxAccessListItem>); // Låtlista
+	Songlist3(title:String, accesses:Array<ScorxAccessListItem>); // Låtlista
 	SearchChoir; // Sökfält för att hitta kör
 	GroupAddSongs(group:Group); // Knappar för att lägga till låtar till gruppens lista
 	UserAddSongs(user:User); // kNappar för att lägga till låtar till användarens lista

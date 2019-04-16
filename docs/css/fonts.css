@@ -1,0 +1,21 @@
+
+html {
+    font-size: calc(1vmin + 8px);
+}
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    /* color: var(--scorxblue); */
+}
+
+ /* @media only screen and (min-height: 1000px) {
+    html {
+      font-size: 20px;
+    }
+  } */
+
+h1 {
+    font-size: 8vmin;
+    line-height: 9vmin;
+    padding-bottom: 2rem;
+} 

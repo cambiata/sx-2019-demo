@@ -40,9 +40,9 @@ class HomeView extends AppBaseView {
 				Image('assets/img/happy.jpg'),
 				Title('Pröva ScorX gratis!'),
 				Info('Klicka på valfri titel i listan nedan, lyssna och sjung med!'),
-				SonglistHeader('Gratis låtar', null),
-				// //Songlist('Gratislåtar', KorakademinScorxItems.songs(), [LicenseHolder('Upphovsrättsfri')]),
-				Songlist2(freeListItems),
+				// SonglistHeader('Gratis låtar', null),
+				// Songlist2(freeListItems),
+				Songlist3('Gratis låtar', freeListItems),
 			]),
 		];
 	} //-------------------------------------------------------------------------------------
@@ -67,8 +67,7 @@ class HomeView extends AppBaseView {
 
 		var groupLists = groups.map(group -> {
 			var accesses:Array<ScorxAccessListItem> = group.groupSongs.map(access -> ScorxAccessUtils.getAccessListItem(access)).array();
-			buildCells([SonglistHeader(group.name, null), // Songlist(group.name, KorakademinScorxItems.songs(), [SelectProductIds(group.songs)]),
-				Songlist2(accesses),]);
+			buildCells([Songlist3(group.name, accesses),]);
 		});
 
 		var choirsInfo = groupLists
@@ -105,8 +104,10 @@ class HomeView extends AppBaseView {
 			var groupIsSensus:Bool = this.store.groupIsSensusGroup(group);
 
 			buildCells([
-				SonglistHeader(group.name, null), // Songlist(group.name, KorakademinScorxItems.songs(), [SelectProductIds(group.songs)]),
-				Songlist2(accesses), // ListGroupMembers(group.name),
+				// SonglistHeader(group.name, null), // Songlist(group.name, KorakademinScorxItems.songs(), [SelectProductIds(group.songs)]),
+				// Songlist2(accesses), // ListGroupMembers(group.name),
+				Songlist3(group.name, accesses),
+
 				GroupAddSongs(group),
 				InviteGroupMembers(group.name),
 			]);
@@ -151,8 +152,9 @@ class HomeView extends AppBaseView {
 			buildCells([
 				Title('Mina låtar'),
 				Info('Här visas de låtar som du har köpt eller valt genom förmånserbjudanden.'),
-				SonglistHeader('Mina låtar', null),
-				Songlist2(myListItems),
+				// SonglistHeader('Mina låtar', null),
+				// Songlist2(myListItems),
+				Songlist3('Mina låtar', myListItems),
 				UserAddSongs(user),
 				ShowFreeSongsIfNothingElse(user),
 			]),
@@ -162,7 +164,7 @@ class HomeView extends AppBaseView {
 	//-------------------------------------------------------------------------------------
 	// Hjälpfunktioner för att skapa element på sidan
 
-	function buildCells(cells:Array<HomeCell>) {
+	public function buildCells(cells:Array<HomeCell>) {
 		function onSongClick(song:ScorxItem) {
 			// Browser.alert(song);
 			// this.store.update(this.store.state.playerSong = song);
@@ -187,6 +189,9 @@ class HomeView extends AppBaseView {
 
 				case Songlist2(items):
 					m('div.centerpad', new SongListView2(this.store, items, onListItemClick).view());
+
+				case Songlist3(title, items):
+					m('div.centerpad', new SongListView3(this.store, title, items, onListItemClick).view());
 
 				case SearchChoir:
 					// skapa lista för eventuella gruppansökningar för inloggad användare
