@@ -2183,7 +2183,8 @@ view_EmailView.prototype = $extend(view_AppBaseView.prototype,{
 				break;
 			}
 		} catch( e ) {
-			title = "Titeln för " + Std.string(mess) + " kan inte visas: " + Std.string(((e) instanceof js__$Boot_HaxeError) ? e.val : e);
+			var e1 = ((e) instanceof js__$Boot_HaxeError) ? e.val : e;
+			title = "Titeln för " + Std.string(mess) + " kan inte visas: " + Std.string(e1);
 		}
 		var message;
 		try {
@@ -2210,10 +2211,11 @@ view_EmailView.prototype = $extend(view_AppBaseView.prototype,{
 				message = _g1.text;
 				break;
 			}
-		} catch( e1 ) {
-			message = "Meddelandet för " + Std.string(mess) + " kan inte visas: " + Std.string(((e1) instanceof js__$Boot_HaxeError) ? e1.val : e1);
+		} catch( e2 ) {
+			var e3 = ((e2) instanceof js__$Boot_HaxeError) ? e2.val : e2;
+			message = "Meddelandet för " + Std.string(mess) + " kan inte visas: " + Std.string(e3);
 		}
-		return [m.m("details",[m.m("summary",title),m.m("p.emailSender","Avsändare: " + mess.from),m.m("p.emailMessage",{ onclick : function(e2) {
+		return [m.m("details",[m.m("summary",title),m.m("p.emailSender","Avsändare: " + mess.from),m.m("p.emailMessage",{ onclick : function(e4) {
 			_gthis.store.handleMessageClicks(mess);
 			return;
 		}},message)])];
