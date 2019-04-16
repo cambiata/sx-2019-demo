@@ -97,6 +97,61 @@
             color: white;
             position: inherit;
         }
+
+        .lightbox {
+            position: fixed;
+            top: 0;
+            /* left: -100vw; */
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, .8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(0, 0);            
+        }
+
+        .lightbox:target {
+            transform: scale(1, 1);
+        }
+
+        .lightbox > * {
+            width: 75%;
+            background: white;
+            position: relative;
+            transform: scale(0, 0);
+            transition: transform ease-in-out 300ms;
+        }
+
+        .lightbox:target > * {
+            transform: scale(1, 1);
+        }        
+
+
+        .close {
+            position: absolute;
+            width: 2em;
+            height: 2em;
+            background: red;
+            top: -1em;
+            right: -1em;
+            border-radius: 50%;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close::after {
+            content: 'X';
+            color: white;
+            font-weight: bold;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
     </style>
 </head>
 
@@ -116,7 +171,7 @@
     <div class="wide sticky" style="background: var(--scorxcleargreen);color:white;">
         <div class="mid " style="display: grid;grid-template-columns: 2fr 1fr;grid-gap: 4vmin;">
             <div class="vpad" style="text-align: right;">
-                <h2>Välkommen till</h2>
+                    <p style="font-size: 1.8rem;;line-height: 3rem;">Välkommen till</p>
                 <h1>Nya Scorx</h1>
                 <p style="font-size: 1.2rem;;line-height: 1.8rem;padding-left:3rem;">Enklare att spela, hitta och lära
                     sig körmusik med nya Scorx. Nu fler än 1000 låtar i Körakademins ständigt växande bibliotek!</p>
@@ -130,21 +185,34 @@
     <div class="wide vpad sticky">
         <div class="mid" style="min-height:10rem;display: grid;grid-template-columns: 1fr 1fr 1fr;grid-gap: 4vmin;">
             <div>
-                <h3 class="center-text">Nytt för körledare</h3>
-                <p class="center-text">Du som leder en Sensus-kör kan nu dela aktuell repertoar med dina körsångare - de
-                    får sina noter utan att behöva leta fram titlarna på egen hand.</p>
+                
+                <a href="#lightbox-01">
+                        <h3 class="center-text">Nytt för körledare</h3>
+                    <p class="center-text">Du som leder en Sensus-kör kan nu dela aktuell repertoar med dina körsångare
+                        - de
+                        får sina noter utan att behöva leta fram titlarna på egen hand.</p>
+                </a>
             </div>
             <div>
-                <h3 class="center-text">Nytt för körsångare</h3>
-                <p class="center-text">Om du sjunger i en Sensus-kör så kan din körledare dela aktuell repertoar med
-                    dej. Dessutom kan du som tidigare välja ett antal titlar på egen hand.</p>
+                <a href="#lightbox-02">
+                        <h3 class="center-text">Nytt för körsångare</h3>
+                    <p class="center-text">Om du sjunger i en Sensus-kör så kan din körledare dela aktuell repertoar med
+                        dej. Dessutom kan du som tidigare välja ett antal titlar på egen hand.</p>
+                </a>
             </div>
             <div>
-                <h3 class="center-text">Körakademin Plus ger dig mer</h3>
-                <p class="center-text">Som Sensus-sångare så kan du få tillgång till Körakademins hela låtbibliotek. Och dessutom notläsningsträning, röstutveckling och mycket annat.</p>
+                <a href="#lightbox-03">
+                        <h3 class="center-text">Körakademin Plus ger dig mer</h3>
+                    <p class="center-text">Som Sensus-sångare så kan du få tillgång till Körakademins hela låtbibliotek.
+                        Och
+                        dessutom notläsningsträning, röstutveckling och mycket annat.</p>
+                </a>
             </div>
         </div>
     </div>
+
+
+
 
     <div class="wide gradientblue sticy">
 
@@ -189,6 +257,33 @@
     <footer>
         <div class="mid vpad">Footer</div>
     </footer>
+
+
+    <div class="lightbox" id="lightbox-01">
+        <div style="width: 75%; height: 75%; padding: 3em;" >
+            <a href="#" class="close"></a>
+            <h2>Nytt för körledare</h2>
+            <p>Här finns information om vad som gäller...</p>
+        </div>
+    </div>
+
+    <div class="lightbox" id="lightbox-02">
+        <div style="width: 75%; height: 75%; padding: 3em;">
+            <a href="#" class="close"></a>
+            <h2>Nytt för körsångare</h2>
+            <p>Här finns information om vad som gäller...</p>
+        </div>
+    </div>
+    <div class="lightbox" id="lightbox-03">
+        <div style="width: 75%; height: 75%; padding: 3em;">
+            <a href="#" class="close"></a>
+            <h2>Körakademin Plus</h2>
+            <p>Här finns information om vad som gäller...</p>
+        </div>
+    </div>
+
+
+
 
 </body>
 

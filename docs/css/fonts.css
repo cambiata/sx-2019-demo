@@ -19,3 +19,15 @@ h1 {
     line-height: 8vmin;
     padding-bottom: 1rem;
 } 
+
+h2 {
+  font-size: 5vmin;
+  line-height: 5vmin;
+  padding-bottom: 1rem;
+} 
+
+h3 {
+  font-size: calc(1.2vmin + 10px);
+  line-height: calc(1.4vmin + 12px);
+  padding-bottom: 1rem;
+} 
