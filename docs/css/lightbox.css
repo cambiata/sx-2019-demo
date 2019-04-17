@@ -1,0 +1,50 @@
+
+        .lightbox {
+            position: fixed;
+            top: 0;
+            /* left: -100vw; */
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, .8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(0, 0);            
+        }
+
+        .lightbox:target {
+            transform: scale(1, 1);
+        }
+
+        .lightbox > * {
+            width: 75%;
+            background: white;
+            position: relative;
+            transform: scale(0, 0);
+            transition: transform ease-in-out 300ms;
+        }
+
+        .lightbox:target > * {
+            transform: scale(1, 1);
+        }        
+
+
+        .close {
+            position: absolute;
+            width: 2em;
+            height: 2em;
+            background: red;
+            top: -1em;
+            right: -1em;
+            border-radius: 50%;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close::after {
+            content: 'X';
+            color: white;
+            font-weight: bold;
+        }

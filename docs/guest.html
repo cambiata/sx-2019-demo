@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/colors.css">
     <link rel="stylesheet" href="css/fonts.css">
+    <link rel="stylesheet" href="css/lightbox.css">
 
     <style>
         body>* {
@@ -160,6 +161,7 @@
     <header class="sticky">
         <img style="height:2rem" src="assets/img/scorx.png">
         <form>
+            
             <input style="width:9rem;" placeholder="e-postadress">
             <input style="width:6rem;" type="password" placeholder="lösenord">
             <button>Logga in</button>
@@ -175,11 +177,18 @@
                 <h1>Nya Scorx</h1>
                 <p style="font-size: 1.2rem;;line-height: 1.8rem;padding-left:3rem;">Enklare att spela, hitta och lära
                     sig körmusik med nya Scorx. Nu fler än 1000 låtar i Körakademins ständigt växande bibliotek!</p>
+                    <button style="background:rgb(44, 100, 63)">Skapa konto</button>
             </div>
             <div style="display:flex; align-items:center;">
                 <img style="height:50vmin" src="assets/img/girl.jpg" alt="">
             </div>
         </div>
+    </div>
+
+    <div class="wide sticky old-korak vpad center-text" style="background:rgb(145, 5, 0); color:white;">
+        <a href="#lightbox-old-korak">
+            <p class="narrow" style="font-size: 1.4rem;">Använder du Scorx och repertoar från Körakademin sedan tidigare? Klicka här</p>
+        </a>
     </div>
 
     <div class="wide vpad sticky">
@@ -281,6 +290,14 @@
             <p>Här finns information om vad som gäller...</p>
         </div>
     </div>
+
+    <div class="lightbox" id="lightbox-old-korak">
+            <div style="width: 75%; height: 75%; padding: 3em;">
+                <a href="#" class="close"></a>
+                <h3>Nyheter för dej är deltagare i Scorx-gruppen Körakademin Sensus</h3>
+                <p>Här finns information om vad som gäller...</p>
+            </div>
+        </div>    
 
 
 

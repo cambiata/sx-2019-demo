@@ -31,3 +31,11 @@ h3 {
   line-height: calc(1.4vmin + 12px);
   padding-bottom: 1rem;
 } 
+
+input, button {
+  font-size: calc(1vmin + 8px);
+}
+
+button {
+  cursor:pointer;
+}
