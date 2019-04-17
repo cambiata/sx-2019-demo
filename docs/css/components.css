@@ -1,0 +1,28 @@
+input, button {
+    font-size: calc(1vmin + 8px);
+}
+
+input {
+    padding: .2rem .8rem;
+    border: 1px solid var(--scorxblue);
+    background: white;
+    border-radius: .8rem;
+}
+
+
+button {
+    padding: .3rem .8rem;
+    border-radius: .8rem;
+    border: 0;
+    margin: 0 0.3em 0.3em 0;
+    color: #FFFFFF;
+    background: var(--scorxblue);
+    text-align: center;
+    cursor: pointer;
+    /* transition: all 0.1s; */
+}
+
+
+button:active {
+    color: #DDD;
+}

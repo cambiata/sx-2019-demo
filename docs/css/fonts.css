@@ -32,10 +32,3 @@ h3 {
   padding-bottom: 1rem;
 } 
 
-input, button {
-  font-size: calc(1vmin + 8px);
-}
-
-button {
-  cursor:pointer;
-}
